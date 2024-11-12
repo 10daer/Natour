@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 
 process.on("uncaughtException", err => {
-  console.log(err.name, err.message);
+  console.log(err.name, err.message, err);
   console.log("UNCAUGHT EXCEPTION! Shutting down...");
 
   process.exit(1);
@@ -13,10 +13,14 @@ dotenv.config({ path: "./config.env" });
 
 const app = require("./app");
 
-const DB = process.env.DATABASE_CLOUD.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
+// For the online mongoDB Atlas
+// const DB = process.env.DATABASE_CLOUD.replace(
+//   "<PASSWORD>",
+//   process.env.DATABASE_PASSWORD
+// );
+
+// For the Local MongoDB STorage
+const DB = process.env.DATABASE_LOCAL;
 
 mongoose
   .connect(DB, {

@@ -105,7 +105,7 @@ exports.restriction = (...roles) => (req, res, next) => {
   next();
 };
 
-exports.forgetPassword = catchAsync(async (req, res, next) => {
+exports.forgotPassword = catchAsync(async (req, res, next) => {
   const user = await Users.findOne({ email: req.body.email });
 
   if (!user) {
@@ -120,10 +120,10 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
     const resetUrl = `${req.protocol}://${req.hostname}/users/resetpassword/${resetToken}`;
 
     const subject = "Natour Password Reset Request (Only valid for 10mins)";
-    const recipientmail = `${user.name} <${user.email}>`;
+    const recipientEmail = `${user.name} <${user.email}>`;
     const message = `You recently requested to reset the password for your Natour account. Click the link below to proceed. If you did not request a password reset, please ignore this email. This password reset link is only valid for the next 10 minutes. \n ${resetUrl}`;
 
-    await sendEmail({ email: recipientmail, message, subject });
+    await sendEmail({ email: recipientEmail, message, subject });
   } catch (error) {
     user.passwordResetToken = undefined;
     user.passwordTokenExpiryDate = undefined;

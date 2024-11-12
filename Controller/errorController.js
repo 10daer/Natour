@@ -60,7 +60,7 @@ const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = `${err.statusCode}`.startsWith("4") ? "fail" : "error";
 
-  if (process.env.NODE_ENV === "developement") {
+  if (process.env.NODE_ENV === "development") {
     res.status(err.statusCode).json({
       status: err.status,
       error: err,

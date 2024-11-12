@@ -1,32 +1,49 @@
 const express = require("express");
 
-const Router = express.Router();
 const {
   getAllUsers,
   getUser,
   deleteUser,
-  updateUserData
+  updateUser,
+  createUser,
+  updateMe,
+  deleteMe,
+  getMe
 } = require("../Controller/userController");
 const {
   signUp,
   logIn,
   protectedRoute,
-  forgetPassword,
+  forgotPassword,
   resetPassword,
-  updatePassword
+  updatePassword,
+  restriction
 } = require("../Controller/authController");
+
+const Router = express.Router();
 
 Router.post("/signup", signUp);
 Router.post("/login", logIn);
-
-Router.post("/forgetpassword", forgetPassword);
+Router.post("/forgotpassword", forgotPassword);
 Router.patch("/resetpassword/:token", resetPassword);
-Router.patch("/update-password", protectedRoute, updatePassword);
-Router.patch("/update-my-data", protectedRoute, updateUserData);
-Router.delete("/delete-me", protectedRoute, deleteUser);
 
-Router.get("/", getAllUsers);
-Router.get("/:id", getUser);
+// Protect all routes after this middleware only for the authorized
+Router.use(protectedRoute);
+
+Router.patch("/update-password", updatePassword);
+Router.get("/me", getMe, getUser);
+Router.patch("/update-me", updateMe);
+Router.delete("/delete-me", deleteMe);
+
+Router.use(restriction("admin"));
+
+Router.route("/")
+  .get(getAllUsers)
+  .post(createUser);
+Router.route("/:id")
+  .get(getUser)
+  .patch(updateUser)
+  .delete(deleteUser);
 
 // Router.route("/")
 //   .get(protectedRoute, getAllUsers)

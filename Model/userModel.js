@@ -24,12 +24,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "A password must be provided"],
-    minLength: [8, "Your password must contain more than 8 characters"]
+    minLength: [8, "Your password must contain more than 8 characters"],
+    select: false
   },
   passwordConfirm: {
     type: String,
     required: [true, "Please confirm your password"],
     validate: {
+      // This only works on CREATE and SAVE!!!
       validator: function(val) {
         return this.password === val;
       },
@@ -48,17 +50,26 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", async function(next) {
-  if (!this.isModified("password") && !this.isNew) return next();
+  // Only run this function if password was actually modified
+  if (!this.isModified("password")) return next();
 
+  // Hash the password with cost of 12
   this.password = await bcrypt.hash(this.password, 12);
 
+  // Delete passwordConfirm field
   this.passwordConfirm = undefined;
+  next();
+});
 
-  this.passwordCreatedAt = Date.now() - 1000;
+userSchema.pre("save", function(next) {
+  if (!this.isModified("password") || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
   next();
 });
 
 userSchema.pre(/^find/, function(next) {
+  // this points to the current query
   this.find({ active: { $ne: false } });
   next();
 });
@@ -79,9 +90,10 @@ userSchema.methods.generateToken = function() {
 
 userSchema.methods.verifyPasswordChange = function(jwtTimestamp) {
   if (this.passwordCreatedAt) {
-    const formatedDate = parseInt(this.passwordCreatedAt.getTime() / 1000, 10);
-    return +formatedDate > +jwtTimestamp;
+    const formattedDate = parseInt(this.passwordCreatedAt.getTime() / 1000, 10);
+    return +formattedDate > +jwtTimestamp;
   }
+  // False means NOT changed
   return false;
 };
 

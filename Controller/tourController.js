@@ -1,10 +1,11 @@
 /////////////////////////////////////////////////////////////
 //      USING MONGODB AS OUR DATABASE
 /////////////////////////////////////////////////////////////
+// const APIFeatures = require("../Utils/apiFeatures");
 const Tours = require("../Model/tourModel");
-const APIFeatures = require("../Utils/apiFeatures");
-const { AppError } = require("../Utils/appErrors");
 const catchAsync = require("../Utils/catchAsync");
+const { AppError } = require("../Utils/appErrors");
+const factory = require("./handlerFactory");
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.fields = "name,price,summary,ratingsAverage,difficulty";
@@ -13,66 +14,11 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.uncaughtRoutes = (req, res, next) => {
-  next(new AppError(`Can't find the ${req.originalUrl} in the server`, 404));
-};
-
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(Tours.find(), req.query)
-    .filter()
-    .sort()
-    .limit()
-    .paginate();
-  const tours = await features.query;
-
-  res.status(200).json({
-    status: "success",
-    result: tours.length,
-    data: { tours }
-  });
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tours.findById(req.params.id);
-
-  if (!tour) {
-    return next(new AppError("Can't find any tour with that ID", 404));
-  }
-
-  res.status(200).json({
-    status: "success",
-    data: { tour }
-  });
-});
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const UpdatedTour = await Tours.findByIdAndUpdate(req.params.id, {
-    new: true,
-    runValidators: true
-  });
-
-  if (!UpdatedTour) {
-    return next(new AppError("Can't find any tour with that ID", 404));
-  }
-
-  res.status(200).json({
-    status: "success",
-    body: { UpdatedTour }
-  });
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tours.findByIdAndDelete(req.params.id);
-
-  if (!tour) {
-    return next(new AppError("Can't find any tour with that ID", 404));
-  }
-
-  res.status(204).json({
-    status: "success",
-    data: null
-  });
-});
+exports.getAllTours = factory.getAll(Tours);
+exports.getTour = factory.getOne(Tours, { path: "reviews" });
+exports.addTour = factory.createOne(Tours);
+exports.updateTour = factory.updateOne(Tours);
+exports.deleteTour = factory.deleteOne(Tours);
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tours.aggregate([
@@ -91,6 +37,9 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     {
       $sort: { avgPrice: 1 }
     }
+    // {
+    //   $match: { _id: { $ne: 'EASY' } }
+    // }
   ]);
 
   res.status(200).json({
@@ -145,24 +94,160 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.addTour = catchAsync(async (req, res, next) => {
-  // OLD WAY OF CREATING A DOCUMENT
-  // const testTour = new Tours({ name: "First", price: 453, rating: 4.7 });
-  // testTour
-  //   .save()
-  //   .then(doc => {
-  //     console.log(doc);
-  //   })
-  //   .catch(err => console.log(err));
+// /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-within/233/center/34.111745,-118.113491/unit/mi
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(",");
 
-  // NEW WAY OF CREATING DOCUMENT
-  const newTour = await Tours.create(req.body);
+  const radius = unit === "mi" ? distance / 3963.2 : distance / 6378.1;
 
-  res.status(201).json({
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        "Please provide latitutr and longitude in the format lat,lng.",
+        400
+      )
+    );
+  }
+
+  const tours = await Tours.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+  });
+
+  res.status(200).json({
     status: "success",
-    data: { tour: newTour }
+    results: tours.length,
+    data: {
+      data: tours
+    }
   });
 });
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(",");
+
+  const multiplier = unit === "mi" ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        "Please provide latitutr and longitude in the format lat,lng.",
+        400
+      )
+    );
+  }
+
+  const distances = await Tours.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: "Point",
+          coordinates: [lng * 1, lat * 1]
+        },
+        distanceField: "distance",
+        distanceMultiplier: multiplier
+      }
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1
+      }
+    }
+  ]);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: distances
+    }
+  });
+});
+
+exports.uncaughtRoutes = (req, res, next) => {
+  next(new AppError(`Can't find the ${req.originalUrl} in the server`, 404));
+};
+
+//////////////////
+//  Before Refactoring
+////////////////////////
+// exports.getAllTours = catchAsync(async (req, res, next) => {
+//   const features = new APIFeatures(Tours.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limit()
+//     .paginate();
+//   const tours = await features.query;
+
+//   res.status(200).json({
+//     status: "success",
+//     result: tours.length,
+//     data: { tours }
+//   });
+// });
+
+// exports.getTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tours.findById(req.params.id);
+
+//   if (!tour) {
+//     return next(new AppError("Can't find any tour with that ID", 404));
+//   }
+
+//   res.status(200).json({
+//     status: "success",
+//     data: { tour }
+//   });
+// });
+
+// exports.addTour = catchAsync(async (req, res, next) => {
+//   // NEW WAY OF CREATING DOCUMENT
+//   const newTour = await Tours.create(req.body);
+
+//   res.status(201).json({
+//     status: "success",
+//     data: { tour: newTour }
+//   });
+
+//   // OLD WAY OF CREATING A DOCUMENT
+//   // const testTour = new Tours({ name: "First", price: 453, rating: 4.7 });
+//   // testTour
+//   //   .save()
+//   //   .then(doc => {
+//   //     console.log(doc);
+//   //   })
+//   //   .catch(err => console.log(err));
+// });
+
+// exports.updateTour = catchAsync(async (req, res, next) => {
+//   const UpdatedTour = await Tours.findByIdAndUpdate(req.params.id, {
+//     new: true,
+//     runValidators: true
+//   });
+
+//   if (!UpdatedTour) {
+//     return next(new AppError("Can't find any tour with that ID", 404));
+//   }
+
+//   res.status(200).json({
+//     status: "success",
+//     body: { UpdatedTour }
+//   });
+// });
+
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tours.findByIdAndDelete(req.params.id);
+
+//   if (!tour) {
+//     return next(new AppError("Can't find any tour with that ID", 404));
+//   }
+
+//   res.status(204).json({
+//     status: "success",
+//     data: null
+//   });
+// });
 
 /////////////////////////////////////////////////////////////
 // USING OUR OWN DATABASE(data.json)
