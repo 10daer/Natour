@@ -6,12 +6,18 @@
   "scripts": {
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
-    "debug": "ndb server.js"
+    "debug": "ndb server.js",
+    "watch:js": "webpack --watch",
+    "build:js": "webpack"
   },
   "author": "10daer",
   "license": "ISC",
   "dependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-mongo-sanitize": "^2.2.0",
@@ -20,13 +26,17 @@
     "helmet": "^7.1.0",
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
+    "leaflet": "^1.9.4",
     "mongodb": "^6.1.0",
     "mongoose": "^5.13.20",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.13",
+    "pug": "^3.0.3",
+    "slugify": "^1.6.6",
     "validator": "^13.11.0"
   },
   "devDependencies": {
+    "babel-loader": "^9.2.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^4.1.0",
@@ -35,7 +45,9 @@
     "eslint-plugin-node": "^8.0.1",
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-react": "^7.12.4",
-    "prettier": "^1.17.0"
+    "prettier": "^1.17.0",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
   },
   "engines": {
     "node": ">=10.0.0"

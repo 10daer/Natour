@@ -1,17 +1,60 @@
 const { AppError } = require("../Utils/appErrors");
 
-const handleProdErr = (err, res) => {
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message
-    });
-  } else {
-    res.status(500).json({
+const handleProdErr = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith("/api")) {
+    // A) Operational, trusted error: send message to client
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message
+      });
+    }
+    // B) Programming or other unknown error: don't leak error details
+    // 1) Log error
+    console.error("ERROR 💥", err);
+    // 2) Send generic message
+    return res.status(500).json({
       status: "error",
-      message: "Something went wrong!"
+      message: "Something went very wrong!"
     });
   }
+
+  // B) RENDERED WEBSITE
+  // A) Operational, trusted error: send message to client
+  if (err.isOperational) {
+    console.log(err);
+    return res.status(err.statusCode).render("error", {
+      title: "Something went wrong!",
+      msg: err.message
+    });
+  }
+  // B) Programming or other unknown error: don't leak error details
+  // 1) Log error
+  console.error("ERROR 💥", err);
+  // 2) Send generic message
+  return res.status(err.statusCode).render("error", {
+    title: "Something went wrong!",
+    msg: "Please try again later."
+  });
+};
+
+const handleDevErr = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      error: err,
+      stack: err.stack,
+      message: err.message
+    });
+  }
+  // B) RENDERED WEBSITE
+  console.error("ERROR 💥", err);
+  return res.status(err.statusCode).render("error", {
+    title: "Something went wrong!",
+    msg: err.message
+  });
 };
 
 const handleCastErrorDB = err => {
@@ -61,12 +104,7 @@ const globalErrorHandler = (err, req, res, next) => {
   err.status = `${err.statusCode}`.startsWith("4") ? "fail" : "error";
 
   if (process.env.NODE_ENV === "development") {
-    res.status(err.statusCode).json({
-      status: err.status,
-      error: err,
-      stack: err.stack,
-      message: err.message
-    });
+    handleDevErr(err, req, res);
   } else if (process.env.NODE_ENV === "production") {
     let error = { ...err };
     error.message = err.message;
