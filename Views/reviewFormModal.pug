@@ -1,0 +1,24 @@
+.popup#popup
+    .popup__content
+        h2.popup-heading.u-center-text Add a review
+        a.popup__close(href="#cta")= "×"
+        div
+            .popup__content-desc
+                h3.heading-tertiary.u-margin-bottom-small Important – Please read these terms before booking
+                p.popup__text
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sed sed risus pretium quam. Aliquam sem et tortor consequat id. Volutpat odio facilisis mauris sit amet massa vitae. Mi bibendum neque egestas congue. Placerat orci nulla pellentesque dignissim enim sit. Vitae semper quis lectus nulla at volutpat diam ut venenatis. Malesuada pellentesque elit eget gravida cum sociis natoque penatibus et. Proin fermentum leo vel orci porta non pulvinar neque laoreet. Gravida neque convallis a cras semper. Molestie at elementum eu facilisis sed odio morbi quis. Faucibus vitae aliquet nec ullamcorper sit amet risus nullam eget. Nam libero justo laoreet sit. Amet massa vitae tortor condimentum lacinia quis vel eros donec. Sit amet facilisis magna etiam. Imperdiet sed
+                a.terms(href="/#form")
+                    input.term-condition(type= "checkbox")
+                    span I have read the terms and condition
+
+            form.form  
+                h3.heading-tertiary.u-margin-bottom-small Write a review about your tour experience.     
+                .form__group
+                    textarea.form__input(type="text" placeholder="Enter Your Review" id="review" required="")
+                .form__group
+                    .popup-reviews__rating(data-rating= "")
+                        each star,index in [1,2,3,4,5]
+                            svg.popup-reviews__star(data-index= star)
+                                use(xlink:href='/img/icons.svg#icon-star')
+                    label.form__label(for="review") Rate your experience
+                button.btn.create-review-btn.btn--green Submit Review →

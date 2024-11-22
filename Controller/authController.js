@@ -4,7 +4,7 @@ const { sign, verify } = require("jsonwebtoken");
 const Users = require("../Model/userModel");
 const catchAsync = require("../Utils/catchAsync");
 const { AppError } = require("../Utils/appErrors");
-const sendEmail = require("../Utils/sendEmail");
+const Email = require("../Utils/sendEmail");
 
 const signToken = id =>
   sign({ id }, process.env.JWT_SECRET_KEY, {
@@ -43,6 +43,8 @@ exports.signUp = catchAsync(async (req, res, next) => {
     role: req.body.role
   };
   const newUser = await Users.create(newUserObj);
+  const url = `${req.protocol}://${req.get("host")}/me`;
+  // await new Email(newUser, url).sendWelcome();
   const token = signToken(newUser._id);
 
   responseWithToken(newUser, res, 201, token);
@@ -67,7 +69,7 @@ exports.logIn = catchAsync(async (req, res, next) => {
 });
 
 exports.logout = (req, res) => {
-  res.cookie("jwt", "logout", {
+  res.cookie("jwt", "logged-out", {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
@@ -113,19 +115,19 @@ exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
       // 1) verify token
-      const decoded = await promisify(jwt.verify)(
+      const decoded = await promisify(verify)(
         req.cookies.jwt,
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET_KEY
       );
 
       // 2) Check if user still exists
-      const currentUser = await User.findById(decoded.id);
+      const currentUser = await Users.findById(decoded.id);
       if (!currentUser) {
         return next();
       }
 
       // 3) Check if user changed password after the token was issued
-      if (currentUser.changedPasswordAfter(decoded.iat)) {
+      if (currentUser.verifyPasswordChange(decoded.iat)) {
         return next();
       }
 
@@ -157,20 +159,22 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   try {
     const resetToken = user.generateToken();
+    await user.save({ validateBeforeSave: false });
 
-    user.save({ validateBeforeSave: false });
+    const resetUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/resetpassword/${resetToken}`;
 
-    const resetUrl = `${req.protocol}://${req.hostname}/users/resetpassword/${resetToken}`;
-
-    const subject = "Natour Password Reset Request (Only valid for 10mins)";
-    const recipientEmail = `${user.name} <${user.email}>`;
-    const message = `You recently requested to reset the password for your Natour account. Click the link below to proceed. If you did not request a password reset, please ignore this email. This password reset link is only valid for the next 10 minutes. \n ${resetUrl}`;
-
-    await sendEmail({ email: recipientEmail, message, subject });
+    console.log(resetUrl);
+    // await new Email(user, resetUrl).sendPasswordReset();
+    res.status(200).json({
+      status: "success",
+      message: "The reset link has been successfully sent to your mail"
+    });
   } catch (error) {
     user.passwordResetToken = undefined;
     user.passwordTokenExpiryDate = undefined;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
     return next(
       new AppError(
         "An unexpected error occurred while sending the password reset email. Please try again later.",
@@ -178,13 +182,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       )
     );
   }
-
-  user.password = undefined;
-
-  res.status(200).json({
-    status: "success",
-    message: "The reset link has been successfully sent to your mail"
-  });
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
@@ -208,9 +205,14 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordTokenExpiryDate = undefined;
   await user.save();
 
-  const token = signToken(user._id);
+  // const token = signToken(user._id);
 
-  responseWithToken(user, res, 200, token);
+  // responseWithToken(user, res, 200, token);
+
+  res.status(200).json({
+    status: "success",
+    message: "Your password has been reset successfully."
+  });
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {

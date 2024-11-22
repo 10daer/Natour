@@ -1,0 +1,26 @@
+mixin navList(link,index,label,action)
+    li.navigation__item
+        a.navigation__link(href= link class=`${action ? action : ''}`) 
+            span= index 
+            = label
+
+.navigation
+    input.navigation__checkbox#navigation-toggle(type="checkbox")
+    label.navigation__button(for="navigation-toggle")
+        span.navigation__icon &nbsp;
+    .navigation__background &nbsp;
+    nav.navigation__nav
+        ul.navigation__list            
+            +navList("/",01,"Home")         
+            +navList("/all-tours",02,"All Tours")   
+            if user
+                +navList(" ",04,"Log Out","nav__el--logout") 
+                li.navigation__item
+                    a.navigation__link.nav__el(href='/me')
+                        img.nav__user-img(src=`/img/users/${user.photo}` alt=`Photo of ${user.name}`)
+                        span= user.name.split(' ')[0]
+            else                
+                +navList("/login",03,"Log in") 
+
+        
+            

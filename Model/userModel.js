@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
       message: "Your password is incorrect. Please enter  the correct password"
     }
   },
-  photo: String,
+  photo: { type: String, default: "default.jpg" },
   passwordCreatedAt: Date,
   passwordResetToken: String,
   passwordTokenExpiryDate: Date,

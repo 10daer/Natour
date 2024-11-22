@@ -1,0 +1,123 @@
+extends base
+include _tourCard.pug
+
+block append head
+    link(rel="stylesheet" href="/css/home.css")
+    link(rel="stylesheet" href="/css/tourCard.css")
+
+
+//- Mixins
+mixin sectionTitle(title)
+    .u-center-text.u-margin-bottom-big
+        h2.heading-secondary= title
+
+mixin featureBox(icon, title, text)
+    .col-1-of-4
+        .feature-box
+            i.feature-box__icon(class=`icon-basic-${icon}`)
+            h3.home-heading-tertiary.u-margin-bottom-small= title
+            p.feature-box__text= text     
+
+mixin story(image, name,  text)
+    .story
+        figure.story__shape
+            img.story__img(src=`/img/users/${image}` alt=`${name} on adventure`)
+            figcaption.story__caption= name
+        .story__text
+            h3.home-heading-tertiary.u-margin-bottom-small= `${name.split(" ").at(0)}'s words`
+            p= text
+
+block content
+    main
+        section.home-header__hero
+            .header__hero-overlay &nbsp;
+            img.header__hero-img(src=`/img/tours/${topTours[0].imageCover}`, alt="Hero Photo")
+
+            .home-heading-box
+                h1.home-heading-primary
+                    span.heading-primary-main Outdoors
+                    span.heading-primary--sub Unleash the Adventure Within
+                a.btn.btn--white.btn--animated(href="/all-tours") Discover an Experience
+
+        section.section-about
+            +sectionTitle('Exciting Tours for Adventurous Spirits')
+
+            .row
+                .col-1-of-2
+                    h3.home-heading-tertiary.u-margin-bottom-small Discover Nature's Hidden Wonders
+                    p.paragraph Embark on a journey that will transform your perspective forever. Our carefully crafted adventures take you deep into the world's most breathtaking landscapes, where every step reveals nature's untold stories and every moment becomes an unforgettable memory.
+
+                    h3.home-heading-tertiary.u-margin-bottom-small Push Your Boundaries, Find Your Path
+                    p.paragraph Challenge yourself in ways you never imagined possible. From scaling majestic peaks to traversing pristine wilderness, our expeditions aren't just trips – they're life-changing experiences that awaken your adventurous spirit.
+
+                    a.btn-text(href="/all-tours") Explore More →
+
+                .col-1-of-2
+                    .composition
+                        each index in [0, 1, 2]
+                            img.composition__photo(
+                            class=`composition__photo--p${index+1}`
+                            srcset=`/img/tours/${topTours[index].images[0]} 300w, /img/tours/${topTours[index].images[1]} 300w, img 1000w`
+                            sizes="(max-width: 56.25em) 20vw, (max-width: 37.5em) 30vw, 300px"
+                            alt=`Adventure photo ${index}`
+                            src=`/img/tours/${topTours[index].images[0]} 300w, img`
+                            )
+
+        section.section-features
+            .row
+                +featureBox('world', 'Explore the World', 'Journey to Earth\'s most remarkable destinations, from hidden tropical paradises to towering mountain peaks. Each expedition opens doors to new cultures and untamed wilderness.')
+                +featureBox('compass', 'Connect with Nature', 'Immerse yourself in the raw beauty of the natural world. Our expert guides help you discover the subtle rhythms and hidden wonders of each unique ecosystem.')
+                +featureBox('map', 'Chart Your Course', 'Whether you\'re a seasoned explorer or first-time adventurer, we\'ll help you navigate your perfect journey through the world\'s most spectacular landscapes.')
+                +featureBox('heart', 'Transform Your Life', 'Experience the profound physical and mental benefits of outdoor adventure. Return home renewed, inspired, and connected to both nature and yourself.')
+
+        section#section-tours.section-tours
+            .card-container
+                .u-center-text.u-sticky
+                    +sectionTitle('Unforgettable Adventures Await')
+
+                each tour in topTours
+                    +tourCard(tour)
+          
+
+            .u-center-text.u-margin-top-huge
+                a.btn.btn--green(href="#") Discover All Adventures
+
+        section.stories-book-form
+            .section-stories            
+                +sectionTitle('Real Adventures, Real Stories')
+
+                .stories.slider-rtl                    
+                    each story in reviews
+                        +story(story.user.photo, story.user.name, story.review)
+
+            .section-book
+                .form-row
+                    +sectionTitle('Begin Your Adventure')
+                    
+                    form.form.book__form(action="#")                    
+                        each field in ['name', 'email']
+                            .home-form__group
+                                input(
+                                id=field
+                                class="form__input"
+                                type=field
+                                placeholder=field.charAt(0).toUpperCase() + field.slice(1)
+                                required
+                                )
+                                label.form__label(for=field)= field.charAt(0).toUpperCase() + field.slice(1)
+
+                        .home-form__group.u-margin-bottom-medium
+                            each size in ['small', 'large']
+                                .form__radio-group
+                                input(
+                                    id=size
+                                    class="form__radio-input"
+                                    type="radio"
+                                    name="size"
+                                )
+                                label.form__radio-label(for=size)
+                                    span.form__radio-button
+                                    = size === 'small' ? 'Intimate Adventure Group' : 'Extended Expedition Group'
+
+                        .home-form__group
+                        button.btn.btn--green Start Your Journey →

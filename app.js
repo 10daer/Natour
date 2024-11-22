@@ -14,6 +14,7 @@ const tourRouter = require("./Routes/tourRoutes");
 const userRouter = require("./Routes/userRoutes");
 const reviewRouter = require("./Routes/reviewRoutes");
 const viewRouter = require("./Routes/viewRoutes");
+const bookingRouter = require("./Routes/bookingRoutes");
 const { uncaughtRoutes } = require("./Controller/tourController");
 const globalErrorHandler = require("./Controller/errorController");
 
@@ -31,16 +32,20 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://unpkg.com"],
+      scriptSrc: ["'self'", "https://unpkg.com", "https://js.stripe.com/v3/"],
       imgSrc: [
         "'self'",
         "data:",
         "https://tile.openstreetmap.fr",
-        "https://unpkg.com"
+        "https://unpkg.com",
+        "https://*.tile.openstreetmap.org",
+        "https://*.openstreetmap.fr",
+        "https://*.openstreetmap.org"
       ],
       styleSrc: ["'self'", "https://unpkg.com", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", process.env.API_URL]
+      connectSrc: ["'self'", process.env.API_URL],
+      frameSrc: ["'self'", "https://js.stripe.com/"]
     }
   })
 );
@@ -100,7 +105,7 @@ app.use(
 // Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  // console.log(req.headers);
+  // console.log(req.cookies);
   next();
 });
 
@@ -109,6 +114,7 @@ app.use("/", viewRouter);
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/reviews", reviewRouter);
+app.use("/api/v1/bookings", bookingRouter);
 
 app.all("*", uncaughtRoutes);
 

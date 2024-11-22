@@ -16,138 +16,34 @@ __webpack_require__.r(__webpack_exports__);
 /* eslint-disable */
 
 var hideAlert = function hideAlert() {
-  var el = document.querySelector('.alert');
+  var el = document.querySelector(".alert");
   if (el) el.parentElement.removeChild(el);
 };
 
 // type is 'success' or 'error'
 var showAlert = function showAlert(type, msg) {
   hideAlert();
-  var markup = "<div class=\"alert alert--".concat(type, "\">").concat(msg, "</div>");
-  document.querySelector('body').insertAdjacentHTML('afterbegin', markup);
+  var markup = "<div class=\"alert alert--".concat(type, "\"><svg>\n        <use xlink:href=\"img/icons.svg#icon-alert-").concat(type === "error" ? "triangle" : "bookmark", "\"></use></svg><span>").concat(msg, "</span></div>");
+  document.querySelector("body").insertAdjacentHTML("afterbegin", markup);
   window.setTimeout(hideAlert, 5000);
 };
 
 /***/ }),
 
-/***/ "./public/js/leaflet.js":
-/*!******************************!*\
-  !*** ./public/js/leaflet.js ***!
-  \******************************/
+/***/ "./public/js/auth.js":
+/*!***************************!*\
+  !*** ./public/js/auth.js ***!
+  \***************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   displayMap: () => (/* binding */ displayMap)
-/* harmony export */ });
-// /* eslint-disable */
-// export const displayMap = locations => {
-//   mapboxgl.accessToken =
-//     'pk.eyJ1Ijoiam9uYXNzY2htZWR0bWFubiIsImEiOiJjam54ZmM5N3gwNjAzM3dtZDNxYTVlMnd2In0.ytpI7V7w7cyT1Kq5rT9Z1A';
-
-//   var map = new mapboxgl.Map({
-//     container: 'map',
-//     style: 'mapbox://styles/jonasschmedtmann/cjvi9q8jd04mi1cpgmg7ev3dy',
-//     scrollZoom: false
-//     // center: [-118.113491, 34.111745],
-//     // zoom: 10,
-//     // interactive: false
-//   });
-
-//   const bounds = new mapboxgl.LngLatBounds();
-
-//   locations.forEach(loc => {
-//     // Create marker
-//     const el = document.createElement('div');
-//     el.className = 'marker';
-
-//     // Add marker
-//     new mapboxgl.Marker({
-//       element: el,
-//       anchor: 'bottom'
-//     })
-//       .setLngLat(loc.coordinates)
-//       .addTo(map);
-
-//     // Add popup
-//     new mapboxgl.Popup({
-//       offset: 30
-//     })
-//       .setLngLat(loc.coordinates)
-//       .setHTML(`<p>Day ${loc.day}: ${loc.description}</p>`)
-//       .addTo(map);
-
-//     // Extend map bounds to include current location
-//     bounds.extend(loc.coordinates);
-//   });
-
-//   map.fitBounds(bounds, {
-//     padding: {
-//       top: 200,
-//       bottom: 150,
-//       left: 100,
-//       right: 100
-//     }
-//   });
-// };
-
-/* eslint-disable */
-var displayMap = function displayMap(locations) {
-  // Initialize map with correct coordinate order - Leaflet uses [lat, lng]
-  var map = L.map("map").setView([34.111745, -118.113491], 10); // Note the swapped coordinates
-
-  // Initialize bounds
-  var bounds = L.latLngBounds();
-
-  // Add tile layer
-  L.tileLayer("https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
-
-  // Add markers and popups
-  locations.forEach(function (loc) {
-    // Ensure coordinates are in [lat, lng] order
-    var coordinates = Array.isArray(loc.coordinates) ? [loc.coordinates[1], loc.coordinates[0]] : loc.coordinates;
-
-    // Add marker
-    var marker = L.marker(coordinates).bindPopup("<p>Day ".concat(loc.day, ": ").concat(loc.description, "</p>"), {
-      maxWidth: 250,
-      minWidth: 100,
-      autoClose: false,
-      closeOnClick: false
-    }).addTo(map);
-
-    // Extend bounds to include this location
-    bounds.extend(coordinates);
-  });
-  console.log(bounds);
-  // Fit bounds if there are any locations
-  if (locations.length > 0 && bounds.isValid()) {
-    map.fitBounds(bounds, {
-      padding: {
-        top: 200,
-        bottom: 150,
-        left: 100,
-        right: 100
-      }
-    });
-  }
-  map.fitBounds;
-};
-
-/***/ }),
-
-/***/ "./public/js/login.js":
-/*!****************************!*\
-  !*** ./public/js/login.js ***!
-  \****************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   fetchAll: () => (/* binding */ fetchAll),
+/* harmony export */   forgetPassword: () => (/* binding */ forgetPassword),
 /* harmony export */   login: () => (/* binding */ login),
-/* harmony export */   logout: () => (/* binding */ logout)
+/* harmony export */   logout: () => (/* binding */ logout),
+/* harmony export */   resetPassword: () => (/* binding */ resetPassword),
+/* harmony export */   signup: () => (/* binding */ signup)
 /* harmony export */ });
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
 /* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
@@ -181,16 +77,17 @@ var login = /*#__PURE__*/function () {
           if (res.data.status === "success") {
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Logged in successfully!");
             window.setTimeout(function () {
-              location.assign("/");
+              location.assign("/me");
             }, 1500);
           }
-          _context.next = 10;
+          _context.next = 11;
           break;
         case 7:
           _context.prev = 7;
           _context.t0 = _context["catch"](0);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context.t0.response.data.message);
-        case 10:
+          throw new Error(_context.t0.response.data.message);
+        case 11:
         case "end":
           return _context.stop();
       }
@@ -200,8 +97,8 @@ var login = /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }();
-var logout = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+var fetchAll = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(password, email, route) {
     var res;
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
@@ -209,27 +106,620 @@ var logout = /*#__PURE__*/function () {
           _context2.prev = 0;
           _context2.next = 3;
           return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/users/login"),
+            data: {
+              email: email,
+              password: password
+            },
+            withCredentials: true
+          });
+        case 3:
+          _context2.next = 5;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "GET",
+            url: "".concat(baseUrl, "api/v1/").concat(route),
+            withCredentials: true
+          });
+        case 5:
+          res = _context2.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Password Verified!");
+          }
+          return _context2.abrupt("return", res.data.data);
+        case 10:
+          _context2.prev = 10;
+          _context2.t0 = _context2["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
+          throw new Error(_context2.t0.response.data.message);
+        case 14:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 10]]);
+  }));
+  return function fetchAll(_x3, _x4, _x5) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+var forgetPassword = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(email) {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          _context3.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/users/forgotpassword"),
+            data: {
+              email: email
+            },
+            withCredentials: true
+          });
+        case 3:
+          res = _context3.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Reset link successfully sent to your mail!");
+            window.setTimeout(function () {
+              location.assign("/");
+            }, 1500);
+          }
+          _context3.next = 10;
+          break;
+        case 7:
+          _context3.prev = 7;
+          _context3.t0 = _context3["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context3.t0.response.data.message);
+        case 10:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[0, 7]]);
+  }));
+  return function forgetPassword(_x6) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+var resetPassword = /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4(password, passwordConfirm, token) {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+      while (1) switch (_context4.prev = _context4.next) {
+        case 0:
+          _context4.prev = 0;
+          _context4.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "PATCH",
+            url: "".concat(baseUrl, "api/v1/users/resetpassword/").concat(token),
+            data: {
+              password: password,
+              passwordConfirm: passwordConfirm
+            },
+            withCredentials: true
+          });
+        case 3:
+          res = _context4.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Password successfully reset. Login with your new password");
+            window.setTimeout(function () {
+              location.assign("/login");
+            }, 1500);
+          }
+          _context4.next = 10;
+          break;
+        case 7:
+          _context4.prev = 7;
+          _context4.t0 = _context4["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context4.t0.response.data.message);
+        case 10:
+        case "end":
+          return _context4.stop();
+      }
+    }, _callee4, null, [[0, 7]]);
+  }));
+  return function resetPassword(_x7, _x8, _x9) {
+    return _ref4.apply(this, arguments);
+  };
+}();
+var signup = /*#__PURE__*/function () {
+  var _ref5 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5(name, email, password, passwordConfirm, role) {
+    var newClient, res;
+    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+      while (1) switch (_context5.prev = _context5.next) {
+        case 0:
+          _context5.prev = 0;
+          newClient = {
+            name: name,
+            email: email,
+            password: password,
+            passwordConfirm: passwordConfirm,
+            passwordCreatedAt: Date.now(),
+            role: role
+          };
+          _context5.next = 4;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/users/signup"),
+            data: newClient,
+            withCredentials: true
+          });
+        case 4:
+          res = _context5.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Account created successfully!");
+            window.setTimeout(function () {
+              location.assign("/me");
+            }, 1500);
+          }
+          _context5.next = 11;
+          break;
+        case 8:
+          _context5.prev = 8;
+          _context5.t0 = _context5["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context5.t0.response.data.message);
+        case 11:
+        case "end":
+          return _context5.stop();
+      }
+    }, _callee5, null, [[0, 8]]);
+  }));
+  return function signup(_x10, _x11, _x12, _x13, _x14) {
+    return _ref5.apply(this, arguments);
+  };
+}();
+var logout = /*#__PURE__*/function () {
+  var _ref6 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
+        case 0:
+          _context6.prev = 0;
+          _context6.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
             method: "GET",
             url: "".concat(baseUrl, "api/v1/users/logout")
           });
         case 3:
-          res = _context2.sent;
-          if (res.data.status = "success") location.reload(true);
-          _context2.next = 11;
+          res = _context6.sent;
+          if (res.data.status = "success") location.assign("/");
+          _context6.next = 11;
           break;
         case 7:
-          _context2.prev = 7;
-          _context2.t0 = _context2["catch"](0);
-          console.log(_context2.t0.response);
+          _context6.prev = 7;
+          _context6.t0 = _context6["catch"](0);
+          console.log(_context6.t0);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Error logging out! Try again.");
         case 11:
         case "end":
-          return _context2.stop();
+          return _context6.stop();
       }
-    }, _callee2, null, [[0, 7]]);
+    }, _callee6, null, [[0, 7]]);
   }));
   return function logout() {
+    return _ref6.apply(this, arguments);
+  };
+}();
+
+/***/ }),
+
+/***/ "./public/js/html.js":
+/*!***************************!*\
+  !*** ./public/js/html.js ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ReviewDetailCard: () => (/* binding */ ReviewDetailCard),
+/* harmony export */   UserManagementForm: () => (/* binding */ UserManagementForm),
+/* harmony export */   adminContainerContent: () => (/* binding */ adminContainerContent),
+/* harmony export */   userDetailCard: () => (/* binding */ userDetailCard)
+/* harmony export */ });
+/* eslint-disable*/
+
+var userDetailCard = function userDetailCard(user) {
+  return "\n<div class=\"user-card\" data-id=".concat(user._id, ">\n    <img src=\"img/users/").concat(user.photo, "\" alt=\"Photo of ").concat(user.name, "\" class=\"user-image\">\n    <div class=\"user-info\">\n        <div class=\"user-name\">").concat(user.name, "</div>\n        <div class=\"user-email\">").concat(user.email, "</div>\n        <div class=\"user-role role-").concat(user.role, "\">").concat(user.role, "</div>\n    </div>\n    <button class=\"delete-button\"><svg><use xlink:href=\"img/icons.svg#icon-trash\"></use></svg></button>\n</div>");
+};
+var UserManagementForm = function UserManagementForm() {
+  return "<form id=\"addUserForm\" class=\"form-grid\">\n<div class=\"form-group\">\n        <input\n          placeholder=\"Name\"\n          type=\"text\"\n          id=\"userName\"\n          name=\"name\"\n          class=\"form-input\"\n          required\n        />\n      </div>\n      <div class=\"form-group\">\n        <input\n          placeholder=\"example@natours.io\"\n          type=\"email\"\n          id=\"userEmail\"\n          name=\"email\"\n          class=\"form-input\"\n          required\n        />\n      </div>      \n      <div class=\"form-group\">\n        <select id=\"userRole\" name=\"role\" class=\"form-select\" required>\n          <option value=\"\">Select a role</option>\n          <option value=\"user\">User</option>\n          <option value=\"guide\">Guide</option>\n          <option value=\"lead-guide\">Lead Guide</option>\n          <option value=\"admin\">Admin</option>\n        </select>\n      </div>\n      <div class=\"form-group file-input-container\">\n        <label for=\"userPhoto\" class=\"file-input-label\">\n          <svg\n            width=\"16\"\n            height=\"16\"\n            viewBox=\"0 0 24 24\"\n            fill=\"none\"\n            stroke=\"currentColor\"\n            stroke-width=\"2\"\n          >\n            <path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7\"></path>\n            <polyline points=\"7 9 12 4 17 9\"></polyline>\n            <line x1=\"12\" y1=\"4\" x2=\"12\" y2=\"16\"></line>\n          </svg>\n          <span>Choose photo</span>\n        </label>\n        <input\n        placeholder=\"Name\"\n          type=\"file\"\n          id=\"userPhoto\"\n          name=\"photo\"\n          class=\"file-input\"\n          accept=\"image/*\"\n        />\n      </div>\n      <input\n        type=\"hidden\"\n        id=\"userId\"\n        name=\"userId\"\n      />\n      <button type=\"submit\" class=\"submit-new-user-button btn btn--green\">Update user</button>\n    </form>";
+};
+var ReviewDetailCard = function ReviewDetailCard(review, index) {
+  return "\n    <li>\n      <span class=\"review-index\">".concat((index + 1).toString().padStart(2, "0"), "\n      </span>\n      <div class=\"review all-review\" data-id=").concat(review.id, ">\n        <div class=\"review__author\">\n          <img src=\"img/users/").concat(review.user.photo, "\" alt=\"Photo-of-").concat(review.user.name, "\">\n          <span>").concat(review.user.name, "</span>\n        </div>\n        <div class=\"review__detail\">\n          <div class=\"review-header\">\n            <h3 class=\"home-heading-tertiary\">The Forest Hiker</h3>                      \n          </div>\n          <p>\n            ").concat(review.review, "\n          </p>\n          <div class=\"review__footer\">\n            <div class=\"reviews__rating\">\n              <svg class=\"reviews__star reviews__star--").concat(1 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(2 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(3 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(4 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(5 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n            </div>\n            <div class=\"review__date\">\n              <span class=\"review__date\">").concat(new Date(review.createdAt).toLocaleString("en-us", {
+    month: "short",
+    year: "numeric",
+    day: "numeric"
+  }), "</span>\n              <svg class=\"delete__reviews\">\n                <use xlink:href=\"/img/icons.svg#icon-trash\"></use>\n              </svg>\n            </div>\n          </div>\n        </div>\n      </div>\n    </li>");
+};
+var adminContainerContent = function adminContainerContent(message, index) {
+  return "\n                    <h2 class=\"account-heading-primary\">Input your administration password to get all ".concat(message, "</h2>\n                    <form class=\"admin-form admin-section--").concat(index, "\">\n                      <div class=\"form__group ma-bt-lg\">\n                        <label class=\"form__label\" for=\"admin-password\">Confirm password</label>\n                        <input class=\"form__input\" id=\"admin-password--").concat(index, "\" type=\"password\" placeholder=\"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\" required=\"required\" minlength=\"8\">\n                        <input class=\"form__input\" id=\"admin-email--").concat(index, "\" type=\"hidden\" value=\"admin@natours.io\">\n                      </div>\n                      <div class=\"form__group right\">\n                        <button class=\"btn btn--small btn--green btn--confirm-password\" id=\"btn-2\">Confirm password</button>\n                        </div>\n                    </form>");
+};
+
+/***/ }),
+
+/***/ "./public/js/leaflet.js":
+/*!******************************!*\
+  !*** ./public/js/leaflet.js ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   displayMap: () => (/* binding */ displayMap)
+/* harmony export */ });
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+/* eslint-disable */
+
+// export const displayMap = locations => {
+//   try {
+//     console.log(locations);
+
+//     // Initialize map
+//     const map = L.map("map", { scrollWheelZoom: false }).setView(
+//       [34.111745, -118.113491],
+//       6
+//     );
+
+//     // Add tile layer
+//     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+//       maxZoom: 19,
+//       attribution: "© OpenStreetMap contributors"
+//     }).addTo(map);
+
+//     // Convert locations to GeoJSON
+//     const geoJsonData = {
+//       type: "FeatureCollection",
+//       features: locations
+//         .map(loc => {
+//           const lat = parseFloat(loc.coordinates[1]);
+//           const lng = parseFloat(loc.coordinates[0]);
+
+//           // Check for null or NaN values
+//           if (isNaN(lat) || isNaN(lng)) {
+//             console.warn(
+//               `Invalid coordinates for location: ${loc.description}`
+//             );
+//             return null;
+//           }
+
+//           return {
+//             type: "Feature",
+//             properties: {
+//               day: loc.day,
+//               description: loc.description
+//             },
+//             geometry: {
+//               type: "Point",
+//               coordinates: [lng, lat] // GeoJSON uses [longitude, latitude]
+//             }
+//           };
+//         })
+//         .filter(feature => feature !== null) // Remove any null features
+//     };
+
+//     // Add GeoJSON layer
+//     const geoJsonLayer = L.geoJSON(geoJsonData, {
+//       pointToLayer: (feature, latlng) => {
+//         return L.marker(latlng);
+//       },
+//       onEachFeature: (feature, layer) => {
+//         if (feature.properties) {
+//           layer
+//             .bindPopup(
+//               `<p>Day ${feature.properties.day}: ${feature.properties.description}</p>`,
+//               {
+//                 maxWidth: 250,
+//                 minWidth: 100,
+//                 autoClose: false,
+//                 closeOnClick: false
+//               }
+//             )
+//             .openPopup();
+//         }
+//       }
+//     }).addTo(map);
+
+//     // Fit bounds to GeoJSON layer
+//     const bounds = geoJsonLayer.getBounds();
+//     if (bounds.isValid()) {
+//       map.fitBounds(bounds, {
+//         padding: { top: 200, bottom: 150, left: 100, right: 100 }
+//       });
+//     }
+
+//     // Allow zoom via control button or gesture but not scroll
+//     map.on("dblclick", () => {
+//       map.scrollWheelZoom.enable();
+//     });
+
+//     map.on("mouseout", () => {
+//       map.scrollWheelZoom.disable();
+//     });
+
+//     map.on("click", () => {
+//       map.scrollWheelZoom.disable();
+//     });
+//   } catch (err) {
+//     console.error("Error in displayMap:", err.message);
+//   }
+// };
+
+var displayMap = function displayMap(locations) {
+  try {
+    console.log(locations);
+
+    // Initialize map
+    var map = L.map("map", {
+      scrollWheelZoom: false
+    });
+
+    // Add tile layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap contributors"
+    }).addTo(map);
+
+    // Define bounds object
+    var bounds = L.latLngBounds();
+
+    // Allow zoom via control button or gesture but not scroll
+    map.on("dblclick", function () {
+      map.scrollWheelZoom.enable();
+    });
+    map.on("mouseout", function () {
+      map.scrollWheelZoom.disable();
+    });
+    map.on("click", function () {
+      map.scrollWheelZoom.disable();
+    });
+
+    // // Show map only after it's fully loaded
+    // map.on("load", () => {
+    //   const placeholder = document.getElementById("map-placeholder");
+    //   if (placeholder) {
+    //     placeholder.style.display = "none";
+    //   }
+    // });
+
+    // Show map only after it's fully loaded
+    map.on("load", function () {
+      var mapEL = document.getElementById("map");
+      if (mapEL) {
+        mapEL.classList.remove("skeleton");
+      }
+    });
+
+    // Convert location array into GeoJSON format
+    var geoJsonData = {
+      type: "FeatureCollection",
+      features: locations.map(function (loc) {
+        return {
+          type: "Feature",
+          geometry: {
+            type: loc.type,
+            // Ensure type is 'Point'
+            coordinates: [parseFloat(loc.coordinates[0]) || 0,
+            // Longitude
+            parseFloat(loc.coordinates[1]) || 0 // Latitude
+            ]
+          },
+          properties: {
+            day: loc.day,
+            description: loc.description,
+            id: loc.id
+          }
+        };
+      })
+    };
+
+    // Add GeoJSON layer with popups open by default
+    L.geoJSON(geoJsonData, {
+      pointToLayer: function pointToLayer(feature, latlng) {
+        // Create markers
+        return L.marker(latlng);
+      },
+      onEachFeature: function onEachFeature(feature, layer) {
+        // Add popup to each feature
+        if (feature.properties && feature.properties.description) {
+          var popupContent = "<p>Day ".concat(feature.properties.day, ": ").concat(feature.properties.description, "</p>");
+          layer.bindPopup(popupContent, {
+            maxWidth: 250,
+            minWidth: 100,
+            autoClose: false,
+            closeOnClick: false
+          });
+
+          // Open the popup by default
+          layer.openPopup();
+        }
+
+        // Extend bounds for each feature
+        if (feature.geometry && feature.geometry.coordinates) {
+          var _feature$geometry$coo = _slicedToArray(feature.geometry.coordinates, 2),
+            lng = _feature$geometry$coo[0],
+            lat = _feature$geometry$coo[1];
+          bounds.extend([lat, lng]); // Leaflet expects [lat, lng] order
+        }
+      }
+    }).addTo(map);
+
+    // Fit the map view to include all bounds
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: [200, 100],
+        paddingBottomRight: [150, 100]
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+/***/ }),
+
+/***/ "./public/js/review.js":
+/*!*****************************!*\
+  !*** ./public/js/review.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   addReview: () => (/* binding */ addReview),
+/* harmony export */   deleteReview: () => (/* binding */ deleteReview)
+/* harmony export */ });
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* eslint-disable */
+
+
+var baseUrl = "http://127.0.0.1:8001/";
+var addReview = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(review, rating, tour) {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee$(_context) {
+      while (1) switch (_context.prev = _context.next) {
+        case 0:
+          _context.prev = 0;
+          _context.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/reviews"),
+            data: {
+              review: review,
+              rating: rating,
+              tour: tour
+            },
+            withCredentials: true
+          });
+        case 3:
+          res = _context.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Your review has been added successfully!");
+          }
+          _context.next = 11;
+          break;
+        case 7:
+          _context.prev = 7;
+          _context.t0 = _context["catch"](0);
+          console.log(_context.t0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context.t0.response.data.message);
+        case 11:
+        case "end":
+          return _context.stop();
+      }
+    }, _callee, null, [[0, 7]]);
+  }));
+  return function addReview(_x, _x2, _x3) {
+    return _ref.apply(this, arguments);
+  };
+}();
+var deleteReview = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(id) {
+    var res, reviewCards;
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.prev = 0;
+          _context2.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "DELETE",
+            url: "".concat(baseUrl, "api/v1/reviews/").concat(id),
+            withCredentials: true
+          });
+        case 3:
+          res = _context2.sent;
+          reviewCards = document.querySelectorAll(".review");
+          reviewCards.forEach(function (el) {
+            if (el.dataset.id === id) el.closest("li").remove();
+          });
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Your review has been deleted!");
+          _context2.next = 13;
+          break;
+        case 9:
+          _context2.prev = 9;
+          _context2.t0 = _context2["catch"](0);
+          console.log(_context2.t0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
+        case 13:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 9]]);
+  }));
+  return function deleteReview(_x4) {
     return _ref2.apply(this, arguments);
+  };
+}();
+
+/***/ }),
+
+/***/ "./public/js/stripe.js":
+/*!*****************************!*\
+  !*** ./public/js/stripe.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   bookTour: () => (/* binding */ bookTour)
+/* harmony export */ });
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* eslint-disable */
+
+
+var bookTour = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(tourId) {
+    var session, stripe;
+    return _regeneratorRuntime().wrap(function _callee$(_context) {
+      while (1) switch (_context.prev = _context.next) {
+        case 0:
+          _context.prev = 0;
+          console.log(tourId);
+          // 1) Get checkout session from API
+          _context.next = 4;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])("http://127.0.0.1:8001/api/v1/bookings/checkout-session/".concat(tourId));
+        case 4:
+          session = _context.sent;
+          console.log(session);
+
+          // 2) Create checkout form + charge credit card
+          stripe = Stripe("pk_test_51QMKfwB20xXhBbzuEcHEWHsLbROrLvYEaZJvlJ4wHneplMS6KD6EighHzkfHN1e1albNs3n5A139XFdOr16Zpfl800kHWvPzuH");
+          _context.next = 9;
+          return stripe.redirectToCheckout({
+            sessionId: session.data.session.id
+          });
+        case 9:
+          _context.next = 15;
+          break;
+        case 11:
+          _context.prev = 11;
+          _context.t0 = _context["catch"](0);
+          console.log(_context.t0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Unable to book this tour at this moment");
+        case 15:
+        case "end":
+          return _context.stop();
+      }
+    }, _callee, null, [[0, 11]]);
+  }));
+  return function bookTour(_x) {
+    return _ref.apply(this, arguments);
   };
 }();
 
@@ -243,7 +733,9 @@ var logout = /*#__PURE__*/function () {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   updateSettings: () => (/* binding */ updateSettings)
+/* harmony export */   deleteUserData: () => (/* binding */ deleteUserData),
+/* harmony export */   updateSettings: () => (/* binding */ updateSettings),
+/* harmony export */   updateUser: () => (/* binding */ updateUser)
 /* harmony export */ });
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
 /* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
@@ -258,12 +750,12 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 // type is either 'password' or 'data'
 var updateSettings = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(data, type) {
-    var url, res;
+    var url, res, responseData, userPhotoEl, navPhotoEl, navName, name, email;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          url = type === "password" ? "http://127.0.0.1:8001/api/v1/users/updateMyPassword" : "http://127.0.0.1:8001/api/v1/users/updateMe";
+          url = type === "password" ? "http://127.0.0.1:8001/api/v1/users/update-password" : "http://127.0.0.1:8001/api/v1/users/update-me";
           _context.next = 4;
           return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
             method: "PATCH",
@@ -273,15 +765,29 @@ var updateSettings = /*#__PURE__*/function () {
         case 4:
           res = _context.sent;
           if (res.data.status === "success") {
+            responseData = res.data.data;
+            if (data.get("photo")) {
+              userPhotoEl = document.querySelector(".form__user-photo");
+              navPhotoEl = document.querySelector(".nav__user-img");
+              navName = document.querySelector(".nav__el span");
+              userPhotoEl.src = "/img/users/".concat(responseData.photo);
+              navPhotoEl.src = "/img/users/".concat(responseData.photo);
+              navName.textContent = responseData.name.split(" ")[0];
+            }
+            name = document.getElementById("name");
+            email = document.getElementById("email");
+            name.value = name.defaultValue = responseData.name;
+            email.value = email.defaultValue = responseData.email;
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "".concat(type.toUpperCase(), " updated successfully!"));
           }
-          _context.next = 11;
+          _context.next = 12;
           break;
         case 8:
           _context.prev = 8;
           _context.t0 = _context["catch"](0);
+          console.log(_context.t0);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context.t0.response.data.message);
-        case 11:
+        case 12:
         case "end":
           return _context.stop();
       }
@@ -289,6 +795,173 @@ var updateSettings = /*#__PURE__*/function () {
   }));
   return function updateSettings(_x, _x2) {
     return _ref.apply(this, arguments);
+  };
+}();
+var updateUser = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(data, id) {
+    var url, res;
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.prev = 0;
+          url = "http://127.0.0.1:8001/api/v1/users/".concat(id);
+          _context2.next = 4;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "PATCH",
+            url: url,
+            data: data
+          });
+        case 4:
+          res = _context2.sent;
+          if (!(res.data.status === "success")) {
+            _context2.next = 8;
+            break;
+          }
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "User successfully updated");
+          return _context2.abrupt("return", res.data.data);
+        case 8:
+          _context2.next = 13;
+          break;
+        case 10:
+          _context2.prev = 10;
+          _context2.t0 = _context2["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", err.response.data.message);
+        case 13:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 10]]);
+  }));
+  return function updateUser(_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+var deleteUserData = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(id) {
+    var url, res;
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          url = "http://127.0.0.1:8001/api/v1/users/".concat(id);
+          _context3.next = 4;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "DELETE",
+            url: url
+          });
+        case 4:
+          res = _context3.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "User successfully deleted");
+          }
+          _context3.next = 11;
+          break;
+        case 8:
+          _context3.prev = 8;
+          _context3.t0 = _context3["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", err.response.data.message);
+        case 11:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[0, 8]]);
+  }));
+  return function deleteUserData(_x5) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+
+/***/ }),
+
+/***/ "./public/js/user.js":
+/*!***************************!*\
+  !*** ./public/js/user.js ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   deleteUserData: () => (/* binding */ deleteUserData),
+/* harmony export */   updateUser: () => (/* binding */ updateUser)
+/* harmony export */ });
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* eslint-disable */
+
+
+var updateUser = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(data, id) {
+    var url, res;
+    return _regeneratorRuntime().wrap(function _callee$(_context) {
+      while (1) switch (_context.prev = _context.next) {
+        case 0:
+          _context.prev = 0;
+          url = "http://127.0.0.1:8001/api/v1/users/".concat(id);
+          _context.next = 4;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "PATCH",
+            url: url,
+            data: data
+          });
+        case 4:
+          res = _context.sent;
+          if (!(res.data.status === "success")) {
+            _context.next = 8;
+            break;
+          }
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "User successfully updated");
+          return _context.abrupt("return", res.data.data);
+        case 8:
+          _context.next = 13;
+          break;
+        case 10:
+          _context.prev = 10;
+          _context.t0 = _context["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", err.response.data.message);
+        case 13:
+        case "end":
+          return _context.stop();
+      }
+    }, _callee, null, [[0, 10]]);
+  }));
+  return function updateUser(_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
+var deleteUserData = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(id) {
+    var url, res;
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.prev = 0;
+          url = "http://127.0.0.1:8001/api/v1/users/".concat(id);
+          _context2.next = 4;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "DELETE",
+            url: url
+          });
+        case 4:
+          res = _context2.sent;
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "User successfully deleted");
+          _context2.next = 11;
+          break;
+        case 8:
+          _context2.prev = 8;
+          _context2.t0 = _context2["catch"](0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", err.response.data.message);
+        case 11:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 8]]);
+  }));
+  return function deleteUserData(_x3) {
+    return _ref2.apply(this, arguments);
   };
 }();
 
@@ -5097,9 +5770,14 @@ var __webpack_exports__ = {};
   !*** ./public/js/index.js ***!
   \****************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _login__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./login */ "./public/js/login.js");
-/* harmony import */ var _leaflet__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./leaflet */ "./public/js/leaflet.js");
-/* harmony import */ var _updateSettings__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./updateSettings */ "./public/js/updateSettings.js");
+/* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
+/* harmony import */ var _auth__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./auth */ "./public/js/auth.js");
+/* harmony import */ var _leaflet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./leaflet */ "./public/js/leaflet.js");
+/* harmony import */ var _review__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./review */ "./public/js/review.js");
+/* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./user */ "./public/js/user.js");
+/* harmony import */ var _updateSettings__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./updateSettings */ "./public/js/updateSettings.js");
+/* harmony import */ var _stripe__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./stripe */ "./public/js/stripe.js");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./html */ "./public/js/html.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -5109,47 +5787,122 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 
 
 
+
+
+
+
+
 // DOM ELEMENTS
-var mapBox = document.getElementById("map");
+var leafletMap = document.getElementById("map");
 var loginForm = document.querySelector(".form--login");
-var logOutBtn = document.querySelector(".nav__el--logout");
+var SignupForm = document.querySelector(".form--signup");
+var logOutBtn = document.querySelectorAll(".nav__el--logout");
+var forgotPasswordForm = document.querySelector(".form--forgot-password");
+var resetPasswordForm = document.querySelector(".form--reset-password");
 var userDataForm = document.querySelector(".form-user-data");
 var userPasswordForm = document.querySelector(".form-user-password");
+var account = document.querySelector(".user-view");
+var navLists = document.querySelectorAll(".side-nav li");
+var navMenu = document.querySelector(".user-view__menu");
+var photo = document.getElementById("photo");
+var bookBtn = document.getElementById("book-tour");
+var submitReviewBtn = document.querySelector(".create-review-btn");
+var reviewStars = document.querySelectorAll(".popup-reviews__star");
+var reviewRating = document.querySelector(".popup-reviews__rating");
+var tourSection = document.querySelector(".tour-section");
+var deleteReviewBtn = document.querySelectorAll(".delete__reviews");
+var usersAdminForm = document.querySelector(".admin-section--0");
+var reviewAdminForm = document.querySelector(".admin-section--1");
+var bookingAdminForm = document.querySelector(".admin-section--2");
+var addNewUserForm;
 
 // DELEGATION
-if (mapBox) {
-  var locations = JSON.parse(mapBox.dataset.locations);
-  (0,_leaflet__WEBPACK_IMPORTED_MODULE_1__.displayMap)(locations);
+if (leafletMap) {
+  var locations = JSON.parse(leafletMap.dataset.locations);
+  (0,_leaflet__WEBPACK_IMPORTED_MODULE_2__.displayMap)(locations);
 }
 if (loginForm) loginForm.addEventListener("submit", function (e) {
   e.preventDefault();
   var email = document.getElementById("email").value;
   var password = document.getElementById("password").value;
-  (0,_login__WEBPACK_IMPORTED_MODULE_0__.login)(email, password);
+  (0,_auth__WEBPACK_IMPORTED_MODULE_1__.login)(email, password);
 });
-if (logOutBtn) logOutBtn.addEventListener("click", _login__WEBPACK_IMPORTED_MODULE_0__.logout);
-if (userDataForm) userDataForm.addEventListener("submit", function (e) {
+if (resetPasswordForm) resetPasswordForm.addEventListener("submit", function (e) {
   e.preventDefault();
-  var name = document.getElementById("name").value;
-  var email = document.getElementById("email").value;
-  (0,_updateSettings__WEBPACK_IMPORTED_MODULE_2__.updateSettings)({
-    name: name,
-    email: email
-  }, "data");
+  var passwordConfirm = document.getElementById("passwordConfirm").value;
+  var password = document.getElementById("password").value;
+  var token = document.querySelector("input[name=token]").value;
+  (0,_auth__WEBPACK_IMPORTED_MODULE_1__.resetPassword)(password, passwordConfirm, token);
 });
-if (userPasswordForm) userPasswordForm.addEventListener("submit", /*#__PURE__*/function () {
+if (forgotPasswordForm) forgotPasswordForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  var email = document.getElementById("email").value;
+  (0,_auth__WEBPACK_IMPORTED_MODULE_1__.forgetPassword)(email);
+});
+if (SignupForm) SignupForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  var email = document.getElementById("email").value;
+  var password = document.getElementById("password").value;
+  var name = document.getElementById("name").value;
+  var passwordConfirm = document.getElementById("passwordConfirm").value;
+  var roleIndex = document.querySelector("input[type=radio]:checked").value;
+  var role = ["user", "admin", "guide", "lead-guide"][+roleIndex];
+  (0,_auth__WEBPACK_IMPORTED_MODULE_1__.signup)(name, email, password, passwordConfirm, role);
+});
+if (logOutBtn && logOutBtn.length > 0) logOutBtn.forEach(function (el) {
+  return el.addEventListener("click", _auth__WEBPACK_IMPORTED_MODULE_1__.logout);
+});
+var photoNewlySelected = false;
+if (photo) photo.addEventListener("change", function () {
+  photoNewlySelected = true;
+});
+if (userDataForm) userDataForm.addEventListener("submit", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(e) {
-    var passwordCurrent, password, passwordConfirm;
+    var name, email, formIsNotChanged, form;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
+        case 0:
+          e.preventDefault();
+          name = userDataForm.querySelector("#name");
+          email = userDataForm.querySelector("#email");
+          formIsNotChanged = name.value === name.defaultValue && email.value === email.defaultValue && (!photoNewlySelected || photo.files.length === 0);
+          if (!formIsNotChanged) {
+            _context.next = 8;
+            break;
+          }
+          return _context.abrupt("return", (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "You haven't made any change!"));
+        case 8:
+          form = new FormData();
+          if (name.value !== name.defaultValue) form.append("name", name.value);
+          if (email.value !== email.defaultValue) form.append("email", email.value);
+          if (photoNewlySelected && photo.files.length > 0) form.append("photo", photo.files[0]);
+          _context.next = 14;
+          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_5__.updateSettings)(form, "data");
+        case 14:
+          photoNewlySelected = false;
+        case 15:
+        case "end":
+          return _context.stop();
+      }
+    }, _callee);
+  }));
+  return function (_x) {
+    return _ref.apply(this, arguments);
+  };
+}());
+if (userPasswordForm) userPasswordForm.addEventListener("submit", /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(e) {
+    var passwordCurrent, password, passwordConfirm;
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
         case 0:
           e.preventDefault();
           document.querySelector(".btn--save-password").textContent = "Updating...";
           passwordCurrent = document.getElementById("password-current").value;
           password = document.getElementById("password").value;
           passwordConfirm = document.getElementById("password-confirm").value;
-          _context.next = 7;
-          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_2__.updateSettings)({
+          _context2.next = 7;
+          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_5__.updateSettings)({
             passwordCurrent: passwordCurrent,
             password: password,
             passwordConfirm: passwordConfirm
@@ -5161,14 +5914,293 @@ if (userPasswordForm) userPasswordForm.addEventListener("submit", /*#__PURE__*/f
           document.getElementById("password-confirm").value = "";
         case 11:
         case "end":
-          return _context.stop();
+          return _context2.stop();
       }
-    }, _callee);
+    }, _callee2);
   }));
-  return function (_x) {
-    return _ref.apply(this, arguments);
+  return function (_x2) {
+    return _ref2.apply(this, arguments);
   };
 }());
+if (account) {
+  navLists.forEach(function (el) {
+    el.addEventListener("click", function (e) {
+      el.classList.add("side-nav--active");
+      if (el !== e.target) el.classList.remove("side-nav--active");
+    });
+  });
+  navMenu.addEventListener("click", function (e) {
+    var clicked = e.target.closest(".side-nav-list");
+    var sections = document.querySelectorAll(".user-view__content-box");
+
+    // Guard clause
+    if (!clicked) return;
+
+    // Remove active classes
+    navLists.forEach(function (nav) {
+      return nav.classList.remove("side-nav--active");
+    });
+    sections.forEach(function (section) {
+      section.style.display = "block";
+      if (clicked.dataset.nav > section.dataset.section) section.style.display = "none";
+    });
+
+    // Add active classes
+    clicked.classList.add("side-nav--active");
+  });
+}
+if (bookBtn) bookBtn.addEventListener("click", function (e) {
+  console.log(e.target);
+  bookBtn.textContent = "Processing...";
+  var tourId = tourSection.dataset.tourid;
+  (0,_stripe__WEBPACK_IMPORTED_MODULE_6__.bookTour)(tourId);
+});
+if (tourSection && submitReviewBtn) submitReviewBtn.addEventListener("click", /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(e) {
+    var review, rating, tour;
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          e.preventDefault();
+          review = document.querySelector("textarea").value;
+          rating = Number(reviewRating.dataset.rating);
+          tour = tourSection.dataset.tourid;
+          _context3.next = 6;
+          return (0,_review__WEBPACK_IMPORTED_MODULE_3__.addReview)(review, rating, tour);
+        case 6:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3);
+  }));
+  return function (_x3) {
+    return _ref3.apply(this, arguments);
+  };
+}());
+if (reviewRating) reviewStars.forEach(function (el) {
+  return el.addEventListener("click", function (e) {
+    // Toggle active classes
+    reviewStars.forEach(function (el) {
+      el.classList.remove("popup-reviews__star--active");
+      el.dataset.index <= e.target.closest(".popup-reviews__star").dataset.index && el.classList.add("popup-reviews__star--active");
+    });
+    reviewRating.dataset.rating = e.target.closest(".popup-reviews__star").dataset.index;
+  });
+});
+if (deleteReviewBtn) deleteReviewBtn.forEach(function (el) {
+  return el.addEventListener("click", function (e) {
+    var reviewId = e.target.closest(".review").dataset.id;
+    (0,_review__WEBPACK_IMPORTED_MODULE_3__.deleteReview)(reviewId);
+  });
+});
+if (usersAdminForm) usersAdminForm.addEventListener("submit", manageUserAction.bind(usersAdminForm));
+if (reviewAdminForm) reviewAdminForm.addEventListener("submit", manageReviewAction.bind(reviewAdminForm));
+function manageUserAction(_x4) {
+  return _manageUserAction.apply(this, arguments);
+}
+function _manageUserAction() {
+  _manageUserAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5(e) {
+    var adminContainer, password, email, html, _yield$fetchAll, data, userCardContainer, addUserForm, userManagementSection, form, _html, _form;
+    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+      while (1) switch (_context5.prev = _context5.next) {
+        case 0:
+          e.preventDefault();
+          adminContainer = document.getElementById("manage-users").querySelector(".admin-container");
+          password = this.querySelector("#admin-password--0").value;
+          email = this.querySelector("#admin-email--0").value;
+          _context5.prev = 4;
+          html = '<div class="spinner-mini"></div>';
+          adminContainer.innerHTML = "";
+          adminContainer.insertAdjacentHTML("afterbegin", html);
+          _context5.next = 10;
+          return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.fetchAll)(password, email, "users");
+        case 10:
+          _yield$fetchAll = _context5.sent;
+          data = _yield$fetchAll.data;
+          userCardContainer = document.createElement("div");
+          userCardContainer.classList.add("users-container");
+
+          // Add user cards to the container
+          data.forEach(function (user) {
+            var userCard = (0,_html__WEBPACK_IMPORTED_MODULE_7__.userDetailCard)(user);
+            userCardContainer.insertAdjacentHTML("beforeend", userCard);
+          });
+          adminContainer.innerHTML = "";
+          adminContainer.appendChild(userCardContainer);
+          addUserForm = (0,_html__WEBPACK_IMPORTED_MODULE_7__.UserManagementForm)();
+          userManagementSection = document.getElementById("users-container");
+          userManagementSection.insertAdjacentHTML("beforeend", addUserForm);
+          form = document.getElementById("addUserForm");
+          form.addEventListener("submit", createNewUser);
+          userCardContainer.addEventListener("click", /*#__PURE__*/function () {
+            var _ref4 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4(e) {
+              var userId, user;
+              return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+                while (1) switch (_context4.prev = _context4.next) {
+                  case 0:
+                    userId = e.target.closest(".user-card").dataset.id;
+                    if (!e.target.closest("button")) {
+                      _context4.next = 7;
+                      break;
+                    }
+                    _context4.next = 4;
+                    return (0,_user__WEBPACK_IMPORTED_MODULE_4__.deleteUserData)(userId);
+                  case 4:
+                    userCardContainer.querySelector("[data-id=\"".concat(userId, "\"]")).remove();
+                    _context4.next = 13;
+                    break;
+                  case 7:
+                    user = data.filter(function (el) {
+                      return el._id.toString() === userId.toString();
+                    }).at(0);
+                    form.querySelector("#userName").defaultValue = form.querySelector("#userName").value = user.name;
+                    form.querySelector("#userEmail").defaultValue = form.querySelector("#userEmail").value = user.email;
+                    form.querySelector("#userRole").defaultValue = form.querySelector("#userRole").value = user.role;
+                    form.querySelector("#userId").value = userId;
+                    form.querySelector("#userPhoto").value = "";
+                  case 13:
+                  case "end":
+                    return _context4.stop();
+                }
+              }, _callee4);
+            }));
+            return function (_x7) {
+              return _ref4.apply(this, arguments);
+            };
+          }());
+          _context5.next = 32;
+          break;
+        case 25:
+          _context5.prev = 25;
+          _context5.t0 = _context5["catch"](4);
+          _html = (0,_html__WEBPACK_IMPORTED_MODULE_7__.adminContainerContent)("users data", 0);
+          adminContainer.innerHTML = "";
+          adminContainer.insertAdjacentHTML("afterbegin", _html);
+          _form = adminContainer.querySelector(".admin-section--0");
+          _form.addEventListener("submit", manageUserAction.bind(_form));
+        case 32:
+        case "end":
+          return _context5.stop();
+      }
+    }, _callee5, this, [[4, 25]]);
+  }));
+  return _manageUserAction.apply(this, arguments);
+}
+function manageReviewAction(_x5) {
+  return _manageReviewAction.apply(this, arguments);
+}
+function _manageReviewAction() {
+  _manageReviewAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(e) {
+    var password, email, html, adminContainer, _yield$fetchAll2, data, userReviewContainer, _html2, form;
+    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
+        case 0:
+          e.preventDefault();
+          password = this.querySelector("#admin-password--1").value;
+          email = this.querySelector("#admin-email--1").value;
+          html = '<div class="spinner-mini"></div>';
+          adminContainer = document.getElementById("manage-reviews").querySelector(".admin-container");
+          _context6.prev = 5;
+          adminContainer.innerHTML = "";
+          adminContainer.insertAdjacentHTML("afterbegin", html);
+          _context6.next = 10;
+          return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.fetchAll)(password, email, "reviews");
+        case 10:
+          _yield$fetchAll2 = _context6.sent;
+          data = _yield$fetchAll2.data;
+          userReviewContainer = document.createElement("ul");
+          userReviewContainer.classList.add("user-reviews__container");
+
+          // Add user cards to the container
+          data.forEach(function (review, index) {
+            var reviewCard = (0,_html__WEBPACK_IMPORTED_MODULE_7__.ReviewDetailCard)(review, index);
+            userReviewContainer.insertAdjacentHTML("beforeend", reviewCard);
+          });
+          adminContainer.innerHTML = "";
+          adminContainer.appendChild(userReviewContainer);
+          userReviewContainer.querySelectorAll(".all-review").forEach(function (el) {
+            return el.addEventListener("click", function (e) {
+              if (e.target.closest(".delete__reviews")) {
+                var reviewId = e.target.closest(".all-review").dataset.id;
+                (0,_review__WEBPACK_IMPORTED_MODULE_3__.deleteReview)(reviewId);
+              }
+            });
+          });
+          _context6.next = 27;
+          break;
+        case 20:
+          _context6.prev = 20;
+          _context6.t0 = _context6["catch"](5);
+          _html2 = (0,_html__WEBPACK_IMPORTED_MODULE_7__.adminContainerContent)("the reviewed tour data", 1);
+          adminContainer.innerHTML = "";
+          adminContainer.insertAdjacentHTML("afterbegin", _html2);
+          form = adminContainer.querySelector(".admin-section--1");
+          form.addEventListener("submit", manageReviewAction.bind(form));
+        case 27:
+        case "end":
+          return _context6.stop();
+      }
+    }, _callee6, this, [[5, 20]]);
+  }));
+  return _manageReviewAction.apply(this, arguments);
+}
+function createNewUser(_x6) {
+  return _createNewUser.apply(this, arguments);
+}
+function _createNewUser() {
+  _createNewUser = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(e) {
+    var button, id, photo, name, email, role, form, _yield$updateUser, data, userEl, userRole, roleClass;
+    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
+        case 0:
+          e.preventDefault();
+          button = document.querySelector(".submit-new-user-button");
+          button.textContent = "Updating";
+          id = document.getElementById("userId").value;
+          photo = document.getElementById("userPhoto").files[0];
+          name = document.getElementById("userName");
+          email = document.getElementById("userEmail");
+          role = document.getElementById("userRole");
+          if (!(name.value === name.defaultValue && email.value === email.defaultValue && role.value === role.defaultValue && !photo)) {
+            _context7.next = 11;
+            break;
+          }
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Change any of the fields to update the user's data");
+          return _context7.abrupt("return");
+        case 11:
+          form = new FormData();
+          if (name.value !== name.defaultValue) form.append("name", name.value);
+          if (email.value !== email.defaultValue) form.append("email", email.value);
+          if (role.value !== role.defaultValue && role.value !== "Select a role") form.append("role", role.value);
+          if (photo) form.append("photo", photo);
+          _context7.next = 18;
+          return (0,_user__WEBPACK_IMPORTED_MODULE_4__.updateUser)(form, id);
+        case 18:
+          _yield$updateUser = _context7.sent;
+          data = _yield$updateUser.data;
+          userEl = document.querySelector("[data-id=\"".concat(id, "\"]"));
+          userEl.querySelector(".user-image").src = "/img/users/".concat(data.photo);
+          userEl.querySelector(".user-name").textContent = data.name;
+          userEl.querySelector(".user-email").textContent = data.email;
+          userRole = userEl.querySelector(".user-role");
+          roleClass = userRole.classList[1];
+          userRole.textContent = data.role;
+          userRole.classList.remove(roleClass);
+          userRole.classList.add("role-".concat(data.role));
+          email.value = name.value = "";
+          role.value = "Select a role";
+          button.textContent = "Update User";
+        case 32:
+        case "end":
+          return _context7.stop();
+      }
+    }, _callee7);
+  }));
+  return _createNewUser.apply(this, arguments);
+}
+function clickAction(e) {
+  console.log(e.target);
+}
 })();
 
 /******/ })()

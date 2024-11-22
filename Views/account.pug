@@ -1,65 +1,229 @@
 extends base
 
-mixin navItem(link, text, icon, active)
-  li(class=`${active ? 'side-nav--active' : ''}`)
+block append head
+  link(rel="stylesheet" href="/css/account.css")
+
+mixin navItem(index,link, text, icon, active)
+  li(class=`side-nav-list ${active ? 'side-nav--active' : ''}` data-nav= index)
     a(href=`${link}`)
       svg
         use(xlink:href=`img/icons.svg#icon-${icon}`)
-      | #{text}
+      span= text
+
+mixin adminVerificationForm(index)      
+  form.admin-form(class=`admin-section--${index}`)
+    .form__group.ma-bt-lg
+      label.form__label(for='admin-password') Confirm password
+      input.form__input(id=`admin-password--${index}` type='password', placeholder='••••••••', required, minlength='8')
+      input.form__input(id=`admin-email--${index}` type='hidden',value=`${user.email}`)
+    .form__group.right
+      button.btn.btn--small.btn--green.btn--confirm-password(id=`btn-${index}`) Confirm password
+
+mixin BookedTourCard(tour) 
+  li
+    //- .card__header
+    //-   .card__picture
+    //-     .card__picture-overlay &nbsp;
+    //-     img.card__picture-img(src=`/img/tours/${tour.imageCover}`, alt=`${tour.name}`)
+
+    //- .card__details
+      h3.heading-tertiary
+        span= tour.name
+      h4.card__sub-heading= `${tour.difficulty} ${tour.duration}-day tour`
+      .card__data
+        svg.card__icon
+          use(xlink:href='/img/icons.svg#icon-map-pin')
+        span= tour.startLocation.description
+      .card__data
+        svg.card__icon
+          use(xlink:href='/img/icons.svg#icon-calendar')
+        span= tour.startDates[0].toLocaleString("en-us",{month:"long",year:"numeric"})
+      .card__data
+        svg.card__icon
+          use(xlink:href='/img/icons.svg#icon-flag')
+        |         
+        span= `${tour.locations.length} stops`
+      .card__data
+        svg.card__icon
+          use(xlink:href='/img/icons.svg#icon-user')
+        span= `${tour.maxGroupSize} people`
+
+      p
+        span.card__footer-value= `$${tour.price}`
+        | 
+        span.card__footer-text per person
+      p.card__ratings
+        span.card__footer-value= tour.ratingsAverage
+        | 
+        span.card__footer-text= `rating (${tour.ratingsQuantity})`
+      a.btn.btn--green.btn--small(href=`/tour/${tour.slug}`) Details     
+
+mixin userReviewCard(review,index)
+  li
+    span.review-index= `${index}`
+    .review(data-id= review.id)
+      .review__header
+        h3.home-heading-tertiary= "The Forest Hiker"
+        .review-header-left
+          span.review__date= review.createdAt.toLocaleString("en-us",{month:"short",year:"numeric",day:"numeric"})
+          svg.delete__reviews
+            use(xlink:href='/img/icons.svg#icon-trash')
+      .review__text
+        p= review.review
+        .reviews__rating
+          each star in [1,2,3,4,5]
+              svg.reviews__star(class=`reviews__star--${star <= review.rating ? "active": "inactive"}`)
+                  use(xlink:href='/img/icons.svg#icon-star')
+
+mixin emptyCard(startMsg,endMsg)
+  .empty-card 
+    svg
+      use(xlink:href=`img/icons.svg#icon-plus-circle`)
+    p= `${startMsg}. Visit the `
+      a(href= "/all-tours")= "tour overview"
+      | 
+      = ` page to ${endMsg}`
+    
 
 block content
   main.main
     .user-view
+      //- Navigation
       nav.user-view__menu
         ul.side-nav
-          +navItem('#', 'Settings', 'settings', true)
-          +navItem('#', 'My bookings', 'briefcase')
-          +navItem('#', 'My reviews', 'star')
-          +navItem('#', 'Billing', 'credit-card')
+          h5.admin-nav__heading
+                span= user.role.split("-").join(" ")
+          +navItem(0,'#settings', 'Settings', 'settings', true)
+          if (user.role === 'guide' || user.role === 'lead-guide')  
+            +navItem(1,'#bookings', 'My bookings', 'briefcase')
+          else if (user.role === 'user')            
+            +navItem(1,'#bookings', 'My bookings', 'briefcase')          
+            +navItem(2,'#reviews', 'My reviews', 'star')
+            +navItem(3,'#billing', 'Billing', 'credit-card')
 
-        - if (user.role === 'admin')
-          .admin-nav
-            h5.admin-nav__heading Admin
-            ul.side-nav
-              +navItem('#', 'Manage tours', 'map')
-              +navItem('#', 'Manage users', 'users')
-              +navItem('#', 'Manage reviews', 'star')
-              +navItem('#', 'Manage bookings', 'briefcase')
-
+          else if (user.role === 'admin')
+                +navItem(4,'#manage-tours', 'Manage tours', 'map')
+                +navItem(5,'#manage-users', 'Manage users', 'users')
+                +navItem(6,'#manage-reviews', 'Manage reviews', 'star')
+                +navItem(7,'#manage-bookings', 'Manage bookings', 'briefcase')
+      
+      //- Content
       .user-view__content
-        .user-view__form-container
-          h2.heading-secondary.ma-bt-md Your account settings
+        //- Account Settings section
+        .user-view__content-box#settings(data-section= 0)
+          .user-view__container
+            h2.account-heading-secondary.ma-bt-md Your account settings
 
-          //- WITHOUT API
-          //- form.form.form-user-data(action='/submit-user-data' method='POST')
+            //- WITHOUT API
+            //- form.form.form-user-data(action='/submit-user-data' method='POST')
 
-          //- WITH API
-          form.form.form-user-data
-            .form__group
-              label.form__label(for='name') Name
-              input#name.form__input(type='text', value=`${user.name}`, required, name='name')
-            .form__group.ma-bt-md
-              label.form__label(for='email') Email address
-              input#email.form__input(type='email', value=`${user.email}`, required, name='email')
-            .form__group.form__photo-upload
-              img.form__user-photo(src=`/img/users/${user.photo}`, alt='User photo')
-              a.btn-text(href='') Choose new photo
-            .form__group.right
-              button.btn.btn--small.btn--green Save settings
+            //- WITH API
+            form.form.form-user-data
+              .form__group
+                label.form__label(for='name') Name
+                input#name.form__input(type='text', value=`${user.name}`, required, name='name')
+              .form__group.ma-bt-md
+                label.form__label(for='email') Email address
+                input#email.form__input(type='email', value=`${user.email}`, required, name='email')
+              .form__group.form__photo-upload
+                img.form__user-photo(src=`/img/users/${user.photo}`, alt='User photo')
+                input.form__upload(type='file',data-value= "none", accept='image/*', id='photo', name='photo')
+                label(for='photo') Choose new photo
+              .form__group.right
+                button.btn.btn--small.btn--green Save settings
 
-        .line &nbsp;
+          .line &nbsp;
 
-        .user-view__form-container
-          h2.heading-secondary.ma-bt-md Password change
-          form.form.form-user-password
-            .form__group
-              label.form__label(for='password-current') Current password
-              input#password-current.form__input(type='password', placeholder='••••••••', required, minlength='8')
-            .form__group
-              label.form__label(for='password') New password
-              input#password.form__input(type='password', placeholder='••••••••', required, minlength='8')
-            .form__group.ma-bt-lg
-              label.form__label(for='password-confirm') Confirm password
-              input#password-confirm.form__input(type='password', placeholder='••••••••', required, minlength='8')
-            .form__group.right
-              button.btn.btn--small.btn--green.btn--save-password Save password
+          .user-view__container
+            h2.account-heading-secondary.ma-bt-md Password change
+            form.form.form-user-password
+              .form__group
+                label.form__label(for='password-current') Current password
+                input#password-current.form__input(type='password', placeholder='••••••••', required, minlength='8')
+              .form__group
+                label.form__label(for='password') New password
+                input#password.form__input(type='password', placeholder='••••••••', required, minlength='8')
+              .form__group.ma-bt-lg
+                label.form__label(for='password-confirm') Confirm password
+                input#password-confirm.form__input(type='password', placeholder='••••••••', required, minlength='8')
+              .form__group.right
+                button.btn.btn--small.btn--green.btn--save-password Save password
+
+        if (user.role === 'user' )
+          //- Bookings section
+          .user-view__content-box#bookings(data-section= 1)
+            .user-view__container
+              h2.account-heading-secondary.ma-bt-md Your Booked Tours
+              ul.user-bookings__container
+                if userBookings.length
+                  for booking,index in userBookings
+                    - const i = (index + 1).toString().padStart(2,"0")
+                    +BookedTourCard(booking,i)
+                else 
+                  +emptyCard("You are yet to book any tour", "checkout tours that are available for booking.") 
+
+          //- Reviews section
+          .user-view__content-box#reviews(data-section= 2)
+            .user-view__container
+              h2.account-heading-secondary.ma-bt-md Your Reviews
+              ul.user-reviews__container 
+                if userReviews.length
+                  for review,index in userReviews
+                    - const i = (index + 1).toString().padStart(2,"0")
+                    +userReviewCard(review,i) 
+                else 
+                  +emptyCard("You haven't reviewed any tour", "review a tour.")
+
+          //- Billing section
+          .user-view__content-box#billings(data-section= 3)
+            .user-view__container
+              h2.account-heading-secondary.ma-bt-md Your Billing Information
+              .user-section__container 
+                +BookedTourCard
+
+        if (user.role === 'admin')
+          .user-view__content-box#manage-tours(data-section= 4)
+            .user-view__container
+              h2.account-heading-secondary.ma-bt-md Manage Tour Data
+
+              .user-section__container 
+                +BookedTourCard
+               
+          .user-view__content-box#manage-users(data-section= 5)
+            .user-view__container#users-container
+              h2.account-heading-secondary Manage Users Information
+
+              .user-section__container.admin-container                 
+                h2.account-heading-primary.ma-bt-md Input your administration password to get all users data.
+                +adminVerificationForm(0)
+
+          .user-view__content-box#manage-reviews(data-section= 6)
+            .user-view__container
+              h2.account-heading-secondary Manage Users Reviews
+
+              .user-section__container.admin-container                 
+                h2.account-heading-primary.ma-bt-md Input your administration password to get all the reviewed tour data.
+                +adminVerificationForm(1)
+
+          .user-view__content-box#manage-bookings(data-section= 7)
+            .user-view__container
+              h2.account-heading-secondary Manage Users Bookings
+
+              .user-section__container.admin-container                 
+                h2.account-heading-primary.ma-bt-md Input your administration password to get all booked tour data
+                +adminVerificationForm(2)
+
+        if (user.role === 'lead-guide' || user.role === 'guide' )
+          //- Bookings section
+          .user-view__content-box#bookings(data-section= 1)
+            .user-view__container
+              h2.account-heading-secondary.ma-bt-md Your Booked Tours
+              ul.user-bookings__container
+                if bookings.length
+                  for booking,index in bookings
+                    - const i = (index + 1).toString().padStart(2,"0")
+                    +BookedTourCard(booking,i)
+                else 
+                  +emptyCard("No tour has been booked at this moment", "checkout tours that have been booked.")                 
+
+

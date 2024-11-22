@@ -10,6 +10,8 @@ const {
   aliasTopTours,
   getTourStats,
   getMonthlyPlan,
+  uploadTourImages,
+  resizeTourImages,
   getDistances,
   getToursWithin
   // checkID,
@@ -43,7 +45,13 @@ Router.route("/")
 
 Router.route("/:id")
   .get(getTour)
-  .patch(protectedRoute, restriction("admin", "lead-guide"), updateTour)
+  .patch(
+    protectedRoute,
+    restriction("admin", "lead-guide"),
+    uploadTourImages,
+    resizeTourImages,
+    updateTour
+  )
   .delete(protectedRoute, restriction("admin", "lead-guide"), deleteTour);
 
 // ////////////////
