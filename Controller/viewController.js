@@ -7,9 +7,28 @@ const AppError = require("../Utils/appErrors");
 
 exports.getUserBookingsAndReviews = catchAsync(async (req, res, next) => {
   const userId = req.user?._id || res.locals.user._id;
-  res.locals.userBookings = await Tour.find({ user: userId });
-  res.locals.userReviews = await Review.find({ user: userId });
+  if (req.user?.role === "user") {
+    res.locals.userBookings = await Booking.find({ user: userId });
+    res.locals.userReviews = await Review.find({ user: userId });
+  } else if (req.user?.role === "guide" || req.user?.role === "lead-guide") {
+    const tourIds = await Tour.find({ guides: userId })
+      .select("_id")
+      .lean();
+    const tourIdArray = tourIds.map(tour => tour._id);
+    const bookedTours = await Booking.find({
+      tour: { $in: tourIdArray }
+    }).populate("tour");
 
+    res.locals.tours = bookedTours;
+  } else if (req.user?.role === "admin") {
+    res.locals.tours = await Tour.find().populate({
+      path: "guides",
+      fields: "name"
+    });
+    res.locals.guides = await User.find({
+      $or: [{ role: "guide" }, { role: "lead-guide" }]
+    });
+  }
   next();
 });
 
@@ -25,6 +44,15 @@ exports.getHomePage = catchAsync(async (req, res, next) => {
 
 exports.getForgotPasswordPage = (req, res) => {
   res.status(200).render("forgotpassword", { title: "Reset Your Password" });
+};
+
+exports.getVerificationPage = (req, res) => {
+  const { user } = req.query;
+  const decodedUserEmail = decodeURIComponent(user);
+  res.status(200).render("verificationPage", {
+    title: "Verify Your Account",
+    email: decodedUserEmail
+  });
 };
 
 exports.getBookedToursPage = catchAsync(async (req, res, next) => {
@@ -73,7 +101,7 @@ exports.getTourPage = catchAsync(async (req, res, next) => {
 
   const user = req.user || res.locals.user;
 
-  if (user.role === "user") {
+  if (user?.role && user?.role === "user") {
     const booking = await Booking.find({ user: user._id, tour: tour.id });
     const review = await Review.find({ tour: tour.id, user: user._id });
     res.locals.hasBookedTour = Boolean(booking.length);

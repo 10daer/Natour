@@ -33,6 +33,75 @@ const responseWithToken = (user, res, statusCode, token) => {
   });
 };
 
+exports.verifyAccount = catchAsync(async (req, res, next) => {
+  const verificationToken = req.body.verificationCode;
+  const encryptedToken = crypto
+    .createHash("sha256")
+    .update(verificationToken)
+    .digest("hex");
+  const user = await Users.findOne({
+    VerificationToken: encryptedToken,
+    VerificationTokenExpiryDate: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return next(new AppError("Invalid or expired verification token.", 400));
+  }
+
+  user.isVerified = true;
+  user.VerificationToken = undefined;
+  user.VerificationTokenExpiryDate = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  const token = signToken(user._id);
+
+  responseWithToken(user, res, 201, token);
+});
+
+exports.generateVerificationToken = catchAsync(async (req, res, next) => {
+  const user = await Users.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new AppError("Provided User does not exist", 404));
+  }
+
+  if (user.isVerified) {
+    return res
+      .status(400)
+      .json({ status: "error", message: "User is already verified" });
+  }
+
+  if (user.VerificationToken) {
+    user.VerificationToken = undefined;
+    user.VerificationTokenExpiryDate = undefined;
+    await user.save({ validateBeforeSave: false });
+  }
+
+  try {
+    const verificationToken = user.generateVerificationToken();
+    await user.save({ validateBeforeSave: false });
+
+    console.log(verificationToken);
+    // await new Email(user, verificationToken).sendAccountVerification();
+    res.status(200).json({
+      status: "success",
+      data: user.email,
+      message:
+        "Your account verification code  has been successfully sent to your mail"
+    });
+  } catch (error) {
+    user.VerificationToken = undefined;
+    user.VerificationTokenExpiryDate = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(
+      new AppError(
+        "An unexpected error occurred while sending the account verification email. Please try again later.",
+        500
+      )
+    );
+  }
+});
+
 exports.signUp = catchAsync(async (req, res, next) => {
   const newUserObj = {
     name: req.body.name,
@@ -40,14 +109,14 @@ exports.signUp = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     passwordCreatedAt: req.body.passwordCreatedAt,
+    accountCreatedAt: req.body.accountCreatedAt,
     role: req.body.role
   };
   const newUser = await Users.create(newUserObj);
   const url = `${req.protocol}://${req.get("host")}/me`;
   // await new Email(newUser, url).sendWelcome();
-  const token = signToken(newUser._id);
 
-  responseWithToken(newUser, res, 201, token);
+  next();
 });
 
 exports.logIn = catchAsync(async (req, res, next) => {
@@ -61,6 +130,14 @@ exports.logIn = catchAsync(async (req, res, next) => {
 
   if (!user || !(await user.verifyPasswords(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
+  }
+
+  if (!user.isVerified) {
+    return next(
+      new AppError("User has not been verified their account", 403, {
+        accountIsUnverified: true
+      })
+    );
   }
 
   const token = signToken(user._id);

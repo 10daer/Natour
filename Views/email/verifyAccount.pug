@@ -1,0 +1,16 @@
+extends baseEmail
+
+block content
+  p Hi #{firstName},
+  p Thank you for signing up for our service! To verify your account, please use the six-digit code below. This code is only valid for the next 5 minutes.
+
+  //- Display the verification code prominently
+  table.verification-code(role='presentation', border='0', cellpadding='10', cellspacing='0', width='100%')
+    tbody
+      tr
+        td(style='text-align: center; background-color: #f9f9f9; padding: 20px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #333;')
+          | #{url}
+
+  p If you did not create an account with this email, you can safely ignore it.
+  p Thanks,  
+  p The Natours Team

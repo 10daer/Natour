@@ -1,6 +1,9 @@
 // const catchAsync = require("../Utils/catchAsync");
 const Review = require("../Model/reviewModel");
+const Booking = require("../Model/bookingModel");
+const catchAsync = require("../Utils/catchAsync");
 const factory = require("./handlerFactory");
+const { AppError } = require("../Utils/appErrors");
 
 exports.setTourUserIds = (req, res, next) => {
   // Allow nested routes
@@ -8,6 +11,20 @@ exports.setTourUserIds = (req, res, next) => {
   if (!req.body.user) req.body.user = req.user.id;
   next();
 };
+
+exports.checkUserBookings = catchAsync(async (req, res, next) => {
+  const booking = await Booking.find({
+    tour: req.body.tour,
+    user: req.user._id
+  });
+  if (!booking) {
+    return new AppError(
+      "You can only review a tour after booking the tour",
+      403
+    );
+  }
+  next();
+});
 
 exports.getAllReviews = factory.getAll(Review);
 exports.getReview = factory.getOne(Review);

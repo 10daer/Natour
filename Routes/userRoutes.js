@@ -21,6 +21,8 @@ const {
   forgotPassword,
   resetPassword,
   updatePassword,
+  generateVerificationToken,
+  verifyAccount,
   restriction
 } = require("../Controller/authController");
 
@@ -31,6 +33,8 @@ Router.post("/login", logIn);
 Router.get("/logout", logout);
 Router.post("/forgotpassword", forgotPassword);
 Router.patch("/resetpassword/:token", resetPassword);
+Router.post("/generatecode", generateVerificationToken);
+Router.post("/verifyaccount", verifyAccount);
 
 // Protect all routes after this middleware only for the authorized
 Router.use(protectedRoute);

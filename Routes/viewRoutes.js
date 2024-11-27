@@ -16,6 +16,7 @@ Router.post(
   authController.protectedRoute,
   viewController.updateUserData
 );
+Router.get("/verify-account", viewController.getVerificationPage);
 
 Router.get(
   "/booked-tours",

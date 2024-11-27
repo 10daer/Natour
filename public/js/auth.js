@@ -23,7 +23,12 @@ export const login = async (email, password) => {
     }
   } catch (err) {
     showAlert("error", err.response.data.message);
-    throw new Error(err.response.data.message);
+    if (err.response.data.error.accountIsUnverified) {
+      const queryString = `?user=${encodeURIComponent(email)}`;
+      window.setTimeout(() => {
+        location.assign(`/verify-account${queryString}`);
+      }, 1500);
+    }
   }
 };
 
@@ -49,6 +54,7 @@ export const fetchAll = async (password, email, route) => {
     }
     return res.data.data;
   } catch (err) {
+    console.log(err.response.data.message);
     showAlert("error", err.response.data.message);
     throw new Error(err.response.data.message);
   }
@@ -104,28 +110,68 @@ export const resetPassword = async (password, passwordConfirm, token) => {
 
 export const signup = async (name, email, password, passwordConfirm, role) => {
   try {
-    const newClient = {
+    const newUser = {
       name,
       email,
       password,
       passwordConfirm,
       passwordCreatedAt: Date.now(),
+      accountCreatedAt: Date.now(),
       role
     };
     const res = await axios({
       method: "POST",
       url: `${baseUrl}api/v1/users/signup`,
-      data: newClient,
+      data: newUser,
       withCredentials: true
     });
 
     if (res.data.status === "success") {
+      const queryString = `?user=${encodeURIComponent(email)}`;
       showAlert("success", "Account created successfully!");
       window.setTimeout(() => {
-        location.assign("/me");
+        location.assign(`/verify-account${queryString}`);
       }, 1500);
     }
   } catch (err) {
+    showAlert("error", err.response.data.message);
+  }
+};
+
+export const regenerateToken = async data => {
+  try {
+    const res = await axios({
+      method: "POST",
+      url: `${baseUrl}api/v1/users/generatecode`,
+      data: { email: data },
+      withCredentials: true
+    });
+
+    if (res.data.status === "success") {
+      showAlert("success", "Verification code sent successfully!");
+    }
+  } catch (err) {
+    console.log(err.response.data);
+    showAlert("error", err.response.data.message);
+  }
+};
+
+export const verifyAccount = async data => {
+  try {
+    const res = await axios({
+      method: "POST",
+      url: `${baseUrl}api/v1/users/verifyaccount`,
+      data: { verificationCode: data },
+      withCredentials: true
+    });
+    if (res.data.status === "success") {
+      showAlert("success", "Account verified successfully!");
+      window.setTimeout(() => {
+        location.assign("/me");
+      }, 1000);
+    }
+  } catch (err) {
+    console.log(err.response.data);
     showAlert("error", err.response.data.message);
   }
 };

@@ -2,6 +2,9 @@ extends base
 
 block append head
   link(rel="stylesheet" href="/css/account.css")
+  link(rel="stylesheet" href="/css/choices.min.css")
+  link(rel="stylesheet" href="/css/flatpickr.min.css")
+  link(rel="stylesheet" href="/leaflet/leaflet.css")    
 
 mixin navItem(index,link, text, icon, active)
   li(class=`side-nav-list ${active ? 'side-nav--active' : ''}` data-nav= index)
@@ -19,51 +22,149 @@ mixin adminVerificationForm(index)
     .form__group.right
       button.btn.btn--small.btn--green.btn--confirm-password(id=`btn-${index}`) Confirm password
 
-mixin BookedTourCard(tour) 
-  li
-    //- .card__header
-    //-   .card__picture
-    //-     .card__picture-overlay &nbsp;
-    //-     img.card__picture-img(src=`/img/tours/${tour.imageCover}`, alt=`${tour.name}`)
+mixin TourForm(guides)
+  form.tour-form#tourForm
+    .form-section
+      h2.primary.title Basic Information
+      .form-grid.gap
+        .form-group
+          label(for="name") Tour Name*
+          input#tour-name(type="text" required minlength="10" maxlength="40" )   
+        .form-group
+          label(for="duration") Duration (days)*
+          input#duration(type="number" required min="1")       
+        .form-group
+          label(for="maxGroupSize") Max Group Size*
+          input#maxGroupSize(type="number" required min="1")
+        .form-group
+          label(for="difficulty") Difficulty*
+          select#difficulty( required )
+            option(value="") Select Difficulty
+            option(value="easy") Easy
+            option(value="medium") Medium
+            option(value="difficult") Difficult              
+        .form-group
+          label(for="price") Price*
+          input#price(type="number" required min="0" step="0.01")       
+        .form-group
+          label(for="priceDiscount") Price Discount
+          input#priceDiscount(type="number" min="0" step="0.01") 
+        
+    .form-section
+      h2.primary.title Description & Images
+      .form-group
+        label(for="summary") Summary*
+        textarea#summary(required)
+      .form-group
+        label(for="description") Detailed Description
+        textarea#description    
+      .form-grid.mg-top
+        .form-group.file-input-container
+          input.form__upload#imageCover(type="file" accept="image/*" required)
+          label(for="imageCover") Upload Cover Image* 
+        .form-group.file-input-container
+          input.form__upload#addImages(type="file" accept="image/*" required)
+          label(for="addImages") Upload Other Images*      
+              
+    .form-section
+      h2.primary.title Locations Information
+      .form-grid.grid-4
+        .form-group.group-lat
+          label(for="locationLat") Latitude
+          input#locationLat-0(type="number" placeholder="Lat" step="any")
+        .form-group.group-lng
+          label(for="locationLng") Longitude
+          input#locationLng-0(type="number" placeholder="Lng" step="any")
+        .form-group.group-day
+          label(for="locationDay") Day
+          input#locationDay-0(type="number" placeholder="Day" name="locationDay" min="1")
+        .form-group.group-description
+          label(for="locationDescription") Description
+          textarea#locationDescription-0(name="locationDescription-0" placeholder="Add a description")
+      .form-group
+        label(for="location") Tour Locations
+        .location#map
+      .form-group
+        label(for="startLocation") Start Location
+        .form-grid
+            input#startLocationLat(type="number" placeholder="Latitude"  step="any")
+            input#startLocationLng(type="number" placeholder="Longitude" step="any")
+      .form-group
+        label(for="startLocationAddress") Start Location Address
+        input#startLocationAddress(type="text")
+      .form-group
+        label(for="startLocationDescription") Description
+        textarea#startLocationDescription 
+        
+    .form-section
+      h2.primary.title Tour Dates & Guides
+      .form-group
+        label(for="startDates") Start Dates
+        input#calendar(type="text" placeholder="Pick dates")            
+      .form-group
+        label(for="guide") Tour Guide*
+        select#guide(name="guides" multiple)
+          for guide in guides
+            option(value= guide.id) #{guide.name}
 
-    //- .card__details
-      h3.heading-tertiary
-        span= tour.name
-      h4.card__sub-heading= `${tour.difficulty} ${tour.duration}-day tour`
-      .card__data
-        svg.card__icon
-          use(xlink:href='/img/icons.svg#icon-map-pin')
-        span= tour.startLocation.description
-      .card__data
-        svg.card__icon
-          use(xlink:href='/img/icons.svg#icon-calendar')
-        span= tour.startDates[0].toLocaleString("en-us",{month:"long",year:"numeric"})
-      .card__data
-        svg.card__icon
-          use(xlink:href='/img/icons.svg#icon-flag')
-        |         
-        span= `${tour.locations.length} stops`
-      .card__data
-        svg.card__icon
-          use(xlink:href='/img/icons.svg#icon-user')
-        span= `${tour.maxGroupSize} people`
+    .flex.spread
+      btn.btn.btn--green.btn-reset reset form
+      btn.btn.btn--green.btn-create create tour
+      btn.btn.btn--green.btn-update.hide update tour
 
-      p
-        span.card__footer-value= `$${tour.price}`
-        | 
-        span.card__footer-text per person
-      p.card__ratings
-        span.card__footer-value= tour.ratingsAverage
-        | 
-        span.card__footer-text= `rating (${tour.ratingsQuantity})`
-      a.btn.btn--green.btn--small(href=`/tour/${tour.slug}`) Details     
-
+mixin TourCard(tour) 
+  .booking__card
+    .booking__card-header
+      .booking__card-picture
+        .card__picture-overlay &nbsp
+        img.card__picture-img(src=`/img/tours/${tour.imageCover}`, alt=`${tour.name}`)      
+    .card__details-container
+      .card__details-header   
+        h4.card__sub-heading= `an ${tour.difficulty} ${tour.duration}-day tour of ${tour.name}`      
+        a.link(href=`/tour/${tour.slug}`)        
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-link")          
+      .card__details
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-calendar")
+          span= tour.startDates[0].toLocaleString("en-us",{month:"long",year:"numeric"})
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-flag")
+          |         
+          span= `${tour.locations.length} stops`
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-user")
+          span= `${tour.maxGroupSize} people`
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-star")
+          span= `${tour.ratingsAverage.toString().padEnd(2, "0")} (${tour.ratingsQuantity})`          
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-user")
+          span= `${tour.maxGroupSize} people` 
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-user")
+          span= `$${tour.price} Paid`    
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-map-pin")
+          span= tour.startLocation.description   
+        .card__data
+          svg.card__icon
+            use(xlink:href="/img/icons.svg#icon-map-pin")
+          span= tour.startLocation.description                                           
+        
 mixin userReviewCard(review,index)
   li
     span.review-index= `${index}`
     .review(data-id= review.id)
       .review__header
-        h3.home-heading-tertiary= "The Forest Hiker"
+        h3.home-heading-tertiary= review.tour.name
         .review-header-left
           span.review__date= review.createdAt.toLocaleString("en-us",{month:"short",year:"numeric",day:"numeric"})
           svg.delete__reviews
@@ -87,25 +188,24 @@ mixin emptyCard(startMsg,endMsg)
 
 block content
   main.main
-    .user-view
+    .user-view#account
       //- Navigation
       nav.user-view__menu
         ul.side-nav
           h5.admin-nav__heading
-                span= user.role.split("-").join(" ")
+            span= user.role.split("-").join(" ")
           +navItem(0,'#settings', 'Settings', 'settings', true)
           if (user.role === 'guide' || user.role === 'lead-guide')  
-            +navItem(1,'#bookings', 'My bookings', 'briefcase')
+            +navItem(1,'#tours', 'My Tours', 'briefcase')
           else if (user.role === 'user')            
-            +navItem(1,'#bookings', 'My bookings', 'briefcase')          
-            +navItem(2,'#reviews', 'My reviews', 'star')
-            +navItem(3,'#billing', 'Billing', 'credit-card')
-
+            +navItem(2,'#bookings', 'My bookings', 'briefcase')          
+            +navItem(3,'#reviews', 'My reviews', 'star')
+            +navItem(4,'#billing', 'Billing', 'credit-card')
           else if (user.role === 'admin')
-                +navItem(4,'#manage-tours', 'Manage tours', 'map')
-                +navItem(5,'#manage-users', 'Manage users', 'users')
-                +navItem(6,'#manage-reviews', 'Manage reviews', 'star')
-                +navItem(7,'#manage-bookings', 'Manage bookings', 'briefcase')
+            +navItem(5,'#manage-tours', 'Manage tours', 'map')
+            +navItem(6,'#manage-users', 'Manage users', 'users')
+            +navItem(7,'#manage-reviews', 'Manage reviews', 'star')
+            +navItem(8,'#manage-bookings', 'Manage bookings', 'briefcase')
       
       //- Content
       .user-view__content
@@ -119,7 +219,7 @@ block content
 
             //- WITH API
             form.form.form-user-data
-              .form__group
+              .form__group.ma-bt-md
                 label.form__label(for='name') Name
                 input#name.form__input(type='text', value=`${user.name}`, required, name='name')
               .form__group.ma-bt-md
@@ -127,8 +227,9 @@ block content
                 input#email.form__input(type='email', value=`${user.email}`, required, name='email')
               .form__group.form__photo-upload
                 img.form__user-photo(src=`/img/users/${user.photo}`, alt='User photo')
-                input.form__upload(type='file',data-value= "none", accept='image/*', id='photo', name='photo')
-                label(for='photo') Choose new photo
+                .file-input-container
+                  input.form__upload(type='file',data-value= "none", accept='image/*', id='photo', name='photo')
+                  label(for='photo') Choose new photo
               .form__group.right
                 button.btn.btn--small.btn--green Save settings
 
@@ -137,10 +238,10 @@ block content
           .user-view__container
             h2.account-heading-secondary.ma-bt-md Password change
             form.form.form-user-password
-              .form__group
+              .form__group.ma-bt-md
                 label.form__label(for='password-current') Current password
                 input#password-current.form__input(type='password', placeholder='••••••••', required, minlength='8')
-              .form__group
+              .form__group.ma-bt-md
                 label.form__label(for='password') New password
                 input#password.form__input(type='password', placeholder='••••••••', required, minlength='8')
               .form__group.ma-bt-lg
@@ -149,21 +250,33 @@ block content
               .form__group.right
                 button.btn.btn--small.btn--green.btn--save-password Save password
 
+        if (user.role === 'lead-guide' || user.role === 'guide' )
+          //- Bookings section
+          .user-view__content-box#tours(data-section= 1)
+            .user-view__container
+              h2.account-heading-secondary Your Tours
+              ul.guide-container
+                if tours.length
+                  h2.account-heading-primary= `Here are list of tour you would be serving as a ${user.role.split("-").join(" ")}`
+                  for tour in tours
+                    +TourCard(tour.tour)
+                else 
+                  +emptyCard("You are not guiding any adventure at the moment", "know more.")                  
+
         if (user.role === 'user' )
           //- Bookings section
-          .user-view__content-box#bookings(data-section= 1)
+          .user-view__content-box#bookings(data-section= 2)
             .user-view__container
               h2.account-heading-secondary.ma-bt-md Your Booked Tours
               ul.user-bookings__container
                 if userBookings.length
-                  for booking,index in userBookings
-                    - const i = (index + 1).toString().padStart(2,"0")
-                    +BookedTourCard(booking,i)
+                  for booking in userBookings
+                    +TourCard(booking.tour)
                 else 
                   +emptyCard("You are yet to book any tour", "checkout tours that are available for booking.") 
 
           //- Reviews section
-          .user-view__content-box#reviews(data-section= 2)
+          .user-view__content-box#reviews(data-section= 3)
             .user-view__container
               h2.account-heading-secondary.ma-bt-md Your Reviews
               ul.user-reviews__container 
@@ -175,21 +288,27 @@ block content
                   +emptyCard("You haven't reviewed any tour", "review a tour.")
 
           //- Billing section
-          .user-view__content-box#billings(data-section= 3)
+          .user-view__content-box#billings(data-section= 4)
             .user-view__container
               h2.account-heading-secondary.ma-bt-md Your Billing Information
               .user-section__container 
-                +BookedTourCard
+                //- +TourCard
 
         if (user.role === 'admin')
-          .user-view__content-box#manage-tours(data-section= 4)
+          .user-view__content-box#manage-tours(data-section= 5)
             .user-view__container
-              h2.account-heading-secondary.ma-bt-md Manage Tour Data
+              h2.account-heading-secondary.ma-bt-md.selection-header 
+                span Manage Tour Data
+                select#tour-options
+                  option(value="") Select Tour
+                  for tour in tours
+                    option(value= `${tour.id}`)= `${tour.name.toUpperCase()}` 
+                  
 
               .user-section__container 
-                +BookedTourCard
+                +TourForm(guides)
                
-          .user-view__content-box#manage-users(data-section= 5)
+          .user-view__content-box#manage-users(data-section= 6)
             .user-view__container#users-container
               h2.account-heading-secondary Manage Users Information
 
@@ -197,7 +316,7 @@ block content
                 h2.account-heading-primary.ma-bt-md Input your administration password to get all users data.
                 +adminVerificationForm(0)
 
-          .user-view__content-box#manage-reviews(data-section= 6)
+          .user-view__content-box#manage-reviews(data-section= 7)
             .user-view__container
               h2.account-heading-secondary Manage Users Reviews
 
@@ -205,25 +324,12 @@ block content
                 h2.account-heading-primary.ma-bt-md Input your administration password to get all the reviewed tour data.
                 +adminVerificationForm(1)
 
-          .user-view__content-box#manage-bookings(data-section= 7)
+          .user-view__content-box#manage-bookings(data-section= 8)
             .user-view__container
               h2.account-heading-secondary Manage Users Bookings
 
               .user-section__container.admin-container                 
                 h2.account-heading-primary.ma-bt-md Input your administration password to get all booked tour data
-                +adminVerificationForm(2)
-
-        if (user.role === 'lead-guide' || user.role === 'guide' )
-          //- Bookings section
-          .user-view__content-box#bookings(data-section= 1)
-            .user-view__container
-              h2.account-heading-secondary.ma-bt-md Your Booked Tours
-              ul.user-bookings__container
-                if bookings.length
-                  for booking,index in bookings
-                    - const i = (index + 1).toString().padStart(2,"0")
-                    +BookedTourCard(booking,i)
-                else 
-                  +emptyCard("No tour has been booked at this moment", "checkout tours that have been booked.")                 
+                +adminVerificationForm(2)               
 
 

@@ -14,7 +14,7 @@ mixin navList(link,index,label,action)
             +navList("/",01,"Home")         
             +navList("/all-tours",02,"All Tours")   
             if user
-                +navList(" ",04,"Log Out","nav__el--logout") 
+                +navList(" ",03,"Log Out","nav__el--logout") 
                 li.navigation__item
                     a.navigation__link.nav__el(href='/me')
                         img.nav__user-img(src=`/img/users/${user.photo}` alt=`Photo of ${user.name}`)

@@ -1,24 +1,31 @@
 /* eslint-disable */
 import { showAlert } from "./alerts";
+import Choices from "choices.js";
 import {
   forgetPassword,
   login,
   logout,
   resetPassword,
   signup,
-  fetchAll
+  fetchAll,
+  verifyAccount,
+  regenerateToken
 } from "./auth";
-import { displayMap } from "./leaflet";
+import { displayMap, setLocation } from "./leaflet";
 import { addReview, deleteReview } from "./review";
 import { updateUser, deleteUserData } from "./user";
+import { loadToursData } from "./tour";
 import { updateSettings } from "./updateSettings";
 import { bookTour } from "./stripe";
 import {
   adminContainerContent,
   ReviewDetailCard,
   userDetailCard,
-  UserManagementForm
+  UserManagementForm,
+  BookedTourCard
 } from "./html";
+import flatpickr from "flatpickr";
+import { createTour, updateTour } from "./tour";
 
 // DOM ELEMENTS
 const leafletMap = document.getElementById("map");
@@ -42,13 +49,24 @@ const deleteReviewBtn = document.querySelectorAll(".delete__reviews");
 const usersAdminForm = document.querySelector(".admin-section--0");
 const reviewAdminForm = document.querySelector(".admin-section--1");
 const bookingAdminForm = document.querySelector(".admin-section--2");
+const selectTour = document.getElementById("tour-options");
+const accountPage = document.getElementById("account");
+const manageTourForm = document.getElementById("manage-tours");
+const tourForm = document.getElementById("tourForm");
+const verifyAccountPageEl = document.querySelector(".verify-account");
 
-let addNewUserForm;
+let timer;
 
-// DELEGATION
+// DELEGATIONS
 if (leafletMap) {
-  const locations = JSON.parse(leafletMap.dataset.locations);
-  displayMap(locations);
+  const initialValue = [27.9881, 86.925];
+
+  if (leafletMap.dataset.locations) {
+    const locations = JSON.parse(leafletMap.dataset.locations);
+    displayMap(locations);
+  } else {
+    setLocation(initialValue);
+  }
 }
 
 if (loginForm)
@@ -140,6 +158,116 @@ if (userPasswordForm)
     document.getElementById("password-confirm").value = "";
   });
 
+if (verifyAccountPageEl) {
+  let timerEl;
+  timerEl = verifyAccountPageEl.querySelector(".timer");
+  const resend = verifyAccountPageEl.querySelector(".countdown");
+  const verifyForm = verifyAccountPageEl.querySelector(".form-verify");
+  const inputs = verifyForm.querySelectorAll("input");
+  const hiddenInput = verifyForm.querySelector("#hidden-input");
+
+  const startLogOutTimer = function() {
+    const tick = function() {
+      const min = String(Math.trunc(time / 60)).padStart(2, 0);
+      const sec = String(time % 60).padStart(2, 0);
+
+      // In each call, print the remaining time to UI
+      timerEl.textContent = `${min}:${sec}`;
+
+      // When 0 seconds, stop timer and log out user
+      if (time === 0) {
+        clearInterval(timer);
+        resend.innerHtml = "";
+        resend.textContent = "Resend code";
+        resend.classList.add("link");
+        const resendLink = verifyAccountPageEl.querySelector(".link");
+        resendLink.addEventListener("click", async e => {
+          inputs.forEach(input => {
+            if (input.type !== "hidden") input.value = "";
+          });
+          const html = `<span>Resend verification code in </span><span class="timer">03:00</span>`;
+          const data = hiddenInput.value;
+          resend.textContent = "";
+          resend.insertAdjacentHTML("beforeend", html);
+          resend.classList.remove("link");
+          timerEl = verifyAccountPageEl.querySelector(".timer");
+          clearInterval(timer);
+          timer = startLogOutTimer();
+          await regenerateToken(data);
+        });
+      }
+
+      // Decrease 1s
+      time--;
+    };
+
+    // Set time to 5 minutes
+    let time = 180;
+
+    // Call the timer every second
+    tick();
+    const setTimer = setInterval(tick, 1000);
+
+    return setTimer;
+  };
+
+  resend.addEventListener("click", async e => {
+    inputs.forEach(input => {
+      if (input.type !== "hidden") input.value = "";
+    });
+    const html = `<span>Resend verification code in </span><span class="timer">03:00</span>`;
+    const data = hiddenInput.value;
+    resend.textContent = "";
+    resend.insertAdjacentHTML("beforeend", html);
+    resend.classList.remove("link");
+    timerEl = verifyAccountPageEl.querySelector(".timer");
+    clearInterval(timer);
+    timer = startLogOutTimer();
+    await regenerateToken(data);
+  });
+
+  inputs.forEach((input, index) => {
+    if (input.type === "hidden") return;
+
+    input.addEventListener("input", e => {
+      if (e.target.value.length > 1) {
+        e.target.value = e.target.value.slice(0, 1);
+      }
+
+      if (e.target.value.length === 1) {
+        const nextInput = inputs[index + 1];
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    });
+
+    input.addEventListener("keydown", e => {
+      if (e.key === "Backspace" && e.target.value.length === 0) {
+        const prevInput = inputs[index - 1];
+        if (prevInput) {
+          prevInput.value = "";
+          prevInput.focus();
+        }
+      }
+    });
+  });
+
+  verifyForm.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const input0 = verifyForm.querySelector("#verify-input-0").value;
+    const input1 = verifyForm.querySelector("#verify-input-1").value;
+    const input2 = verifyForm.querySelector("#verify-input-2").value;
+    const input3 = verifyForm.querySelector("#verify-input-3").value;
+    const input4 = verifyForm.querySelector("#verify-input-4").value;
+    const input5 = verifyForm.querySelector("#verify-input-5").value;
+    const data = input0 + input1 + input2 + input3 + input4 + input5;
+
+    await verifyAccount(data);
+  });
+}
+
 if (account) {
   navLists.forEach(el => {
     el.addEventListener("click", function(e) {
@@ -168,23 +296,260 @@ if (account) {
   });
 }
 
+if (manageTourForm)
+  document.addEventListener("DOMContentLoaded", async () => {
+    const guide = document.getElementById("guide");
+    const calendar = document.getElementById("calendar");
+
+    const guideChoice = new Choices(guide, {
+      removeItemButton: true,
+      duplicateItemsAllowed: false,
+      placeholder: true,
+      placeholderValue: "Select guide...",
+      searchEnabled: true,
+      shouldSort: false
+    });
+
+    const startDates = flatpickr(calendar, {
+      mode: "multiple",
+      dateFormat: "Y-m-d"
+    });
+
+    if (manageTourForm) {
+      let tours = await loadToursData();
+      let tourId;
+      let tour;
+      const tourName = tourForm.querySelector("#tour-name");
+      const duration = tourForm.querySelector("#duration");
+      const maxGroupSize = tourForm.querySelector("#maxGroupSize");
+      const difficulty = tourForm.querySelector("#difficulty");
+      const price = tourForm.querySelector("#price");
+      const summary = tourForm.querySelector("#summary");
+      const description = tourForm.querySelector("#description");
+      const locationLat = tourForm.querySelector("#locationLat-0");
+      const locationLng = tourForm.querySelector("#locationLng-0");
+      const locationDay = tourForm.querySelector("#locationDay-0");
+      const locationDescription = tourForm.querySelector(
+        "#locationDescription-0"
+      );
+      const startLocationLat = tourForm.querySelector("#startLocationLat");
+      const startLocationLng = tourForm.querySelector("#startLocationLng");
+      const startLocationAddress = tourForm.querySelector(
+        "#startLocationAddress"
+      );
+      const startLocationDescription = tourForm.querySelector(
+        "#startLocationDescription"
+      );
+      const addImages = tourForm.querySelector("#addImages");
+      const imageCover = tourForm.querySelector("#imageCover");
+      const groupLat = document.querySelector(".group-lat");
+      const groupLng = document.querySelector(".group-lng");
+      const groupDay = document.querySelector(".group-day");
+      const groupDescription = document.querySelector(".group-description");
+
+      const clearTourForm = () => {
+        tourName.value = duration.value = maxGroupSize.value = difficulty.value = price.value = summary.value = description.value = locationLat.value = locationLng.value = locationDay.value = locationDescription.value = startLocationLat.value = startLocationLng.value = startLocationAddress.value = startLocationDescription.value = tourId =
+          "";
+        startDates.clear();
+        guideChoice.removeActiveItems();
+        groupLat.querySelectorAll("input").forEach(el => {
+          if (el.getAttribute("id") !== `locationLat-0`) el.remove();
+        });
+        groupLng.querySelectorAll("input").forEach(el => {
+          if (el.getAttribute("id") !== `locationLng-0`) el.remove();
+        });
+        groupDay.querySelectorAll("input").forEach(el => {
+          if (el.getAttribute("id") !== `locationDay-0`) el.remove();
+        });
+        groupDescription.querySelectorAll("textarea").forEach(el => {
+          if (el.getAttribute("id") !== `locationDescription-0`) el.remove();
+        });
+      };
+
+      const createLocations = () => {
+        const loc = [];
+        groupLat.querySelectorAll("input").forEach((el, i) => {
+          loc[i] = {};
+          loc.at(i).coordinates = [];
+          loc.at(i).coordinates[0] = +el.value;
+          loc.at(i).type = "Point";
+        });
+        groupLng.querySelectorAll("input").forEach((el, i) => {
+          loc.at(i).coordinates[1] = +el.value;
+        });
+        groupDay.querySelectorAll("input").forEach((el, i) => {
+          loc.at(i).day = +el.value;
+        });
+        groupDescription.querySelectorAll("textarea").forEach((el, i) => {
+          loc.at(i).description = el.value;
+        });
+        return loc;
+      };
+
+      const createStartLocation = tour => {
+        const loc = {};
+        loc.type = "Point";
+        if (+tour.startLocation.coordinates[0] !== +startLocationLat.value)
+          loc.coordinates[0] = +startLocationLat.value;
+        if (+tour.startLocation.coordinates[1] !== +startLocationLng.value)
+          loc.coordinates[1] = +startLocationLng.value;
+        if (tour.startLocation.address !== startLocationAddress.value)
+          loc.address = startLocationAddress.value;
+        if (tour.startLocation.description !== startLocationDescription.value)
+          loc.description = startLocationDescription.value;
+        return loc;
+      };
+
+      const createFormData = () => {
+        const form = new FormData();
+        const locations = createLocations();
+        const startLocation = createStartLocation(tour);
+        const selectedGuides = guideChoice.getValue().map(el => el.value);
+
+        if (difficulty.value && difficulty.value !== tour.difficulty)
+          form.append("difficulty", difficulty.value);
+        if (description.value && description.value !== tour.description)
+          form.append("description", description.value);
+        if (duration.value && +duration.value !== +tour.duration)
+          form.append("duration", duration.value);
+        if (selectedGuides) form.append("guides", selectedGuides);
+        if (imageCover.files.length > 0)
+          form.append("imageCover", imageCover.files[0]);
+        if (addImages.files.length > 0)
+          form.append(
+            "images",
+            addImages.files.map(el => el)
+          );
+        if (locations.length > 0) form.append("locations", locations);
+        if (maxGroupSize.value && +maxGroupSize.value !== +tour.maxGroupSize)
+          form.append("maxGroupSize", +maxGroupSize.value);
+        if (tourName.value && tourName.value !== tour.name)
+          form.append("name", tourName.value);
+        if (price.value && +price.value !== +tour.price)
+          form.append("price", +price.value);
+        if (summary.value && summary.value !== tour.summary)
+          form.append("summary", summary.value);
+        if (startDates.selectedDates)
+          form.append("startDates", [startDates.selectedDates]);
+        if (Object.entries(startLocation).length > 1)
+          form.append("startLocation", startLocation);
+
+        for (const [key, value] of form.entries()) {
+          console.log(`${key}:${value}`);
+        }
+
+        return form;
+      };
+
+      if (selectTour)
+        selectTour.addEventListener("click", async function(e) {
+          if (!tours.length) tours = await loadToursData();
+          const id = e.target.value;
+          tour = tours.find(el => el.id === id);
+          console.log(tour);
+          if (tour) {
+            clearTourForm();
+
+            tourName.value = tour.name;
+            duration.value = tour.duration;
+            maxGroupSize.value = tour.maxGroupSize;
+            difficulty.value = tour.difficulty;
+            price.value = tour.price;
+            summary.value = tour.summary;
+            description.value = tour.description;
+            locationLat.value = tour.locations[0].coordinates[0];
+            locationLng.value = tour.locations[0].coordinates[1];
+            locationDay.value = tour.locations[0].day;
+            locationDescription.value = tour.locations[0].description;
+            tour.locations.forEach((loc, i) => {
+              if (i > 0) {
+                const latInput = `<input value="${loc.coordinates[0]}" id="locationLat-${i}" type="number" step="any">`;
+                groupLat.insertAdjacentHTML("beforeend", latInput);
+                const lngInput = `<input value="${loc.coordinates[1]}" id="locationLng-${i}" type="number" step="any">`;
+                groupLng.insertAdjacentHTML("beforeend", lngInput);
+                const dayInput = `<input value="${loc.day}" id="locationDay-${i}" type="number" step="any">`;
+                groupDay.insertAdjacentHTML("beforeend", dayInput);
+                const descriptionTextArea = `<textarea id="locationDescription-${i}" name="locationDescription-${i}" placeholder="Add a description"></textarea>`;
+                groupDescription.insertAdjacentHTML(
+                  "beforeend",
+                  descriptionTextArea
+                );
+                groupDescription.querySelector(
+                  `#locationDescription-${i}`
+                ).value = loc.description;
+              }
+            });
+            tourId = id;
+            setLocation(tour.locations, true);
+            tourForm.querySelector("#startLocationLat").value =
+              tour.startLocation.coordinates[0];
+            tourForm.querySelector("#startLocationLng").value =
+              tour.startLocation.coordinates[1];
+            tourForm.querySelector("#startLocationAddress").value =
+              tour.startLocation.address;
+            tourForm.querySelector("#startLocationDescription").value =
+              tour.startLocation.description;
+            startDates.setDate(tour.startDates);
+            const chosenGuides = tour.guides.map(guide => guide._id);
+            chosenGuides.forEach(optionValue => {
+              guideChoice.setChoiceByValue(optionValue);
+            });
+            tourForm.querySelector(".btn-create").classList.add("hide");
+            tourForm.querySelector(".btn-update").classList.remove("hide");
+          }
+        });
+
+      tourForm
+        .querySelector(".btn-update")
+        .addEventListener("click", async e => {
+          e.preventDefault();
+          try {
+            const data = createFormData();
+            console.log(data);
+            await updateTour(data, tourId);
+            console.log("submitted");
+          } catch (error) {
+            console.log(error);
+          }
+        });
+
+      tourForm
+        .querySelector(".btn-create")
+        .addEventListener("click", async e => {
+          e.preventDefault();
+          try {
+            const data = createFormData();
+            console.log(data);
+            // await createTour(data);
+            console.log("submitted");
+          } catch (error) {
+            console.log(error);
+          }
+        });
+
+      tourForm.querySelector(".btn-reset").addEventListener("click", () => {
+        clearTourForm();
+        setLocation([27.9881, 86.925]);
+        tourForm.querySelector(".btn-create").classList.remove("hide");
+        tourForm.querySelector(".btn-update").classList.add("hide");
+      });
+    }
+  });
+
 if (bookBtn)
-  bookBtn.addEventListener("click", e => {
-    console.log(e.target);
-    bookBtn.textContent = "Processing...";
-    const tourId = tourSection.dataset.tourid;
-    bookTour(tourId);
+  bookBtn.addEventListener("click", async e => {
+    try {
+      bookBtn.textContent = "Processing...";
+      const tourId = tourSection.dataset.tourid;
+      await bookTour(tourId);
+    } catch (error) {
+      bookBtn.textContent = "Book tour now!";
+      showAlert("error", error.message);
+    }
   });
 
 if (tourSection && submitReviewBtn)
-  submitReviewBtn.addEventListener("click", async e => {
-    e.preventDefault();
-    const review = document.querySelector("textarea").value;
-    const rating = Number(reviewRating.dataset.rating);
-    const tour = tourSection.dataset.tourid;
-
-    await addReview(review, rating, tour);
-  });
+  submitReviewBtn.addEventListener("click", submitReview);
 
 if (reviewRating)
   reviewStars.forEach(el =>
@@ -224,18 +589,21 @@ if (reviewAdminForm)
     manageReviewAction.bind(reviewAdminForm)
   );
 
+if (bookingAdminForm)
+  bookingAdminForm.addEventListener(
+    "submit",
+    manageBookingAction.bind(bookingAdminForm)
+  );
+
 async function manageUserAction(e) {
   e.preventDefault();
-  const adminContainer = document
-    .getElementById("manage-users")
-    .querySelector(".admin-container");
-  const password = this.querySelector("#admin-password--0").value;
-  const email = this.querySelector("#admin-email--0").value;
-  try {
-    const html = '<div class="spinner-mini"></div>';
-    adminContainer.innerHTML = "";
-    adminContainer.insertAdjacentHTML("afterbegin", html);
+  const { adminContainer, password, email } = clearForm(
+    "manage-users",
+    this,
+    0
+  );
 
+  try {
     const { data } = await fetchAll(password, email, "users");
 
     const userCardContainer = document.createElement("div");
@@ -286,17 +654,71 @@ async function manageUserAction(e) {
   }
 }
 
-async function manageReviewAction(e) {
+async function submitReview(e) {
   e.preventDefault();
-  const password = this.querySelector("#admin-password--1").value;
-  const email = this.querySelector("#admin-email--1").value;
-  const html = '<div class="spinner-mini"></div>';
+  const review = document.querySelector("textarea").value;
+  const rating = Number(reviewRating.dataset.rating);
+  const tour = tourSection.dataset.tourid;
+
+  await addReview(review, rating, tour);
+
+  submitReviewBtn.textContent = "Thank you 🥳";
+  submitReviewBtn.removeEventListener("click", submitReview);
+
+  window.location.hash = "#cta";
+}
+
+function clearForm(id, parent, index) {
   const adminContainer = document
-    .getElementById("manage-reviews")
+    .getElementById(id)
     .querySelector(".admin-container");
+  const password = parent.querySelector(`#admin-password--${index}`).value;
+  const email = parent.querySelector(`#admin-email--${index}`).value;
+  const html = '<div class="spinner-mini"></div>';
+  adminContainer.innerHTML = "";
+  adminContainer.insertAdjacentHTML("afterbegin", html);
+  return { adminContainer, password, email };
+}
+
+async function manageBookingAction(e) {
+  e.preventDefault();
+  const { adminContainer, password, email } = clearForm(
+    "manage-bookings",
+    this,
+    2
+  );
+
   try {
+    const { data } = await fetchAll(password, email, "bookings");
+
+    const userBookingContainer = document.createElement("ul");
+    userBookingContainer.classList.add("user-bookings__container");
+
+    // Add user cards to the container
+    data.forEach(booking => {
+      const bookingCard = BookedTourCard(booking);
+      userBookingContainer.insertAdjacentHTML("beforeend", bookingCard);
+    });
+    adminContainer.innerHTML = "";
+    adminContainer.appendChild(userBookingContainer);
+  } catch (error) {
+    const html = adminContainerContent("booking data", 2);
     adminContainer.innerHTML = "";
     adminContainer.insertAdjacentHTML("afterbegin", html);
+    const form = adminContainer.querySelector(".admin-section--2");
+    form.addEventListener("submit", manageBookingAction.bind(form));
+  }
+}
+
+async function manageReviewAction(e) {
+  e.preventDefault();
+  const { adminContainer, password, email } = clearForm(
+    "manage-reviews",
+    this,
+    1
+  );
+
+  try {
     const { data } = await fetchAll(password, email, "reviews");
 
     const userReviewContainer = document.createElement("ul");
@@ -370,8 +792,4 @@ async function createNewUser(e) {
   email.value = name.value = "";
   role.value = "Select a role";
   button.textContent = "Update User";
-}
-
-function clickAction(e) {
-  console.log(e.target);
 }

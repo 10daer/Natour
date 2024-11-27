@@ -64,6 +64,13 @@ module.exports = class Email {
       "Your Natour Password Reset Request (Only valid for 10mins)"
     );
   }
+
+  async sendAccountVerification() {
+    await this.send(
+      "verifyAccount",
+      "Your Natour Account Verification Code (Only valid for 5mins)"
+    );
+  }
 };
 
 // const sendEmail = async options => {

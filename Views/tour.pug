@@ -4,10 +4,8 @@ include _reviewCard.pug
 block append head
     link(rel="stylesheet" href="/css/tour.css")
     link(rel="stylesheet" href="/css/reviewFormModal.css")
-    link(rel="stylesheet" href="/leaflet/leaflet.css") 
     each img in tour.images
         link(rel="preload" as="image" href=`/img/tours/${img}`)   
-    script(src="/leaflet/leaflet.js")
 
 mixin overviewBox(icon,label,value)
     .overview-box__detail

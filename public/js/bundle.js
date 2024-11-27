@@ -1,5 +1,4 @@
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./public/js/alerts.js":
@@ -8,6 +7,7 @@
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   hideAlert: () => (/* binding */ hideAlert),
@@ -36,14 +36,17 @@ var showAlert = function showAlert(type, msg) {
   \***************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   fetchAll: () => (/* binding */ fetchAll),
 /* harmony export */   forgetPassword: () => (/* binding */ forgetPassword),
 /* harmony export */   login: () => (/* binding */ login),
 /* harmony export */   logout: () => (/* binding */ logout),
+/* harmony export */   regenerateToken: () => (/* binding */ regenerateToken),
 /* harmony export */   resetPassword: () => (/* binding */ resetPassword),
-/* harmony export */   signup: () => (/* binding */ signup)
+/* harmony export */   signup: () => (/* binding */ signup),
+/* harmony export */   verifyAccount: () => (/* binding */ verifyAccount)
 /* harmony export */ });
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
 /* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
@@ -57,7 +60,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 var baseUrl = "http://127.0.0.1:8001/";
 var login = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(email, password) {
-    var res;
+    var res, queryString;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
@@ -86,7 +89,12 @@ var login = /*#__PURE__*/function () {
           _context.prev = 7;
           _context.t0 = _context["catch"](0);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context.t0.response.data.message);
-          throw new Error(_context.t0.response.data.message);
+          if (_context.t0.response.data.error.accountIsUnverified) {
+            queryString = "?user=".concat(encodeURIComponent(email));
+            window.setTimeout(function () {
+              location.assign("/verify-account".concat(queryString));
+            }, 1500);
+          }
         case 11:
         case "end":
           return _context.stop();
@@ -130,9 +138,10 @@ var fetchAll = /*#__PURE__*/function () {
         case 10:
           _context2.prev = 10;
           _context2.t0 = _context2["catch"](0);
+          console.log(_context2.t0.response.data.message);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
           throw new Error(_context2.t0.response.data.message);
-        case 14:
+        case 15:
         case "end":
           return _context2.stop();
       }
@@ -225,32 +234,34 @@ var resetPassword = /*#__PURE__*/function () {
 }();
 var signup = /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5(name, email, password, passwordConfirm, role) {
-    var newClient, res;
+    var newUser, res, queryString;
     return _regeneratorRuntime().wrap(function _callee5$(_context5) {
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          newClient = {
+          newUser = {
             name: name,
             email: email,
             password: password,
             passwordConfirm: passwordConfirm,
             passwordCreatedAt: Date.now(),
+            accountCreatedAt: Date.now(),
             role: role
           };
           _context5.next = 4;
           return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
             method: "POST",
             url: "".concat(baseUrl, "api/v1/users/signup"),
-            data: newClient,
+            data: newUser,
             withCredentials: true
           });
         case 4:
           res = _context5.sent;
           if (res.data.status === "success") {
+            queryString = "?user=".concat(encodeURIComponent(email));
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Account created successfully!");
             window.setTimeout(function () {
-              location.assign("/me");
+              location.assign("/verify-account".concat(queryString));
             }, 1500);
           }
           _context5.next = 11;
@@ -269,8 +280,8 @@ var signup = /*#__PURE__*/function () {
     return _ref5.apply(this, arguments);
   };
 }();
-var logout = /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+var regenerateToken = /*#__PURE__*/function () {
+  var _ref6 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(data) {
     var res;
     return _regeneratorRuntime().wrap(function _callee6$(_context6) {
       while (1) switch (_context6.prev = _context6.next) {
@@ -278,27 +289,106 @@ var logout = /*#__PURE__*/function () {
           _context6.prev = 0;
           _context6.next = 3;
           return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            method: "GET",
-            url: "".concat(baseUrl, "api/v1/users/logout")
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/users/generatecode"),
+            data: {
+              email: data
+            },
+            withCredentials: true
           });
         case 3:
           res = _context6.sent;
-          if (res.data.status = "success") location.assign("/");
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Verification code sent successfully!");
+          }
           _context6.next = 11;
           break;
         case 7:
           _context6.prev = 7;
           _context6.t0 = _context6["catch"](0);
-          console.log(_context6.t0);
-          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Error logging out! Try again.");
+          console.log(_context6.t0.response.data);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context6.t0.response.data.message);
         case 11:
         case "end":
           return _context6.stop();
       }
     }, _callee6, null, [[0, 7]]);
   }));
-  return function logout() {
+  return function regenerateToken(_x15) {
     return _ref6.apply(this, arguments);
+  };
+}();
+var verifyAccount = /*#__PURE__*/function () {
+  var _ref7 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(data) {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          _context7.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/users/verifyaccount"),
+            data: {
+              verificationCode: data
+            },
+            withCredentials: true
+          });
+        case 3:
+          res = _context7.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Account verified successfully!");
+            window.setTimeout(function () {
+              location.assign("/me");
+            }, 1000);
+          }
+          _context7.next = 11;
+          break;
+        case 7:
+          _context7.prev = 7;
+          _context7.t0 = _context7["catch"](0);
+          console.log(_context7.t0.response.data);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context7.t0.response.data.message);
+        case 11:
+        case "end":
+          return _context7.stop();
+      }
+    }, _callee7, null, [[0, 7]]);
+  }));
+  return function verifyAccount(_x16) {
+    return _ref7.apply(this, arguments);
+  };
+}();
+var logout = /*#__PURE__*/function () {
+  var _ref8 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          _context8.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "GET",
+            url: "".concat(baseUrl, "api/v1/users/logout")
+          });
+        case 3:
+          res = _context8.sent;
+          if (res.data.status = "success") location.assign("/");
+          _context8.next = 11;
+          break;
+        case 7:
+          _context8.prev = 7;
+          _context8.t0 = _context8["catch"](0);
+          console.log(_context8.t0);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Error logging out! Try again.");
+        case 11:
+        case "end":
+          return _context8.stop();
+      }
+    }, _callee8, null, [[0, 7]]);
+  }));
+  return function logout() {
+    return _ref8.apply(this, arguments);
   };
 }();
 
@@ -310,8 +400,10 @@ var logout = /*#__PURE__*/function () {
   \***************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BookedTourCard: () => (/* binding */ BookedTourCard),
 /* harmony export */   ReviewDetailCard: () => (/* binding */ ReviewDetailCard),
 /* harmony export */   UserManagementForm: () => (/* binding */ UserManagementForm),
 /* harmony export */   adminContainerContent: () => (/* binding */ adminContainerContent),
@@ -319,21 +411,34 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* eslint-disable*/
 
+var convertToDate = function convertToDate(date) {
+  return new Date(date).toLocaleString("en-us", {
+    month: "short",
+    year: "numeric",
+    day: "numeric"
+  });
+};
 var userDetailCard = function userDetailCard(user) {
   return "\n<div class=\"user-card\" data-id=".concat(user._id, ">\n    <img src=\"img/users/").concat(user.photo, "\" alt=\"Photo of ").concat(user.name, "\" class=\"user-image\">\n    <div class=\"user-info\">\n        <div class=\"user-name\">").concat(user.name, "</div>\n        <div class=\"user-email\">").concat(user.email, "</div>\n        <div class=\"user-role role-").concat(user.role, "\">").concat(user.role, "</div>\n    </div>\n    <button class=\"delete-button\"><svg><use xlink:href=\"img/icons.svg#icon-trash\"></use></svg></button>\n</div>");
 };
 var UserManagementForm = function UserManagementForm() {
-  return "<form id=\"addUserForm\" class=\"form-grid\">\n<div class=\"form-group\">\n        <input\n          placeholder=\"Name\"\n          type=\"text\"\n          id=\"userName\"\n          name=\"name\"\n          class=\"form-input\"\n          required\n        />\n      </div>\n      <div class=\"form-group\">\n        <input\n          placeholder=\"example@natours.io\"\n          type=\"email\"\n          id=\"userEmail\"\n          name=\"email\"\n          class=\"form-input\"\n          required\n        />\n      </div>      \n      <div class=\"form-group\">\n        <select id=\"userRole\" name=\"role\" class=\"form-select\" required>\n          <option value=\"\">Select a role</option>\n          <option value=\"user\">User</option>\n          <option value=\"guide\">Guide</option>\n          <option value=\"lead-guide\">Lead Guide</option>\n          <option value=\"admin\">Admin</option>\n        </select>\n      </div>\n      <div class=\"form-group file-input-container\">\n        <label for=\"userPhoto\" class=\"file-input-label\">\n          <svg\n            width=\"16\"\n            height=\"16\"\n            viewBox=\"0 0 24 24\"\n            fill=\"none\"\n            stroke=\"currentColor\"\n            stroke-width=\"2\"\n          >\n            <path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7\"></path>\n            <polyline points=\"7 9 12 4 17 9\"></polyline>\n            <line x1=\"12\" y1=\"4\" x2=\"12\" y2=\"16\"></line>\n          </svg>\n          <span>Choose photo</span>\n        </label>\n        <input\n        placeholder=\"Name\"\n          type=\"file\"\n          id=\"userPhoto\"\n          name=\"photo\"\n          class=\"file-input\"\n          accept=\"image/*\"\n        />\n      </div>\n      <input\n        type=\"hidden\"\n        id=\"userId\"\n        name=\"userId\"\n      />\n      <button type=\"submit\" class=\"submit-new-user-button btn btn--green\">Update user</button>\n    </form>";
+  return "<form id=\"addUserForm\" >\n    <div class=\"form-grid gap mg-top\">\n      <div class=\"form-group\">\n      <input\n      placeholder=\"Name\"\n      type=\"text\"\n      id=\"userName\"\n            name=\"name\"\n            class=\"form-input\"\n            required\n          />\n        </div>\n        <div class=\"form-group\">\n          <input\n            placeholder=\"example@natours.io\"\n            type=\"email\"\n            id=\"userEmail\"\n            name=\"email\"\n            class=\"form-input\"\n            required\n          />\n        </div>      \n        <div class=\"form-group\">\n          <select id=\"userRole\" name=\"role\" class=\"form-select\" required>\n            <option value=\"\">Select a role</option>\n            <option value=\"user\">User</option>\n            <option value=\"guide\">Guide</option>\n            <option value=\"lead-guide\">Lead Guide</option>\n            <option value=\"admin\">Admin</option>\n          </select>\n        </div>\n        <div class=\"file-input-container\">\n        <input\n        placeholder=\"Name\"\n        type=\"file\"\n        id=\"userPhoto\"\n        name=\"photo\"\n        class=\"form__upload\"\n        accept=\"image/*\"\n        />\n        <label for=\"userPhoto\">\n        <svg\n        width=\"16\"\n        height=\"16\"\n        viewBox=\"0 0 24 24\"\n        fill=\"none\"\n        stroke=\"currentColor\"\n        stroke-width=\"2\"\n        >\n              <path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7\"></path>\n              <polyline points=\"7 9 12 4 17 9\"></polyline>\n              <line x1=\"12\" y1=\"4\" x2=\"12\" y2=\"16\"></line>\n            </svg>\n            <span>Choose photo</span>\n            </label>\n        </div>\n        <input\n        type=\"hidden\"\n          id=\"userId\"\n          name=\"userId\"\n          />\n      </div>\n      <div class=\"form__group right\">\n        <button type=\"submit\" class=\"submit-new-user-button btn btn--green\">Update user</button>\n      </div>\n    </form>";
 };
 var ReviewDetailCard = function ReviewDetailCard(review, index) {
-  return "\n    <li>\n      <span class=\"review-index\">".concat((index + 1).toString().padStart(2, "0"), "\n      </span>\n      <div class=\"review all-review\" data-id=").concat(review.id, ">\n        <div class=\"review__author\">\n          <img src=\"img/users/").concat(review.user.photo, "\" alt=\"Photo-of-").concat(review.user.name, "\">\n          <span>").concat(review.user.name, "</span>\n        </div>\n        <div class=\"review__detail\">\n          <div class=\"review-header\">\n            <h3 class=\"home-heading-tertiary\">The Forest Hiker</h3>                      \n          </div>\n          <p>\n            ").concat(review.review, "\n          </p>\n          <div class=\"review__footer\">\n            <div class=\"reviews__rating\">\n              <svg class=\"reviews__star reviews__star--").concat(1 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(2 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(3 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(4 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(5 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n            </div>\n            <div class=\"review__date\">\n              <span class=\"review__date\">").concat(new Date(review.createdAt).toLocaleString("en-us", {
-    month: "short",
-    year: "numeric",
-    day: "numeric"
-  }), "</span>\n              <svg class=\"delete__reviews\">\n                <use xlink:href=\"/img/icons.svg#icon-trash\"></use>\n              </svg>\n            </div>\n          </div>\n        </div>\n      </div>\n    </li>");
+  return "\n    <li>\n      <span class=\"review-index\">".concat((index + 1).toString().padStart(2, "0"), "\n      </span>\n      <div class=\"review all-review\" data-id=").concat(review.id, ">\n        <div class=\"review__author\">\n          <img src=\"img/users/").concat(review.user.photo, "\" alt=\"Photo-of-").concat(review.user.name, "\">\n          <span>").concat(review.user.name, "</span>\n        </div>\n        <div class=\"review__detail\">\n          <div class=\"review-header\">\n            <h3 class=\"home-heading-tertiary\">The Forest Hiker</h3>                      \n          </div>\n          <p>\n            ").concat(review.review, "\n          </p>\n          <div class=\"review__footer\">\n            <div class=\"reviews__rating\">\n              <svg class=\"reviews__star reviews__star--").concat(1 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(2 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(3 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(4 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n              <svg class=\"reviews__star reviews__star--").concat(5 <= +review.rating ? "active" : "inactive", "\">\n                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n              </svg>\n            </div>\n            <div class=\"review__date\">\n              <span class=\"review__date\">").concat(convertToDate(review.createdAt), "</span>\n              <svg class=\"delete__reviews\">\n                <use xlink:href=\"/img/icons.svg#icon-trash\"></use>\n              </svg>\n            </div>\n          </div>\n        </div>\n      </div>\n    </li>");
 };
 var adminContainerContent = function adminContainerContent(message, index) {
   return "\n                    <h2 class=\"account-heading-primary\">Input your administration password to get all ".concat(message, "</h2>\n                    <form class=\"admin-form admin-section--").concat(index, "\">\n                      <div class=\"form__group ma-bt-lg\">\n                        <label class=\"form__label\" for=\"admin-password\">Confirm password</label>\n                        <input class=\"form__input\" id=\"admin-password--").concat(index, "\" type=\"password\" placeholder=\"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\" required=\"required\" minlength=\"8\">\n                        <input class=\"form__input\" id=\"admin-email--").concat(index, "\" type=\"hidden\" value=\"admin@natours.io\">\n                      </div>\n                      <div class=\"form__group right\">\n                        <button class=\"btn btn--small btn--green btn--confirm-password\" id=\"btn-2\">Confirm password</button>\n                        </div>\n                    </form>");
+};
+var BookedTourCard = function BookedTourCard(_ref) {
+  var createdAt = _ref.createdAt,
+    tour = _ref.tour,
+    user = _ref.user,
+    price = _ref.price,
+    paid = _ref.paid;
+  return "<div class=\"booking__card\">\n                        <div class=\"booking__card-header\">\n                          <div class=\"booking__card-picture\">\n                            <div class=\"card__picture-overlay\">&nbsp;</div>\n                            <img\n                              class=\"card__picture-img\"\n                              src=\"/img/tours/".concat(tour.imageCover, "\"\n                              alt=\"").concat(tour.name, "\"\n                            />                            \n                          </div>\n                        </div>\n                        <div class=\"card__details-container\">\n                          <div class=\"card__details-header\">\n                            <h4 class=\"card__sub-heading\">an ").concat(tour.difficulty, " ").concat(tour.duration, "-day tour of ").concat(tour.name, "</h4>\n                            <a class=\"link\" href=\"/tour/").concat(tour.slug, "\">\n                              <svg class=\"card__icon\">\n                                <use xlink:href=\"/img/icons.svg#icon-link\"></use></svg\n                            ></a>\n                          </div>\n                          <div class=\"card__details flex\">\n                           <div class=\"card__dates\">\n                            <div class=\"card__data\">\n                            <svg class=\"card__icon\">\n                            <use xlink:href=\"/img/icons.svg#icon-calendar\"></use>\n                                </svg>\n                                <span>\n                                  ").concat(convertToDate(createdAt), "\n                                </span>\n                              </div>\n                              ").concat(tour.startDates.map(function (date) {
+    return "<div class=\"card__data\">\n                                  <svg class=\"card__icon\">\n                                    <use xlink:href=\"/img/icons.svg#icon-calendar\"></use>\n                                  </svg>\n                                  <span>\n                                  ".concat(convertToDate(date), "\n                                  </span>\n                                  </div>");
+  }).join(""), "\n                                </div>\n                          <div class=\"card__other-details\">\n                            <div class=\"card__data\">\n                              <svg class=\"card__icon\">\n                                <use xlink:href=\"/img/icons.svg#icon-flag\"></use>\n                              </svg>\n                              <span>").concat(tour.locations.length, " stops</span>\n                            </div>\n                            <div class=\"card__data booking-author\">                                             \n                              <img class=\"card__user-photo\" src=\"/img/users/").concat(user.photo, "\" alt=\"").concat(user.name, " photo\">\n                              <span>").concat(user.name.split(" ").at(0), " ").concat(user.name.split(" ").at(1).slice(0, 1).toUpperCase(), ".</span>\n                            </div>                           \n                            <div class=\"card__data\">\n                              <svg class=\"card__icon\">\n                                <use xlink:href=\"/img/icons.svg#icon-star\"></use>\n                              </svg>\n                              <span>").concat(Math.round(tour.ratingsAverage).toFixed(1), " (").concat(tour.ratingsQuantity, ")</span>\n                            </div>\n                            <div class=\"card__data\">\n                              <svg class=\"card__icon\">\n                                <use xlink:href=\"/img/icons.svg#icon-user\"></use>\n                              </svg>\n                              <span>").concat(tour.maxGroupSize, " people</span>\n                            </div>\n                            <div class=\"card__data\">\n                              <svg class=\"card__icon\">\n                                <use xlink:href=\"/img/icons.svg#icon-user\"></use>\n                              </svg>\n                              <span>$").concat(tour.price, " Paid</span>\n                            </div>\n                            <div class=\"card__data\">\n                              <svg class=\"card__icon\">\n                                <use xlink:href=\"/img/icons.svg#icon-map-pin\"></use>\n                              </svg>\n                              <span>").concat(tour.startLocation.description, "</span>\n                            </div>\n                          </div>\n                          </div>\n                        </div>\n                      </div>");
 };
 
 /***/ }),
@@ -344,10 +449,14 @@ var adminContainerContent = function adminContainerContent(message, index) {
   \******************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   displayMap: () => (/* binding */ displayMap)
+/* harmony export */   displayMap: () => (/* binding */ displayMap),
+/* harmony export */   setLocation: () => (/* binding */ setLocation)
 /* harmony export */ });
+/* harmony import */ var leaflet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! leaflet */ "./node_modules/leaflet/dist/leaflet-src.js");
+/* harmony import */ var leaflet__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(leaflet__WEBPACK_IMPORTED_MODULE_0__);
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -356,118 +465,39 @@ function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" !=
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 /* eslint-disable */
 
-// export const displayMap = locations => {
-//   try {
-//     console.log(locations);
-
-//     // Initialize map
-//     const map = L.map("map", { scrollWheelZoom: false }).setView(
-//       [34.111745, -118.113491],
-//       6
-//     );
-
-//     // Add tile layer
-//     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-//       maxZoom: 19,
-//       attribution: "© OpenStreetMap contributors"
-//     }).addTo(map);
-
-//     // Convert locations to GeoJSON
-//     const geoJsonData = {
-//       type: "FeatureCollection",
-//       features: locations
-//         .map(loc => {
-//           const lat = parseFloat(loc.coordinates[1]);
-//           const lng = parseFloat(loc.coordinates[0]);
-
-//           // Check for null or NaN values
-//           if (isNaN(lat) || isNaN(lng)) {
-//             console.warn(
-//               `Invalid coordinates for location: ${loc.description}`
-//             );
-//             return null;
-//           }
-
-//           return {
-//             type: "Feature",
-//             properties: {
-//               day: loc.day,
-//               description: loc.description
-//             },
-//             geometry: {
-//               type: "Point",
-//               coordinates: [lng, lat] // GeoJSON uses [longitude, latitude]
-//             }
-//           };
-//         })
-//         .filter(feature => feature !== null) // Remove any null features
-//     };
-
-//     // Add GeoJSON layer
-//     const geoJsonLayer = L.geoJSON(geoJsonData, {
-//       pointToLayer: (feature, latlng) => {
-//         return L.marker(latlng);
-//       },
-//       onEachFeature: (feature, layer) => {
-//         if (feature.properties) {
-//           layer
-//             .bindPopup(
-//               `<p>Day ${feature.properties.day}: ${feature.properties.description}</p>`,
-//               {
-//                 maxWidth: 250,
-//                 minWidth: 100,
-//                 autoClose: false,
-//                 closeOnClick: false
-//               }
-//             )
-//             .openPopup();
-//         }
-//       }
-//     }).addTo(map);
-
-//     // Fit bounds to GeoJSON layer
-//     const bounds = geoJsonLayer.getBounds();
-//     if (bounds.isValid()) {
-//       map.fitBounds(bounds, {
-//         padding: { top: 200, bottom: 150, left: 100, right: 100 }
-//       });
-//     }
-
-//     // Allow zoom via control button or gesture but not scroll
-//     map.on("dblclick", () => {
-//       map.scrollWheelZoom.enable();
-//     });
-
-//     map.on("mouseout", () => {
-//       map.scrollWheelZoom.disable();
-//     });
-
-//     map.on("click", () => {
-//       map.scrollWheelZoom.disable();
-//     });
-//   } catch (err) {
-//     console.error("Error in displayMap:", err.message);
-//   }
-// };
-
-var displayMap = function displayMap(locations) {
-  try {
-    console.log(locations);
-
+function init() {
+  if (document.querySelector("#map")) {
     // Initialize map
-    var map = L.map("map", {
+    var _map = leaflet__WEBPACK_IMPORTED_MODULE_0___default().map("map", {
       scrollWheelZoom: false
     });
 
     // Add tile layer
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    leaflet__WEBPACK_IMPORTED_MODULE_0___default().tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "© OpenStreetMap contributors"
-    }).addTo(map);
+    }).addTo(_map);
 
     // Define bounds object
-    var bounds = L.latLngBounds();
+    var _bounds = leaflet__WEBPACK_IMPORTED_MODULE_0___default().latLngBounds();
 
+    // Create a LayerGroup to hold the markers
+    var _markersGroup = leaflet__WEBPACK_IMPORTED_MODULE_0___default().layerGroup().addTo(_map);
+    return {
+      map: _map,
+      bounds: _bounds,
+      markersGroup: _markersGroup
+    };
+  } else {
+    return {};
+  }
+}
+var _init = init(),
+  map = _init.map,
+  bounds = _init.bounds,
+  markersGroup = _init.markersGroup;
+var displayMap = function displayMap(locations) {
+  try {
     // Allow zoom via control button or gesture but not scroll
     map.on("dblclick", function () {
       map.scrollWheelZoom.enable();
@@ -479,14 +509,6 @@ var displayMap = function displayMap(locations) {
       map.scrollWheelZoom.disable();
     });
 
-    // // Show map only after it's fully loaded
-    // map.on("load", () => {
-    //   const placeholder = document.getElementById("map-placeholder");
-    //   if (placeholder) {
-    //     placeholder.style.display = "none";
-    //   }
-    // });
-
     // Show map only after it's fully loaded
     map.on("load", function () {
       var mapEL = document.getElementById("map");
@@ -494,60 +516,7 @@ var displayMap = function displayMap(locations) {
         mapEL.classList.remove("skeleton");
       }
     });
-
-    // Convert location array into GeoJSON format
-    var geoJsonData = {
-      type: "FeatureCollection",
-      features: locations.map(function (loc) {
-        return {
-          type: "Feature",
-          geometry: {
-            type: loc.type,
-            // Ensure type is 'Point'
-            coordinates: [parseFloat(loc.coordinates[0]) || 0,
-            // Longitude
-            parseFloat(loc.coordinates[1]) || 0 // Latitude
-            ]
-          },
-          properties: {
-            day: loc.day,
-            description: loc.description,
-            id: loc.id
-          }
-        };
-      })
-    };
-
-    // Add GeoJSON layer with popups open by default
-    L.geoJSON(geoJsonData, {
-      pointToLayer: function pointToLayer(feature, latlng) {
-        // Create markers
-        return L.marker(latlng);
-      },
-      onEachFeature: function onEachFeature(feature, layer) {
-        // Add popup to each feature
-        if (feature.properties && feature.properties.description) {
-          var popupContent = "<p>Day ".concat(feature.properties.day, ": ").concat(feature.properties.description, "</p>");
-          layer.bindPopup(popupContent, {
-            maxWidth: 250,
-            minWidth: 100,
-            autoClose: false,
-            closeOnClick: false
-          });
-
-          // Open the popup by default
-          layer.openPopup();
-        }
-
-        // Extend bounds for each feature
-        if (feature.geometry && feature.geometry.coordinates) {
-          var _feature$geometry$coo = _slicedToArray(feature.geometry.coordinates, 2),
-            lng = _feature$geometry$coo[0],
-            lat = _feature$geometry$coo[1];
-          bounds.extend([lat, lng]); // Leaflet expects [lat, lng] order
-        }
-      }
-    }).addTo(map);
+    loadMapLocation(locations);
 
     // Fit the map view to include all bounds
     if (bounds.isValid()) {
@@ -560,6 +529,114 @@ var displayMap = function displayMap(locations) {
     console.log(err.message);
   }
 };
+var setLocation = function setLocation(locations, checked) {
+  try {
+    // Clear existing markers
+    if (checked) {
+      markersGroup.clearLayers();
+      loadMapLocation(locations);
+    } else {
+      map.setView(locations, 6);
+    }
+
+    // Allow zoom via scroll
+    map.scrollWheelZoom.enable();
+
+    // Fit the map view to include all bounds
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: [10, 10],
+        paddingBottomRight: [10, 10],
+        maxZoom: 16,
+        animate: true
+      });
+    }
+    if (checked) return;
+    map.on("click", function (e) {
+      var locationFormContainer = document.querySelector(".group-lat");
+      var _locationFormContaine = locationFormContainer.querySelectorAll("input"),
+        length = _locationFormContaine.length;
+      var _e$latlng = e.latlng,
+        lat = _e$latlng.lat,
+        lng = _e$latlng.lng;
+      leaflet__WEBPACK_IMPORTED_MODULE_0___default().marker([lat, lng]).addTo(map);
+      if (Boolean(locationFormContainer.querySelector("#locationLat-0").value)) {
+        var latInput = "<input value=\"".concat(lat, "\" id=\"locationLat-").concat(length, "\" type=\"number\" step=\"any\">");
+        document.querySelector(".group-lat").insertAdjacentHTML("beforeend", latInput);
+        var lngInput = "<input value=\"".concat(lng, "\" id=\"locationLng-").concat(length, "\" type=\"number\" step=\"any\">");
+        document.querySelector(".group-lng").insertAdjacentHTML("beforeend", lngInput);
+        var dayInput = "<input value=\"\" id=\"locationDay-".concat(length, "\" placeholder=\"Day\" type=\"number\" step=\"any\">");
+        document.querySelector(".group-day").insertAdjacentHTML("beforeend", dayInput);
+        var descriptionTextArea = "<textarea id=\"locationDescription-".concat(length, "\" name=\"locationDescription-").concat(length, "\" placeholder=\"Add a description\"></textarea>");
+        document.querySelector(".group-description").insertAdjacentHTML("beforeend", descriptionTextArea);
+      } else {
+        document.querySelector("#locationLat-0").value = lat;
+        document.querySelector("#locationLng-0").value = lng;
+      }
+    });
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+function loadMapLocation(locations) {
+  // Convert location array into GeoJSON format
+  var geoJsonData = {
+    type: "FeatureCollection",
+    features: locations.map(function (loc) {
+      return {
+        type: "Feature",
+        geometry: {
+          type: loc.type,
+          // Ensure type is 'Point'
+          coordinates: [parseFloat(loc.coordinates[0]) || 0,
+          // Longitude
+          parseFloat(loc.coordinates[1]) || 0 // Latitude
+          ]
+        },
+        properties: {
+          day: loc.day,
+          description: loc.description,
+          id: loc.id
+        }
+      };
+    })
+  };
+
+  // Add GeoJSON layer with popups open by default
+  leaflet__WEBPACK_IMPORTED_MODULE_0___default().geoJSON(geoJsonData, {
+    pointToLayer: function pointToLayer(feature, latlng) {
+      // Create marker
+      var marker = leaflet__WEBPACK_IMPORTED_MODULE_0___default().marker(latlng);
+
+      // Add marker to LayerGroup
+      markersGroup.addLayer(marker);
+      return marker;
+    },
+    onEachFeature: function onEachFeature(feature, layer) {
+      // Add popup to each feature
+      if (feature.properties && feature.properties.description) {
+        var popupContent = "<p>Day ".concat(feature.properties.day, ": ").concat(feature.properties.description, "</p>");
+        layer.bindPopup(popupContent, {
+          maxWidth: 200,
+          minWidth: 75,
+          autoClose: false,
+          closeOnClick: false
+        });
+
+        // Open the popup by default
+        layer.openPopup();
+      }
+
+      // Extend bounds for each feature
+      if (feature.geometry && feature.geometry.coordinates) {
+        var _feature$geometry$coo = _slicedToArray(feature.geometry.coordinates, 2),
+          lng = _feature$geometry$coo[0],
+          lat = _feature$geometry$coo[1];
+        bounds.extend([lat, lng]); // Leaflet expects [lat, lng] order
+      }
+    }
+  });
+}
 
 /***/ }),
 
@@ -569,6 +646,7 @@ var displayMap = function displayMap(locations) {
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   addReview: () => (/* binding */ addReview),
@@ -670,6 +748,7 @@ var deleteReview = /*#__PURE__*/function () {
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   bookTour: () => (/* binding */ bookTour)
@@ -690,36 +769,170 @@ var bookTour = /*#__PURE__*/function () {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          console.log(tourId);
-          // 1) Get checkout session from API
-          _context.next = 4;
+          _context.next = 3;
           return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])("http://127.0.0.1:8001/api/v1/bookings/checkout-session/".concat(tourId));
-        case 4:
+        case 3:
           session = _context.sent;
-          console.log(session);
-
           // 2) Create checkout form + charge credit card
           stripe = Stripe("pk_test_51QMKfwB20xXhBbzuEcHEWHsLbROrLvYEaZJvlJ4wHneplMS6KD6EighHzkfHN1e1albNs3n5A139XFdOr16Zpfl800kHWvPzuH");
-          _context.next = 9;
+          _context.next = 7;
           return stripe.redirectToCheckout({
             sessionId: session.data.session.id
           });
-        case 9:
-          _context.next = 15;
+        case 7:
+          _context.next = 13;
           break;
-        case 11:
-          _context.prev = 11;
+        case 9:
+          _context.prev = 9;
           _context.t0 = _context["catch"](0);
           console.log(_context.t0);
-          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Unable to book this tour at this moment");
-        case 15:
+          throw new Error("Unable to book this tour at this moment");
+        case 13:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 11]]);
+    }, _callee, null, [[0, 9]]);
   }));
   return function bookTour(_x) {
     return _ref.apply(this, arguments);
+  };
+}();
+
+/***/ }),
+
+/***/ "./public/js/tour.js":
+/*!***************************!*\
+  !*** ./public/js/tour.js ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createTour: () => (/* binding */ createTour),
+/* harmony export */   loadToursData: () => (/* binding */ loadToursData),
+/* harmony export */   updateTour: () => (/* binding */ updateTour)
+/* harmony export */ });
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* eslint-disable */
+
+
+var baseUrl = "http://127.0.0.1:8001/";
+var loadToursData = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee$(_context) {
+      while (1) switch (_context.prev = _context.next) {
+        case 0:
+          _context.prev = 0;
+          _context.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "GET",
+            url: "".concat(baseUrl, "api/v1/tours"),
+            withCredentials: true
+          });
+        case 3:
+          res = _context.sent;
+          if (!(res.data.status === "success")) {
+            _context.next = 6;
+            break;
+          }
+          return _context.abrupt("return", res.data.data.data);
+        case 6:
+          _context.next = 12;
+          break;
+        case 8:
+          _context.prev = 8;
+          _context.t0 = _context["catch"](0);
+          console.log(_context.t0);
+          return _context.abrupt("return", []);
+        case 12:
+        case "end":
+          return _context.stop();
+      }
+    }, _callee, null, [[0, 8]]);
+  }));
+  return function loadToursData() {
+    return _ref.apply(this, arguments);
+  };
+}();
+var updateTour = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(data, id) {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.prev = 0;
+          _context2.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "PATCH",
+            url: "".concat(baseUrl, "api/v1/tours/").concat(id),
+            data: data,
+            withCredentials: true
+          });
+        case 3:
+          res = _context2.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Tour updated successfully");
+          }
+          _context2.next = 12;
+          break;
+        case 7:
+          _context2.prev = 7;
+          _context2.t0 = _context2["catch"](0);
+          console.log(_context2.t0.response.data.message);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
+          throw new Error(_context2.t0.response.data.message);
+        case 12:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 7]]);
+  }));
+  return function updateTour(_x, _x2) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+var createTour = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(data) {
+    var res;
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          _context3.next = 3;
+          return (0,axios__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            method: "POST",
+            url: "".concat(baseUrl, "api/v1/tours"),
+            data: data,
+            withCredentials: true
+          });
+        case 3:
+          res = _context3.sent;
+          if (res.data.status === "success") {
+            (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Tour created successfully");
+          }
+          _context3.next = 12;
+          break;
+        case 7:
+          _context3.prev = 7;
+          _context3.t0 = _context3["catch"](0);
+          console.log(_context3.t0.response.data.message);
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context3.t0.response.data.message);
+          throw new Error(_context3.t0.response.data.message);
+        case 12:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[0, 7]]);
+  }));
+  return function createTour(_x3) {
+    return _ref3.apply(this, arguments);
   };
 }();
 
@@ -731,6 +944,7 @@ var bookTour = /*#__PURE__*/function () {
   \*************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   deleteUserData: () => (/* binding */ deleteUserData),
@@ -879,6 +1093,7 @@ var deleteUserData = /*#__PURE__*/function () {
   \***************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   deleteUserData: () => (/* binding */ deleteUserData),
@@ -967,12 +1182,17254 @@ var deleteUserData = /*#__PURE__*/function () {
 
 /***/ }),
 
+/***/ "./node_modules/flatpickr/dist/esm/index.js":
+/*!**************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/index.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _types_options__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types/options */ "./node_modules/flatpickr/dist/esm/types/options.js");
+/* harmony import */ var _l10n_default__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./l10n/default */ "./node_modules/flatpickr/dist/esm/l10n/default.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./node_modules/flatpickr/dist/esm/utils/index.js");
+/* harmony import */ var _utils_dom__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils/dom */ "./node_modules/flatpickr/dist/esm/utils/dom.js");
+/* harmony import */ var _utils_dates__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils/dates */ "./node_modules/flatpickr/dist/esm/utils/dates.js");
+/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utils/formatting */ "./node_modules/flatpickr/dist/esm/utils/formatting.js");
+/* harmony import */ var _utils_polyfills__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./utils/polyfills */ "./node_modules/flatpickr/dist/esm/utils/polyfills.js");
+/* harmony import */ var _utils_polyfills__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_utils_polyfills__WEBPACK_IMPORTED_MODULE_6__);
+var __assign = (undefined && undefined.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+
+
+
+
+
+
+
+var DEBOUNCED_CHANGE_MS = 300;
+function FlatpickrInstance(element, instanceConfig) {
+    var self = {
+        config: __assign(__assign({}, _types_options__WEBPACK_IMPORTED_MODULE_0__.defaults), flatpickr.defaultConfig),
+        l10n: _l10n_default__WEBPACK_IMPORTED_MODULE_1__["default"],
+    };
+    self.parseDate = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.createDateParser)({ config: self.config, l10n: self.l10n });
+    self._handlers = [];
+    self.pluginElements = [];
+    self.loadedPlugins = [];
+    self._bind = bind;
+    self._setHoursFromDate = setHoursFromDate;
+    self._positionCalendar = positionCalendar;
+    self.changeMonth = changeMonth;
+    self.changeYear = changeYear;
+    self.clear = clear;
+    self.close = close;
+    self.onMouseOver = onMouseOver;
+    self._createElement = _utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement;
+    self.createDay = createDay;
+    self.destroy = destroy;
+    self.isEnabled = isEnabled;
+    self.jumpToDate = jumpToDate;
+    self.updateValue = updateValue;
+    self.open = open;
+    self.redraw = redraw;
+    self.set = set;
+    self.setDate = setDate;
+    self.toggle = toggle;
+    function setupHelperFunctions() {
+        self.utils = {
+            getDaysInMonth: function (month, yr) {
+                if (month === void 0) { month = self.currentMonth; }
+                if (yr === void 0) { yr = self.currentYear; }
+                if (month === 1 && ((yr % 4 === 0 && yr % 100 !== 0) || yr % 400 === 0))
+                    return 29;
+                return self.l10n.daysInMonth[month];
+            },
+        };
+    }
+    function init() {
+        self.element = self.input = element;
+        self.isOpen = false;
+        parseConfig();
+        setupLocale();
+        setupInputs();
+        setupDates();
+        setupHelperFunctions();
+        if (!self.isMobile)
+            build();
+        bindEvents();
+        if (self.selectedDates.length || self.config.noCalendar) {
+            if (self.config.enableTime) {
+                setHoursFromDate(self.config.noCalendar ? self.latestSelectedDateObj : undefined);
+            }
+            updateValue(false);
+        }
+        setCalendarWidth();
+        var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        if (!self.isMobile && isSafari) {
+            positionCalendar();
+        }
+        triggerEvent("onReady");
+    }
+    function getClosestActiveElement() {
+        var _a;
+        return (((_a = self.calendarContainer) === null || _a === void 0 ? void 0 : _a.getRootNode())
+            .activeElement || document.activeElement);
+    }
+    function bindToInstance(fn) {
+        return fn.bind(self);
+    }
+    function setCalendarWidth() {
+        var config = self.config;
+        if (config.weekNumbers === false && config.showMonths === 1) {
+            return;
+        }
+        else if (config.noCalendar !== true) {
+            window.requestAnimationFrame(function () {
+                if (self.calendarContainer !== undefined) {
+                    self.calendarContainer.style.visibility = "hidden";
+                    self.calendarContainer.style.display = "block";
+                }
+                if (self.daysContainer !== undefined) {
+                    var daysWidth = (self.days.offsetWidth + 1) * config.showMonths;
+                    self.daysContainer.style.width = daysWidth + "px";
+                    self.calendarContainer.style.width =
+                        daysWidth +
+                            (self.weekWrapper !== undefined
+                                ? self.weekWrapper.offsetWidth
+                                : 0) +
+                            "px";
+                    self.calendarContainer.style.removeProperty("visibility");
+                    self.calendarContainer.style.removeProperty("display");
+                }
+            });
+        }
+    }
+    function updateTime(e) {
+        if (self.selectedDates.length === 0) {
+            var defaultDate = self.config.minDate === undefined ||
+                (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(new Date(), self.config.minDate) >= 0
+                ? new Date()
+                : new Date(self.config.minDate.getTime());
+            var defaults = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.getDefaultHours)(self.config);
+            defaultDate.setHours(defaults.hours, defaults.minutes, defaults.seconds, defaultDate.getMilliseconds());
+            self.selectedDates = [defaultDate];
+            self.latestSelectedDateObj = defaultDate;
+        }
+        if (e !== undefined && e.type !== "blur") {
+            timeWrapper(e);
+        }
+        var prevValue = self._input.value;
+        setHoursFromInputs();
+        updateValue();
+        if (self._input.value !== prevValue) {
+            self._debouncedChange();
+        }
+    }
+    function ampm2military(hour, amPM) {
+        return (hour % 12) + 12 * (0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(amPM === self.l10n.amPM[1]);
+    }
+    function military2ampm(hour) {
+        switch (hour % 24) {
+            case 0:
+            case 12:
+                return 12;
+            default:
+                return hour % 12;
+        }
+    }
+    function setHoursFromInputs() {
+        if (self.hourElement === undefined || self.minuteElement === undefined)
+            return;
+        var hours = (parseInt(self.hourElement.value.slice(-2), 10) || 0) % 24, minutes = (parseInt(self.minuteElement.value, 10) || 0) % 60, seconds = self.secondElement !== undefined
+            ? (parseInt(self.secondElement.value, 10) || 0) % 60
+            : 0;
+        if (self.amPM !== undefined) {
+            hours = ampm2military(hours, self.amPM.textContent);
+        }
+        var limitMinHours = self.config.minTime !== undefined ||
+            (self.config.minDate &&
+                self.minDateHasTime &&
+                self.latestSelectedDateObj &&
+                (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(self.latestSelectedDateObj, self.config.minDate, true) ===
+                    0);
+        var limitMaxHours = self.config.maxTime !== undefined ||
+            (self.config.maxDate &&
+                self.maxDateHasTime &&
+                self.latestSelectedDateObj &&
+                (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(self.latestSelectedDateObj, self.config.maxDate, true) ===
+                    0);
+        if (self.config.maxTime !== undefined &&
+            self.config.minTime !== undefined &&
+            self.config.minTime > self.config.maxTime) {
+            var minBound = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.calculateSecondsSinceMidnight)(self.config.minTime.getHours(), self.config.minTime.getMinutes(), self.config.minTime.getSeconds());
+            var maxBound = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.calculateSecondsSinceMidnight)(self.config.maxTime.getHours(), self.config.maxTime.getMinutes(), self.config.maxTime.getSeconds());
+            var currentTime = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.calculateSecondsSinceMidnight)(hours, minutes, seconds);
+            if (currentTime > maxBound && currentTime < minBound) {
+                var result = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.parseSeconds)(minBound);
+                hours = result[0];
+                minutes = result[1];
+                seconds = result[2];
+            }
+        }
+        else {
+            if (limitMaxHours) {
+                var maxTime = self.config.maxTime !== undefined
+                    ? self.config.maxTime
+                    : self.config.maxDate;
+                hours = Math.min(hours, maxTime.getHours());
+                if (hours === maxTime.getHours())
+                    minutes = Math.min(minutes, maxTime.getMinutes());
+                if (minutes === maxTime.getMinutes())
+                    seconds = Math.min(seconds, maxTime.getSeconds());
+            }
+            if (limitMinHours) {
+                var minTime = self.config.minTime !== undefined
+                    ? self.config.minTime
+                    : self.config.minDate;
+                hours = Math.max(hours, minTime.getHours());
+                if (hours === minTime.getHours() && minutes < minTime.getMinutes())
+                    minutes = minTime.getMinutes();
+                if (minutes === minTime.getMinutes())
+                    seconds = Math.max(seconds, minTime.getSeconds());
+            }
+        }
+        setHours(hours, minutes, seconds);
+    }
+    function setHoursFromDate(dateObj) {
+        var date = dateObj || self.latestSelectedDateObj;
+        if (date && date instanceof Date) {
+            setHours(date.getHours(), date.getMinutes(), date.getSeconds());
+        }
+    }
+    function setHours(hours, minutes, seconds) {
+        if (self.latestSelectedDateObj !== undefined) {
+            self.latestSelectedDateObj.setHours(hours % 24, minutes, seconds || 0, 0);
+        }
+        if (!self.hourElement || !self.minuteElement || self.isMobile)
+            return;
+        self.hourElement.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(!self.config.time_24hr
+            ? ((12 + hours) % 12) + 12 * (0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(hours % 12 === 0)
+            : hours);
+        self.minuteElement.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(minutes);
+        if (self.amPM !== undefined)
+            self.amPM.textContent = self.l10n.amPM[(0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(hours >= 12)];
+        if (self.secondElement !== undefined)
+            self.secondElement.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(seconds);
+    }
+    function onYearInput(event) {
+        var eventTarget = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(event);
+        var year = parseInt(eventTarget.value) + (event.delta || 0);
+        if (year / 1000 > 1 ||
+            (event.key === "Enter" && !/[^\d]/.test(year.toString()))) {
+            changeYear(year);
+        }
+    }
+    function bind(element, event, handler, options) {
+        if (event instanceof Array)
+            return event.forEach(function (ev) { return bind(element, ev, handler, options); });
+        if (element instanceof Array)
+            return element.forEach(function (el) { return bind(el, event, handler, options); });
+        element.addEventListener(event, handler, options);
+        self._handlers.push({
+            remove: function () { return element.removeEventListener(event, handler, options); },
+        });
+    }
+    function triggerChange() {
+        triggerEvent("onChange");
+    }
+    function bindEvents() {
+        if (self.config.wrap) {
+            ["open", "close", "toggle", "clear"].forEach(function (evt) {
+                Array.prototype.forEach.call(self.element.querySelectorAll("[data-" + evt + "]"), function (el) {
+                    return bind(el, "click", self[evt]);
+                });
+            });
+        }
+        if (self.isMobile) {
+            setupMobile();
+            return;
+        }
+        var debouncedResize = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.debounce)(onResize, 50);
+        self._debouncedChange = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.debounce)(triggerChange, DEBOUNCED_CHANGE_MS);
+        if (self.daysContainer && !/iPhone|iPad|iPod/i.test(navigator.userAgent))
+            bind(self.daysContainer, "mouseover", function (e) {
+                if (self.config.mode === "range")
+                    onMouseOver((0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e));
+            });
+        bind(self._input, "keydown", onKeyDown);
+        if (self.calendarContainer !== undefined) {
+            bind(self.calendarContainer, "keydown", onKeyDown);
+        }
+        if (!self.config.inline && !self.config.static)
+            bind(window, "resize", debouncedResize);
+        if (window.ontouchstart !== undefined)
+            bind(window.document, "touchstart", documentClick);
+        else
+            bind(window.document, "mousedown", documentClick);
+        bind(window.document, "focus", documentClick, { capture: true });
+        if (self.config.clickOpens === true) {
+            bind(self._input, "focus", self.open);
+            bind(self._input, "click", self.open);
+        }
+        if (self.daysContainer !== undefined) {
+            bind(self.monthNav, "click", onMonthNavClick);
+            bind(self.monthNav, ["keyup", "increment"], onYearInput);
+            bind(self.daysContainer, "click", selectDate);
+        }
+        if (self.timeContainer !== undefined &&
+            self.minuteElement !== undefined &&
+            self.hourElement !== undefined) {
+            var selText = function (e) {
+                return (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e).select();
+            };
+            bind(self.timeContainer, ["increment"], updateTime);
+            bind(self.timeContainer, "blur", updateTime, { capture: true });
+            bind(self.timeContainer, "click", timeIncrement);
+            bind([self.hourElement, self.minuteElement], ["focus", "click"], selText);
+            if (self.secondElement !== undefined)
+                bind(self.secondElement, "focus", function () { return self.secondElement && self.secondElement.select(); });
+            if (self.amPM !== undefined) {
+                bind(self.amPM, "click", function (e) {
+                    updateTime(e);
+                });
+            }
+        }
+        if (self.config.allowInput) {
+            bind(self._input, "blur", onBlur);
+        }
+    }
+    function jumpToDate(jumpDate, triggerChange) {
+        var jumpTo = jumpDate !== undefined
+            ? self.parseDate(jumpDate)
+            : self.latestSelectedDateObj ||
+                (self.config.minDate && self.config.minDate > self.now
+                    ? self.config.minDate
+                    : self.config.maxDate && self.config.maxDate < self.now
+                        ? self.config.maxDate
+                        : self.now);
+        var oldYear = self.currentYear;
+        var oldMonth = self.currentMonth;
+        try {
+            if (jumpTo !== undefined) {
+                self.currentYear = jumpTo.getFullYear();
+                self.currentMonth = jumpTo.getMonth();
+            }
+        }
+        catch (e) {
+            e.message = "Invalid date supplied: " + jumpTo;
+            self.config.errorHandler(e);
+        }
+        if (triggerChange && self.currentYear !== oldYear) {
+            triggerEvent("onYearChange");
+            buildMonthSwitch();
+        }
+        if (triggerChange &&
+            (self.currentYear !== oldYear || self.currentMonth !== oldMonth)) {
+            triggerEvent("onMonthChange");
+        }
+        self.redraw();
+    }
+    function timeIncrement(e) {
+        var eventTarget = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+        if (~eventTarget.className.indexOf("arrow"))
+            incrementNumInput(e, eventTarget.classList.contains("arrowUp") ? 1 : -1);
+    }
+    function incrementNumInput(e, delta, inputElem) {
+        var target = e && (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+        var input = inputElem ||
+            (target && target.parentNode && target.parentNode.firstChild);
+        var event = createEvent("increment");
+        event.delta = delta;
+        input && input.dispatchEvent(event);
+    }
+    function build() {
+        var fragment = window.document.createDocumentFragment();
+        self.calendarContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-calendar");
+        self.calendarContainer.tabIndex = -1;
+        if (!self.config.noCalendar) {
+            fragment.appendChild(buildMonthNav());
+            self.innerContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-innerContainer");
+            if (self.config.weekNumbers) {
+                var _a = buildWeeks(), weekWrapper = _a.weekWrapper, weekNumbers = _a.weekNumbers;
+                self.innerContainer.appendChild(weekWrapper);
+                self.weekNumbers = weekNumbers;
+                self.weekWrapper = weekWrapper;
+            }
+            self.rContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-rContainer");
+            self.rContainer.appendChild(buildWeekdays());
+            if (!self.daysContainer) {
+                self.daysContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-days");
+                self.daysContainer.tabIndex = -1;
+            }
+            buildDays();
+            self.rContainer.appendChild(self.daysContainer);
+            self.innerContainer.appendChild(self.rContainer);
+            fragment.appendChild(self.innerContainer);
+        }
+        if (self.config.enableTime) {
+            fragment.appendChild(buildTime());
+        }
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "rangeMode", self.config.mode === "range");
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "animate", self.config.animate === true);
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "multiMonth", self.config.showMonths > 1);
+        self.calendarContainer.appendChild(fragment);
+        var customAppend = self.config.appendTo !== undefined &&
+            self.config.appendTo.nodeType !== undefined;
+        if (self.config.inline || self.config.static) {
+            self.calendarContainer.classList.add(self.config.inline ? "inline" : "static");
+            if (self.config.inline) {
+                if (!customAppend && self.element.parentNode)
+                    self.element.parentNode.insertBefore(self.calendarContainer, self._input.nextSibling);
+                else if (self.config.appendTo !== undefined)
+                    self.config.appendTo.appendChild(self.calendarContainer);
+            }
+            if (self.config.static) {
+                var wrapper = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-wrapper");
+                if (self.element.parentNode)
+                    self.element.parentNode.insertBefore(wrapper, self.element);
+                wrapper.appendChild(self.element);
+                if (self.altInput)
+                    wrapper.appendChild(self.altInput);
+                wrapper.appendChild(self.calendarContainer);
+            }
+        }
+        if (!self.config.static && !self.config.inline)
+            (self.config.appendTo !== undefined
+                ? self.config.appendTo
+                : window.document.body).appendChild(self.calendarContainer);
+    }
+    function createDay(className, date, _dayNumber, i) {
+        var dateIsEnabled = isEnabled(date, true), dayElement = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", className, date.getDate().toString());
+        dayElement.dateObj = date;
+        dayElement.$i = i;
+        dayElement.setAttribute("aria-label", self.formatDate(date, self.config.ariaDateFormat));
+        if (className.indexOf("hidden") === -1 &&
+            (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(date, self.now) === 0) {
+            self.todayDateElem = dayElement;
+            dayElement.classList.add("today");
+            dayElement.setAttribute("aria-current", "date");
+        }
+        if (dateIsEnabled) {
+            dayElement.tabIndex = -1;
+            if (isDateSelected(date)) {
+                dayElement.classList.add("selected");
+                self.selectedDateElem = dayElement;
+                if (self.config.mode === "range") {
+                    (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(dayElement, "startRange", self.selectedDates[0] &&
+                        (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(date, self.selectedDates[0], true) === 0);
+                    (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(dayElement, "endRange", self.selectedDates[1] &&
+                        (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(date, self.selectedDates[1], true) === 0);
+                    if (className === "nextMonthDay")
+                        dayElement.classList.add("inRange");
+                }
+            }
+        }
+        else {
+            dayElement.classList.add("flatpickr-disabled");
+        }
+        if (self.config.mode === "range") {
+            if (isDateInRange(date) && !isDateSelected(date))
+                dayElement.classList.add("inRange");
+        }
+        if (self.weekNumbers &&
+            self.config.showMonths === 1 &&
+            className !== "prevMonthDay" &&
+            i % 7 === 6) {
+            self.weekNumbers.insertAdjacentHTML("beforeend", "<span class='flatpickr-day'>" + self.config.getWeek(date) + "</span>");
+        }
+        triggerEvent("onDayCreate", dayElement);
+        return dayElement;
+    }
+    function focusOnDayElem(targetNode) {
+        targetNode.focus();
+        if (self.config.mode === "range")
+            onMouseOver(targetNode);
+    }
+    function getFirstAvailableDay(delta) {
+        var startMonth = delta > 0 ? 0 : self.config.showMonths - 1;
+        var endMonth = delta > 0 ? self.config.showMonths : -1;
+        for (var m = startMonth; m != endMonth; m += delta) {
+            var month = self.daysContainer.children[m];
+            var startIndex = delta > 0 ? 0 : month.children.length - 1;
+            var endIndex = delta > 0 ? month.children.length : -1;
+            for (var i = startIndex; i != endIndex; i += delta) {
+                var c = month.children[i];
+                if (c.className.indexOf("hidden") === -1 && isEnabled(c.dateObj))
+                    return c;
+            }
+        }
+        return undefined;
+    }
+    function getNextAvailableDay(current, delta) {
+        var givenMonth = current.className.indexOf("Month") === -1
+            ? current.dateObj.getMonth()
+            : self.currentMonth;
+        var endMonth = delta > 0 ? self.config.showMonths : -1;
+        var loopDelta = delta > 0 ? 1 : -1;
+        for (var m = givenMonth - self.currentMonth; m != endMonth; m += loopDelta) {
+            var month = self.daysContainer.children[m];
+            var startIndex = givenMonth - self.currentMonth === m
+                ? current.$i + delta
+                : delta < 0
+                    ? month.children.length - 1
+                    : 0;
+            var numMonthDays = month.children.length;
+            for (var i = startIndex; i >= 0 && i < numMonthDays && i != (delta > 0 ? numMonthDays : -1); i += loopDelta) {
+                var c = month.children[i];
+                if (c.className.indexOf("hidden") === -1 &&
+                    isEnabled(c.dateObj) &&
+                    Math.abs(current.$i - i) >= Math.abs(delta))
+                    return focusOnDayElem(c);
+            }
+        }
+        self.changeMonth(loopDelta);
+        focusOnDay(getFirstAvailableDay(loopDelta), 0);
+        return undefined;
+    }
+    function focusOnDay(current, offset) {
+        var activeElement = getClosestActiveElement();
+        var dayFocused = isInView(activeElement || document.body);
+        var startElem = current !== undefined
+            ? current
+            : dayFocused
+                ? activeElement
+                : self.selectedDateElem !== undefined && isInView(self.selectedDateElem)
+                    ? self.selectedDateElem
+                    : self.todayDateElem !== undefined && isInView(self.todayDateElem)
+                        ? self.todayDateElem
+                        : getFirstAvailableDay(offset > 0 ? 1 : -1);
+        if (startElem === undefined) {
+            self._input.focus();
+        }
+        else if (!dayFocused) {
+            focusOnDayElem(startElem);
+        }
+        else {
+            getNextAvailableDay(startElem, offset);
+        }
+    }
+    function buildMonthDays(year, month) {
+        var firstOfMonth = (new Date(year, month, 1).getDay() - self.l10n.firstDayOfWeek + 7) % 7;
+        var prevMonthDays = self.utils.getDaysInMonth((month - 1 + 12) % 12, year);
+        var daysInMonth = self.utils.getDaysInMonth(month, year), days = window.document.createDocumentFragment(), isMultiMonth = self.config.showMonths > 1, prevMonthDayClass = isMultiMonth ? "prevMonthDay hidden" : "prevMonthDay", nextMonthDayClass = isMultiMonth ? "nextMonthDay hidden" : "nextMonthDay";
+        var dayNumber = prevMonthDays + 1 - firstOfMonth, dayIndex = 0;
+        for (; dayNumber <= prevMonthDays; dayNumber++, dayIndex++) {
+            days.appendChild(createDay("flatpickr-day " + prevMonthDayClass, new Date(year, month - 1, dayNumber), dayNumber, dayIndex));
+        }
+        for (dayNumber = 1; dayNumber <= daysInMonth; dayNumber++, dayIndex++) {
+            days.appendChild(createDay("flatpickr-day", new Date(year, month, dayNumber), dayNumber, dayIndex));
+        }
+        for (var dayNum = daysInMonth + 1; dayNum <= 42 - firstOfMonth &&
+            (self.config.showMonths === 1 || dayIndex % 7 !== 0); dayNum++, dayIndex++) {
+            days.appendChild(createDay("flatpickr-day " + nextMonthDayClass, new Date(year, month + 1, dayNum % daysInMonth), dayNum, dayIndex));
+        }
+        var dayContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "dayContainer");
+        dayContainer.appendChild(days);
+        return dayContainer;
+    }
+    function buildDays() {
+        if (self.daysContainer === undefined) {
+            return;
+        }
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.clearNode)(self.daysContainer);
+        if (self.weekNumbers)
+            (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.clearNode)(self.weekNumbers);
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < self.config.showMonths; i++) {
+            var d = new Date(self.currentYear, self.currentMonth, 1);
+            d.setMonth(self.currentMonth + i);
+            frag.appendChild(buildMonthDays(d.getFullYear(), d.getMonth()));
+        }
+        self.daysContainer.appendChild(frag);
+        self.days = self.daysContainer.firstChild;
+        if (self.config.mode === "range" && self.selectedDates.length === 1) {
+            onMouseOver();
+        }
+    }
+    function buildMonthSwitch() {
+        if (self.config.showMonths > 1 ||
+            self.config.monthSelectorType !== "dropdown")
+            return;
+        var shouldBuildMonth = function (month) {
+            if (self.config.minDate !== undefined &&
+                self.currentYear === self.config.minDate.getFullYear() &&
+                month < self.config.minDate.getMonth()) {
+                return false;
+            }
+            return !(self.config.maxDate !== undefined &&
+                self.currentYear === self.config.maxDate.getFullYear() &&
+                month > self.config.maxDate.getMonth());
+        };
+        self.monthsDropdownContainer.tabIndex = -1;
+        self.monthsDropdownContainer.innerHTML = "";
+        for (var i = 0; i < 12; i++) {
+            if (!shouldBuildMonth(i))
+                continue;
+            var month = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("option", "flatpickr-monthDropdown-month");
+            month.value = new Date(self.currentYear, i).getMonth().toString();
+            month.textContent = (0,_utils_formatting__WEBPACK_IMPORTED_MODULE_5__.monthToStr)(i, self.config.shorthandCurrentMonth, self.l10n);
+            month.tabIndex = -1;
+            if (self.currentMonth === i) {
+                month.selected = true;
+            }
+            self.monthsDropdownContainer.appendChild(month);
+        }
+    }
+    function buildMonth() {
+        var container = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-month");
+        var monthNavFragment = window.document.createDocumentFragment();
+        var monthElement;
+        if (self.config.showMonths > 1 ||
+            self.config.monthSelectorType === "static") {
+            monthElement = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "cur-month");
+        }
+        else {
+            self.monthsDropdownContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("select", "flatpickr-monthDropdown-months");
+            self.monthsDropdownContainer.setAttribute("aria-label", self.l10n.monthAriaLabel);
+            bind(self.monthsDropdownContainer, "change", function (e) {
+                var target = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+                var selectedMonth = parseInt(target.value, 10);
+                self.changeMonth(selectedMonth - self.currentMonth);
+                triggerEvent("onMonthChange");
+            });
+            buildMonthSwitch();
+            monthElement = self.monthsDropdownContainer;
+        }
+        var yearInput = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createNumberInput)("cur-year", { tabindex: "-1" });
+        var yearElement = yearInput.getElementsByTagName("input")[0];
+        yearElement.setAttribute("aria-label", self.l10n.yearAriaLabel);
+        if (self.config.minDate) {
+            yearElement.setAttribute("min", self.config.minDate.getFullYear().toString());
+        }
+        if (self.config.maxDate) {
+            yearElement.setAttribute("max", self.config.maxDate.getFullYear().toString());
+            yearElement.disabled =
+                !!self.config.minDate &&
+                    self.config.minDate.getFullYear() === self.config.maxDate.getFullYear();
+        }
+        var currentMonth = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-current-month");
+        currentMonth.appendChild(monthElement);
+        currentMonth.appendChild(yearInput);
+        monthNavFragment.appendChild(currentMonth);
+        container.appendChild(monthNavFragment);
+        return {
+            container: container,
+            yearElement: yearElement,
+            monthElement: monthElement,
+        };
+    }
+    function buildMonths() {
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.clearNode)(self.monthNav);
+        self.monthNav.appendChild(self.prevMonthNav);
+        if (self.config.showMonths) {
+            self.yearElements = [];
+            self.monthElements = [];
+        }
+        for (var m = self.config.showMonths; m--;) {
+            var month = buildMonth();
+            self.yearElements.push(month.yearElement);
+            self.monthElements.push(month.monthElement);
+            self.monthNav.appendChild(month.container);
+        }
+        self.monthNav.appendChild(self.nextMonthNav);
+    }
+    function buildMonthNav() {
+        self.monthNav = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-months");
+        self.yearElements = [];
+        self.monthElements = [];
+        self.prevMonthNav = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "flatpickr-prev-month");
+        self.prevMonthNav.innerHTML = self.config.prevArrow;
+        self.nextMonthNav = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "flatpickr-next-month");
+        self.nextMonthNav.innerHTML = self.config.nextArrow;
+        buildMonths();
+        Object.defineProperty(self, "_hidePrevMonthArrow", {
+            get: function () { return self.__hidePrevMonthArrow; },
+            set: function (bool) {
+                if (self.__hidePrevMonthArrow !== bool) {
+                    (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.prevMonthNav, "flatpickr-disabled", bool);
+                    self.__hidePrevMonthArrow = bool;
+                }
+            },
+        });
+        Object.defineProperty(self, "_hideNextMonthArrow", {
+            get: function () { return self.__hideNextMonthArrow; },
+            set: function (bool) {
+                if (self.__hideNextMonthArrow !== bool) {
+                    (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.nextMonthNav, "flatpickr-disabled", bool);
+                    self.__hideNextMonthArrow = bool;
+                }
+            },
+        });
+        self.currentYearElement = self.yearElements[0];
+        updateNavigationCurrentMonth();
+        return self.monthNav;
+    }
+    function buildTime() {
+        self.calendarContainer.classList.add("hasTime");
+        if (self.config.noCalendar)
+            self.calendarContainer.classList.add("noCalendar");
+        var defaults = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.getDefaultHours)(self.config);
+        self.timeContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-time");
+        self.timeContainer.tabIndex = -1;
+        var separator = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "flatpickr-time-separator", ":");
+        var hourInput = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createNumberInput)("flatpickr-hour", {
+            "aria-label": self.l10n.hourAriaLabel,
+        });
+        self.hourElement = hourInput.getElementsByTagName("input")[0];
+        var minuteInput = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createNumberInput)("flatpickr-minute", {
+            "aria-label": self.l10n.minuteAriaLabel,
+        });
+        self.minuteElement = minuteInput.getElementsByTagName("input")[0];
+        self.hourElement.tabIndex = self.minuteElement.tabIndex = -1;
+        self.hourElement.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(self.latestSelectedDateObj
+            ? self.latestSelectedDateObj.getHours()
+            : self.config.time_24hr
+                ? defaults.hours
+                : military2ampm(defaults.hours));
+        self.minuteElement.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(self.latestSelectedDateObj
+            ? self.latestSelectedDateObj.getMinutes()
+            : defaults.minutes);
+        self.hourElement.setAttribute("step", self.config.hourIncrement.toString());
+        self.minuteElement.setAttribute("step", self.config.minuteIncrement.toString());
+        self.hourElement.setAttribute("min", self.config.time_24hr ? "0" : "1");
+        self.hourElement.setAttribute("max", self.config.time_24hr ? "23" : "12");
+        self.hourElement.setAttribute("maxlength", "2");
+        self.minuteElement.setAttribute("min", "0");
+        self.minuteElement.setAttribute("max", "59");
+        self.minuteElement.setAttribute("maxlength", "2");
+        self.timeContainer.appendChild(hourInput);
+        self.timeContainer.appendChild(separator);
+        self.timeContainer.appendChild(minuteInput);
+        if (self.config.time_24hr)
+            self.timeContainer.classList.add("time24hr");
+        if (self.config.enableSeconds) {
+            self.timeContainer.classList.add("hasSeconds");
+            var secondInput = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createNumberInput)("flatpickr-second");
+            self.secondElement = secondInput.getElementsByTagName("input")[0];
+            self.secondElement.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(self.latestSelectedDateObj
+                ? self.latestSelectedDateObj.getSeconds()
+                : defaults.seconds);
+            self.secondElement.setAttribute("step", self.minuteElement.getAttribute("step"));
+            self.secondElement.setAttribute("min", "0");
+            self.secondElement.setAttribute("max", "59");
+            self.secondElement.setAttribute("maxlength", "2");
+            self.timeContainer.appendChild((0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "flatpickr-time-separator", ":"));
+            self.timeContainer.appendChild(secondInput);
+        }
+        if (!self.config.time_24hr) {
+            self.amPM = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "flatpickr-am-pm", self.l10n.amPM[(0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)((self.latestSelectedDateObj
+                ? self.hourElement.value
+                : self.config.defaultHour) > 11)]);
+            self.amPM.title = self.l10n.toggleTitle;
+            self.amPM.tabIndex = -1;
+            self.timeContainer.appendChild(self.amPM);
+        }
+        return self.timeContainer;
+    }
+    function buildWeekdays() {
+        if (!self.weekdayContainer)
+            self.weekdayContainer = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-weekdays");
+        else
+            (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.clearNode)(self.weekdayContainer);
+        for (var i = self.config.showMonths; i--;) {
+            var container = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-weekdaycontainer");
+            self.weekdayContainer.appendChild(container);
+        }
+        updateWeekdays();
+        return self.weekdayContainer;
+    }
+    function updateWeekdays() {
+        if (!self.weekdayContainer) {
+            return;
+        }
+        var firstDayOfWeek = self.l10n.firstDayOfWeek;
+        var weekdays = __spreadArrays(self.l10n.weekdays.shorthand);
+        if (firstDayOfWeek > 0 && firstDayOfWeek < weekdays.length) {
+            weekdays = __spreadArrays(weekdays.splice(firstDayOfWeek, weekdays.length), weekdays.splice(0, firstDayOfWeek));
+        }
+        for (var i = self.config.showMonths; i--;) {
+            self.weekdayContainer.children[i].innerHTML = "\n      <span class='flatpickr-weekday'>\n        " + weekdays.join("</span><span class='flatpickr-weekday'>") + "\n      </span>\n      ";
+        }
+    }
+    function buildWeeks() {
+        self.calendarContainer.classList.add("hasWeeks");
+        var weekWrapper = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-weekwrapper");
+        weekWrapper.appendChild((0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("span", "flatpickr-weekday", self.l10n.weekAbbreviation));
+        var weekNumbers = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("div", "flatpickr-weeks");
+        weekWrapper.appendChild(weekNumbers);
+        return {
+            weekWrapper: weekWrapper,
+            weekNumbers: weekNumbers,
+        };
+    }
+    function changeMonth(value, isOffset) {
+        if (isOffset === void 0) { isOffset = true; }
+        var delta = isOffset ? value : value - self.currentMonth;
+        if ((delta < 0 && self._hidePrevMonthArrow === true) ||
+            (delta > 0 && self._hideNextMonthArrow === true))
+            return;
+        self.currentMonth += delta;
+        if (self.currentMonth < 0 || self.currentMonth > 11) {
+            self.currentYear += self.currentMonth > 11 ? 1 : -1;
+            self.currentMonth = (self.currentMonth + 12) % 12;
+            triggerEvent("onYearChange");
+            buildMonthSwitch();
+        }
+        buildDays();
+        triggerEvent("onMonthChange");
+        updateNavigationCurrentMonth();
+    }
+    function clear(triggerChangeEvent, toInitial) {
+        if (triggerChangeEvent === void 0) { triggerChangeEvent = true; }
+        if (toInitial === void 0) { toInitial = true; }
+        self.input.value = "";
+        if (self.altInput !== undefined)
+            self.altInput.value = "";
+        if (self.mobileInput !== undefined)
+            self.mobileInput.value = "";
+        self.selectedDates = [];
+        self.latestSelectedDateObj = undefined;
+        if (toInitial === true) {
+            self.currentYear = self._initialDate.getFullYear();
+            self.currentMonth = self._initialDate.getMonth();
+        }
+        if (self.config.enableTime === true) {
+            var _a = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.getDefaultHours)(self.config), hours = _a.hours, minutes = _a.minutes, seconds = _a.seconds;
+            setHours(hours, minutes, seconds);
+        }
+        self.redraw();
+        if (triggerChangeEvent)
+            triggerEvent("onChange");
+    }
+    function close() {
+        self.isOpen = false;
+        if (!self.isMobile) {
+            if (self.calendarContainer !== undefined) {
+                self.calendarContainer.classList.remove("open");
+            }
+            if (self._input !== undefined) {
+                self._input.classList.remove("active");
+            }
+        }
+        triggerEvent("onClose");
+    }
+    function destroy() {
+        if (self.config !== undefined)
+            triggerEvent("onDestroy");
+        for (var i = self._handlers.length; i--;) {
+            self._handlers[i].remove();
+        }
+        self._handlers = [];
+        if (self.mobileInput) {
+            if (self.mobileInput.parentNode)
+                self.mobileInput.parentNode.removeChild(self.mobileInput);
+            self.mobileInput = undefined;
+        }
+        else if (self.calendarContainer && self.calendarContainer.parentNode) {
+            if (self.config.static && self.calendarContainer.parentNode) {
+                var wrapper = self.calendarContainer.parentNode;
+                wrapper.lastChild && wrapper.removeChild(wrapper.lastChild);
+                if (wrapper.parentNode) {
+                    while (wrapper.firstChild)
+                        wrapper.parentNode.insertBefore(wrapper.firstChild, wrapper);
+                    wrapper.parentNode.removeChild(wrapper);
+                }
+            }
+            else
+                self.calendarContainer.parentNode.removeChild(self.calendarContainer);
+        }
+        if (self.altInput) {
+            self.input.type = "text";
+            if (self.altInput.parentNode)
+                self.altInput.parentNode.removeChild(self.altInput);
+            delete self.altInput;
+        }
+        if (self.input) {
+            self.input.type = self.input._type;
+            self.input.classList.remove("flatpickr-input");
+            self.input.removeAttribute("readonly");
+        }
+        [
+            "_showTimeInput",
+            "latestSelectedDateObj",
+            "_hideNextMonthArrow",
+            "_hidePrevMonthArrow",
+            "__hideNextMonthArrow",
+            "__hidePrevMonthArrow",
+            "isMobile",
+            "isOpen",
+            "selectedDateElem",
+            "minDateHasTime",
+            "maxDateHasTime",
+            "days",
+            "daysContainer",
+            "_input",
+            "_positionElement",
+            "innerContainer",
+            "rContainer",
+            "monthNav",
+            "todayDateElem",
+            "calendarContainer",
+            "weekdayContainer",
+            "prevMonthNav",
+            "nextMonthNav",
+            "monthsDropdownContainer",
+            "currentMonthElement",
+            "currentYearElement",
+            "navigationCurrentMonth",
+            "selectedDateElem",
+            "config",
+        ].forEach(function (k) {
+            try {
+                delete self[k];
+            }
+            catch (_) { }
+        });
+    }
+    function isCalendarElem(elem) {
+        return self.calendarContainer.contains(elem);
+    }
+    function documentClick(e) {
+        if (self.isOpen && !self.config.inline) {
+            var eventTarget_1 = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+            var isCalendarElement = isCalendarElem(eventTarget_1);
+            var isInput = eventTarget_1 === self.input ||
+                eventTarget_1 === self.altInput ||
+                self.element.contains(eventTarget_1) ||
+                (e.path &&
+                    e.path.indexOf &&
+                    (~e.path.indexOf(self.input) ||
+                        ~e.path.indexOf(self.altInput)));
+            var lostFocus = !isInput &&
+                !isCalendarElement &&
+                !isCalendarElem(e.relatedTarget);
+            var isIgnored = !self.config.ignoredFocusElements.some(function (elem) {
+                return elem.contains(eventTarget_1);
+            });
+            if (lostFocus && isIgnored) {
+                if (self.config.allowInput) {
+                    self.setDate(self._input.value, false, self.config.altInput
+                        ? self.config.altFormat
+                        : self.config.dateFormat);
+                }
+                if (self.timeContainer !== undefined &&
+                    self.minuteElement !== undefined &&
+                    self.hourElement !== undefined &&
+                    self.input.value !== "" &&
+                    self.input.value !== undefined) {
+                    updateTime();
+                }
+                self.close();
+                if (self.config &&
+                    self.config.mode === "range" &&
+                    self.selectedDates.length === 1)
+                    self.clear(false);
+            }
+        }
+    }
+    function changeYear(newYear) {
+        if (!newYear ||
+            (self.config.minDate && newYear < self.config.minDate.getFullYear()) ||
+            (self.config.maxDate && newYear > self.config.maxDate.getFullYear()))
+            return;
+        var newYearNum = newYear, isNewYear = self.currentYear !== newYearNum;
+        self.currentYear = newYearNum || self.currentYear;
+        if (self.config.maxDate &&
+            self.currentYear === self.config.maxDate.getFullYear()) {
+            self.currentMonth = Math.min(self.config.maxDate.getMonth(), self.currentMonth);
+        }
+        else if (self.config.minDate &&
+            self.currentYear === self.config.minDate.getFullYear()) {
+            self.currentMonth = Math.max(self.config.minDate.getMonth(), self.currentMonth);
+        }
+        if (isNewYear) {
+            self.redraw();
+            triggerEvent("onYearChange");
+            buildMonthSwitch();
+        }
+    }
+    function isEnabled(date, timeless) {
+        var _a;
+        if (timeless === void 0) { timeless = true; }
+        var dateToCheck = self.parseDate(date, undefined, timeless);
+        if ((self.config.minDate &&
+            dateToCheck &&
+            (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(dateToCheck, self.config.minDate, timeless !== undefined ? timeless : !self.minDateHasTime) < 0) ||
+            (self.config.maxDate &&
+                dateToCheck &&
+                (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(dateToCheck, self.config.maxDate, timeless !== undefined ? timeless : !self.maxDateHasTime) > 0))
+            return false;
+        if (!self.config.enable && self.config.disable.length === 0)
+            return true;
+        if (dateToCheck === undefined)
+            return false;
+        var bool = !!self.config.enable, array = (_a = self.config.enable) !== null && _a !== void 0 ? _a : self.config.disable;
+        for (var i = 0, d = void 0; i < array.length; i++) {
+            d = array[i];
+            if (typeof d === "function" &&
+                d(dateToCheck))
+                return bool;
+            else if (d instanceof Date &&
+                dateToCheck !== undefined &&
+                d.getTime() === dateToCheck.getTime())
+                return bool;
+            else if (typeof d === "string") {
+                var parsed = self.parseDate(d, undefined, true);
+                return parsed && parsed.getTime() === dateToCheck.getTime()
+                    ? bool
+                    : !bool;
+            }
+            else if (typeof d === "object" &&
+                dateToCheck !== undefined &&
+                d.from &&
+                d.to &&
+                dateToCheck.getTime() >= d.from.getTime() &&
+                dateToCheck.getTime() <= d.to.getTime())
+                return bool;
+        }
+        return !bool;
+    }
+    function isInView(elem) {
+        if (self.daysContainer !== undefined)
+            return (elem.className.indexOf("hidden") === -1 &&
+                elem.className.indexOf("flatpickr-disabled") === -1 &&
+                self.daysContainer.contains(elem));
+        return false;
+    }
+    function onBlur(e) {
+        var isInput = e.target === self._input;
+        var valueChanged = self._input.value.trimEnd() !== getDateStr();
+        if (isInput &&
+            valueChanged &&
+            !(e.relatedTarget && isCalendarElem(e.relatedTarget))) {
+            self.setDate(self._input.value, true, e.target === self.altInput
+                ? self.config.altFormat
+                : self.config.dateFormat);
+        }
+    }
+    function onKeyDown(e) {
+        var eventTarget = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+        var isInput = self.config.wrap
+            ? element.contains(eventTarget)
+            : eventTarget === self._input;
+        var allowInput = self.config.allowInput;
+        var allowKeydown = self.isOpen && (!allowInput || !isInput);
+        var allowInlineKeydown = self.config.inline && isInput && !allowInput;
+        if (e.keyCode === 13 && isInput) {
+            if (allowInput) {
+                self.setDate(self._input.value, true, eventTarget === self.altInput
+                    ? self.config.altFormat
+                    : self.config.dateFormat);
+                self.close();
+                return eventTarget.blur();
+            }
+            else {
+                self.open();
+            }
+        }
+        else if (isCalendarElem(eventTarget) ||
+            allowKeydown ||
+            allowInlineKeydown) {
+            var isTimeObj = !!self.timeContainer &&
+                self.timeContainer.contains(eventTarget);
+            switch (e.keyCode) {
+                case 13:
+                    if (isTimeObj) {
+                        e.preventDefault();
+                        updateTime();
+                        focusAndClose();
+                    }
+                    else
+                        selectDate(e);
+                    break;
+                case 27:
+                    e.preventDefault();
+                    focusAndClose();
+                    break;
+                case 8:
+                case 46:
+                    if (isInput && !self.config.allowInput) {
+                        e.preventDefault();
+                        self.clear();
+                    }
+                    break;
+                case 37:
+                case 39:
+                    if (!isTimeObj && !isInput) {
+                        e.preventDefault();
+                        var activeElement = getClosestActiveElement();
+                        if (self.daysContainer !== undefined &&
+                            (allowInput === false ||
+                                (activeElement && isInView(activeElement)))) {
+                            var delta_1 = e.keyCode === 39 ? 1 : -1;
+                            if (!e.ctrlKey)
+                                focusOnDay(undefined, delta_1);
+                            else {
+                                e.stopPropagation();
+                                changeMonth(delta_1);
+                                focusOnDay(getFirstAvailableDay(1), 0);
+                            }
+                        }
+                    }
+                    else if (self.hourElement)
+                        self.hourElement.focus();
+                    break;
+                case 38:
+                case 40:
+                    e.preventDefault();
+                    var delta = e.keyCode === 40 ? 1 : -1;
+                    if ((self.daysContainer &&
+                        eventTarget.$i !== undefined) ||
+                        eventTarget === self.input ||
+                        eventTarget === self.altInput) {
+                        if (e.ctrlKey) {
+                            e.stopPropagation();
+                            changeYear(self.currentYear - delta);
+                            focusOnDay(getFirstAvailableDay(1), 0);
+                        }
+                        else if (!isTimeObj)
+                            focusOnDay(undefined, delta * 7);
+                    }
+                    else if (eventTarget === self.currentYearElement) {
+                        changeYear(self.currentYear - delta);
+                    }
+                    else if (self.config.enableTime) {
+                        if (!isTimeObj && self.hourElement)
+                            self.hourElement.focus();
+                        updateTime(e);
+                        self._debouncedChange();
+                    }
+                    break;
+                case 9:
+                    if (isTimeObj) {
+                        var elems = [
+                            self.hourElement,
+                            self.minuteElement,
+                            self.secondElement,
+                            self.amPM,
+                        ]
+                            .concat(self.pluginElements)
+                            .filter(function (x) { return x; });
+                        var i = elems.indexOf(eventTarget);
+                        if (i !== -1) {
+                            var target = elems[i + (e.shiftKey ? -1 : 1)];
+                            e.preventDefault();
+                            (target || self._input).focus();
+                        }
+                    }
+                    else if (!self.config.noCalendar &&
+                        self.daysContainer &&
+                        self.daysContainer.contains(eventTarget) &&
+                        e.shiftKey) {
+                        e.preventDefault();
+                        self._input.focus();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (self.amPM !== undefined && eventTarget === self.amPM) {
+            switch (e.key) {
+                case self.l10n.amPM[0].charAt(0):
+                case self.l10n.amPM[0].charAt(0).toLowerCase():
+                    self.amPM.textContent = self.l10n.amPM[0];
+                    setHoursFromInputs();
+                    updateValue();
+                    break;
+                case self.l10n.amPM[1].charAt(0):
+                case self.l10n.amPM[1].charAt(0).toLowerCase():
+                    self.amPM.textContent = self.l10n.amPM[1];
+                    setHoursFromInputs();
+                    updateValue();
+                    break;
+            }
+        }
+        if (isInput || isCalendarElem(eventTarget)) {
+            triggerEvent("onKeyDown", e);
+        }
+    }
+    function onMouseOver(elem, cellClass) {
+        if (cellClass === void 0) { cellClass = "flatpickr-day"; }
+        if (self.selectedDates.length !== 1 ||
+            (elem &&
+                (!elem.classList.contains(cellClass) ||
+                    elem.classList.contains("flatpickr-disabled"))))
+            return;
+        var hoverDate = elem
+            ? elem.dateObj.getTime()
+            : self.days.firstElementChild.dateObj.getTime(), initialDate = self.parseDate(self.selectedDates[0], undefined, true).getTime(), rangeStartDate = Math.min(hoverDate, self.selectedDates[0].getTime()), rangeEndDate = Math.max(hoverDate, self.selectedDates[0].getTime());
+        var containsDisabled = false;
+        var minRange = 0, maxRange = 0;
+        for (var t = rangeStartDate; t < rangeEndDate; t += _utils_dates__WEBPACK_IMPORTED_MODULE_4__.duration.DAY) {
+            if (!isEnabled(new Date(t), true)) {
+                containsDisabled =
+                    containsDisabled || (t > rangeStartDate && t < rangeEndDate);
+                if (t < initialDate && (!minRange || t > minRange))
+                    minRange = t;
+                else if (t > initialDate && (!maxRange || t < maxRange))
+                    maxRange = t;
+            }
+        }
+        var hoverableCells = Array.from(self.rContainer.querySelectorAll("*:nth-child(-n+" + self.config.showMonths + ") > ." + cellClass));
+        hoverableCells.forEach(function (dayElem) {
+            var date = dayElem.dateObj;
+            var timestamp = date.getTime();
+            var outOfRange = (minRange > 0 && timestamp < minRange) ||
+                (maxRange > 0 && timestamp > maxRange);
+            if (outOfRange) {
+                dayElem.classList.add("notAllowed");
+                ["inRange", "startRange", "endRange"].forEach(function (c) {
+                    dayElem.classList.remove(c);
+                });
+                return;
+            }
+            else if (containsDisabled && !outOfRange)
+                return;
+            ["startRange", "inRange", "endRange", "notAllowed"].forEach(function (c) {
+                dayElem.classList.remove(c);
+            });
+            if (elem !== undefined) {
+                elem.classList.add(hoverDate <= self.selectedDates[0].getTime()
+                    ? "startRange"
+                    : "endRange");
+                if (initialDate < hoverDate && timestamp === initialDate)
+                    dayElem.classList.add("startRange");
+                else if (initialDate > hoverDate && timestamp === initialDate)
+                    dayElem.classList.add("endRange");
+                if (timestamp >= minRange &&
+                    (maxRange === 0 || timestamp <= maxRange) &&
+                    (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.isBetween)(timestamp, initialDate, hoverDate))
+                    dayElem.classList.add("inRange");
+            }
+        });
+    }
+    function onResize() {
+        if (self.isOpen && !self.config.static && !self.config.inline)
+            positionCalendar();
+    }
+    function open(e, positionElement) {
+        if (positionElement === void 0) { positionElement = self._positionElement; }
+        if (self.isMobile === true) {
+            if (e) {
+                e.preventDefault();
+                var eventTarget = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+                if (eventTarget) {
+                    eventTarget.blur();
+                }
+            }
+            if (self.mobileInput !== undefined) {
+                self.mobileInput.focus();
+                self.mobileInput.click();
+            }
+            triggerEvent("onOpen");
+            return;
+        }
+        else if (self._input.disabled || self.config.inline) {
+            return;
+        }
+        var wasOpen = self.isOpen;
+        self.isOpen = true;
+        if (!wasOpen) {
+            self.calendarContainer.classList.add("open");
+            self._input.classList.add("active");
+            triggerEvent("onOpen");
+            positionCalendar(positionElement);
+        }
+        if (self.config.enableTime === true && self.config.noCalendar === true) {
+            if (self.config.allowInput === false &&
+                (e === undefined ||
+                    !self.timeContainer.contains(e.relatedTarget))) {
+                setTimeout(function () { return self.hourElement.select(); }, 50);
+            }
+        }
+    }
+    function minMaxDateSetter(type) {
+        return function (date) {
+            var dateObj = (self.config["_" + type + "Date"] = self.parseDate(date, self.config.dateFormat));
+            var inverseDateObj = self.config["_" + (type === "min" ? "max" : "min") + "Date"];
+            if (dateObj !== undefined) {
+                self[type === "min" ? "minDateHasTime" : "maxDateHasTime"] =
+                    dateObj.getHours() > 0 ||
+                        dateObj.getMinutes() > 0 ||
+                        dateObj.getSeconds() > 0;
+            }
+            if (self.selectedDates) {
+                self.selectedDates = self.selectedDates.filter(function (d) { return isEnabled(d); });
+                if (!self.selectedDates.length && type === "min")
+                    setHoursFromDate(dateObj);
+                updateValue();
+            }
+            if (self.daysContainer) {
+                redraw();
+                if (dateObj !== undefined)
+                    self.currentYearElement[type] = dateObj.getFullYear().toString();
+                else
+                    self.currentYearElement.removeAttribute(type);
+                self.currentYearElement.disabled =
+                    !!inverseDateObj &&
+                        dateObj !== undefined &&
+                        inverseDateObj.getFullYear() === dateObj.getFullYear();
+            }
+        };
+    }
+    function parseConfig() {
+        var boolOpts = [
+            "wrap",
+            "weekNumbers",
+            "allowInput",
+            "allowInvalidPreload",
+            "clickOpens",
+            "time_24hr",
+            "enableTime",
+            "noCalendar",
+            "altInput",
+            "shorthandCurrentMonth",
+            "inline",
+            "static",
+            "enableSeconds",
+            "disableMobile",
+        ];
+        var userConfig = __assign(__assign({}, JSON.parse(JSON.stringify(element.dataset || {}))), instanceConfig);
+        var formats = {};
+        self.config.parseDate = userConfig.parseDate;
+        self.config.formatDate = userConfig.formatDate;
+        Object.defineProperty(self.config, "enable", {
+            get: function () { return self.config._enable; },
+            set: function (dates) {
+                self.config._enable = parseDateRules(dates);
+            },
+        });
+        Object.defineProperty(self.config, "disable", {
+            get: function () { return self.config._disable; },
+            set: function (dates) {
+                self.config._disable = parseDateRules(dates);
+            },
+        });
+        var timeMode = userConfig.mode === "time";
+        if (!userConfig.dateFormat && (userConfig.enableTime || timeMode)) {
+            var defaultDateFormat = flatpickr.defaultConfig.dateFormat || _types_options__WEBPACK_IMPORTED_MODULE_0__.defaults.dateFormat;
+            formats.dateFormat =
+                userConfig.noCalendar || timeMode
+                    ? "H:i" + (userConfig.enableSeconds ? ":S" : "")
+                    : defaultDateFormat + " H:i" + (userConfig.enableSeconds ? ":S" : "");
+        }
+        if (userConfig.altInput &&
+            (userConfig.enableTime || timeMode) &&
+            !userConfig.altFormat) {
+            var defaultAltFormat = flatpickr.defaultConfig.altFormat || _types_options__WEBPACK_IMPORTED_MODULE_0__.defaults.altFormat;
+            formats.altFormat =
+                userConfig.noCalendar || timeMode
+                    ? "h:i" + (userConfig.enableSeconds ? ":S K" : " K")
+                    : defaultAltFormat + (" h:i" + (userConfig.enableSeconds ? ":S" : "") + " K");
+        }
+        Object.defineProperty(self.config, "minDate", {
+            get: function () { return self.config._minDate; },
+            set: minMaxDateSetter("min"),
+        });
+        Object.defineProperty(self.config, "maxDate", {
+            get: function () { return self.config._maxDate; },
+            set: minMaxDateSetter("max"),
+        });
+        var minMaxTimeSetter = function (type) { return function (val) {
+            self.config[type === "min" ? "_minTime" : "_maxTime"] = self.parseDate(val, "H:i:S");
+        }; };
+        Object.defineProperty(self.config, "minTime", {
+            get: function () { return self.config._minTime; },
+            set: minMaxTimeSetter("min"),
+        });
+        Object.defineProperty(self.config, "maxTime", {
+            get: function () { return self.config._maxTime; },
+            set: minMaxTimeSetter("max"),
+        });
+        if (userConfig.mode === "time") {
+            self.config.noCalendar = true;
+            self.config.enableTime = true;
+        }
+        Object.assign(self.config, formats, userConfig);
+        for (var i = 0; i < boolOpts.length; i++)
+            self.config[boolOpts[i]] =
+                self.config[boolOpts[i]] === true ||
+                    self.config[boolOpts[i]] === "true";
+        _types_options__WEBPACK_IMPORTED_MODULE_0__.HOOKS.filter(function (hook) { return self.config[hook] !== undefined; }).forEach(function (hook) {
+            self.config[hook] = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.arrayify)(self.config[hook] || []).map(bindToInstance);
+        });
+        self.isMobile =
+            !self.config.disableMobile &&
+                !self.config.inline &&
+                self.config.mode === "single" &&
+                !self.config.disable.length &&
+                !self.config.enable &&
+                !self.config.weekNumbers &&
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        for (var i = 0; i < self.config.plugins.length; i++) {
+            var pluginConf = self.config.plugins[i](self) || {};
+            for (var key in pluginConf) {
+                if (_types_options__WEBPACK_IMPORTED_MODULE_0__.HOOKS.indexOf(key) > -1) {
+                    self.config[key] = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.arrayify)(pluginConf[key])
+                        .map(bindToInstance)
+                        .concat(self.config[key]);
+                }
+                else if (typeof userConfig[key] === "undefined")
+                    self.config[key] = pluginConf[key];
+            }
+        }
+        if (!userConfig.altInputClass) {
+            self.config.altInputClass =
+                getInputElem().className + " " + self.config.altInputClass;
+        }
+        triggerEvent("onParseConfig");
+    }
+    function getInputElem() {
+        return self.config.wrap
+            ? element.querySelector("[data-input]")
+            : element;
+    }
+    function setupLocale() {
+        if (typeof self.config.locale !== "object" &&
+            typeof flatpickr.l10ns[self.config.locale] === "undefined")
+            self.config.errorHandler(new Error("flatpickr: invalid locale " + self.config.locale));
+        self.l10n = __assign(__assign({}, flatpickr.l10ns.default), (typeof self.config.locale === "object"
+            ? self.config.locale
+            : self.config.locale !== "default"
+                ? flatpickr.l10ns[self.config.locale]
+                : undefined));
+        _utils_formatting__WEBPACK_IMPORTED_MODULE_5__.tokenRegex.D = "(" + self.l10n.weekdays.shorthand.join("|") + ")";
+        _utils_formatting__WEBPACK_IMPORTED_MODULE_5__.tokenRegex.l = "(" + self.l10n.weekdays.longhand.join("|") + ")";
+        _utils_formatting__WEBPACK_IMPORTED_MODULE_5__.tokenRegex.M = "(" + self.l10n.months.shorthand.join("|") + ")";
+        _utils_formatting__WEBPACK_IMPORTED_MODULE_5__.tokenRegex.F = "(" + self.l10n.months.longhand.join("|") + ")";
+        _utils_formatting__WEBPACK_IMPORTED_MODULE_5__.tokenRegex.K = "(" + self.l10n.amPM[0] + "|" + self.l10n.amPM[1] + "|" + self.l10n.amPM[0].toLowerCase() + "|" + self.l10n.amPM[1].toLowerCase() + ")";
+        var userConfig = __assign(__assign({}, instanceConfig), JSON.parse(JSON.stringify(element.dataset || {})));
+        if (userConfig.time_24hr === undefined &&
+            flatpickr.defaultConfig.time_24hr === undefined) {
+            self.config.time_24hr = self.l10n.time_24hr;
+        }
+        self.formatDate = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.createDateFormatter)(self);
+        self.parseDate = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.createDateParser)({ config: self.config, l10n: self.l10n });
+    }
+    function positionCalendar(customPositionElement) {
+        if (typeof self.config.position === "function") {
+            return void self.config.position(self, customPositionElement);
+        }
+        if (self.calendarContainer === undefined)
+            return;
+        triggerEvent("onPreCalendarPosition");
+        var positionElement = customPositionElement || self._positionElement;
+        var calendarHeight = Array.prototype.reduce.call(self.calendarContainer.children, (function (acc, child) { return acc + child.offsetHeight; }), 0), calendarWidth = self.calendarContainer.offsetWidth, configPos = self.config.position.split(" "), configPosVertical = configPos[0], configPosHorizontal = configPos.length > 1 ? configPos[1] : null, inputBounds = positionElement.getBoundingClientRect(), distanceFromBottom = window.innerHeight - inputBounds.bottom, showOnTop = configPosVertical === "above" ||
+            (configPosVertical !== "below" &&
+                distanceFromBottom < calendarHeight &&
+                inputBounds.top > calendarHeight);
+        var top = window.pageYOffset +
+            inputBounds.top +
+            (!showOnTop ? positionElement.offsetHeight + 2 : -calendarHeight - 2);
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "arrowTop", !showOnTop);
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "arrowBottom", showOnTop);
+        if (self.config.inline)
+            return;
+        var left = window.pageXOffset + inputBounds.left;
+        var isCenter = false;
+        var isRight = false;
+        if (configPosHorizontal === "center") {
+            left -= (calendarWidth - inputBounds.width) / 2;
+            isCenter = true;
+        }
+        else if (configPosHorizontal === "right") {
+            left -= calendarWidth - inputBounds.width;
+            isRight = true;
+        }
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "arrowLeft", !isCenter && !isRight);
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "arrowCenter", isCenter);
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "arrowRight", isRight);
+        var right = window.document.body.offsetWidth -
+            (window.pageXOffset + inputBounds.right);
+        var rightMost = left + calendarWidth > window.document.body.offsetWidth;
+        var centerMost = right + calendarWidth > window.document.body.offsetWidth;
+        (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "rightMost", rightMost);
+        if (self.config.static)
+            return;
+        self.calendarContainer.style.top = top + "px";
+        if (!rightMost) {
+            self.calendarContainer.style.left = left + "px";
+            self.calendarContainer.style.right = "auto";
+        }
+        else if (!centerMost) {
+            self.calendarContainer.style.left = "auto";
+            self.calendarContainer.style.right = right + "px";
+        }
+        else {
+            var doc = getDocumentStyleSheet();
+            if (doc === undefined)
+                return;
+            var bodyWidth = window.document.body.offsetWidth;
+            var centerLeft = Math.max(0, bodyWidth / 2 - calendarWidth / 2);
+            var centerBefore = ".flatpickr-calendar.centerMost:before";
+            var centerAfter = ".flatpickr-calendar.centerMost:after";
+            var centerIndex = doc.cssRules.length;
+            var centerStyle = "{left:" + inputBounds.left + "px;right:auto;}";
+            (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "rightMost", false);
+            (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.toggleClass)(self.calendarContainer, "centerMost", true);
+            doc.insertRule(centerBefore + "," + centerAfter + centerStyle, centerIndex);
+            self.calendarContainer.style.left = centerLeft + "px";
+            self.calendarContainer.style.right = "auto";
+        }
+    }
+    function getDocumentStyleSheet() {
+        var editableSheet = null;
+        for (var i = 0; i < document.styleSheets.length; i++) {
+            var sheet = document.styleSheets[i];
+            if (!sheet.cssRules)
+                continue;
+            try {
+                sheet.cssRules;
+            }
+            catch (err) {
+                continue;
+            }
+            editableSheet = sheet;
+            break;
+        }
+        return editableSheet != null ? editableSheet : createStyleSheet();
+    }
+    function createStyleSheet() {
+        var style = document.createElement("style");
+        document.head.appendChild(style);
+        return style.sheet;
+    }
+    function redraw() {
+        if (self.config.noCalendar || self.isMobile)
+            return;
+        buildMonthSwitch();
+        updateNavigationCurrentMonth();
+        buildDays();
+    }
+    function focusAndClose() {
+        self._input.focus();
+        if (window.navigator.userAgent.indexOf("MSIE") !== -1 ||
+            navigator.msMaxTouchPoints !== undefined) {
+            setTimeout(self.close, 0);
+        }
+        else {
+            self.close();
+        }
+    }
+    function selectDate(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var isSelectable = function (day) {
+            return day.classList &&
+                day.classList.contains("flatpickr-day") &&
+                !day.classList.contains("flatpickr-disabled") &&
+                !day.classList.contains("notAllowed");
+        };
+        var t = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.findParent)((0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e), isSelectable);
+        if (t === undefined)
+            return;
+        var target = t;
+        var selectedDate = (self.latestSelectedDateObj = new Date(target.dateObj.getTime()));
+        var shouldChangeMonth = (selectedDate.getMonth() < self.currentMonth ||
+            selectedDate.getMonth() >
+                self.currentMonth + self.config.showMonths - 1) &&
+            self.config.mode !== "range";
+        self.selectedDateElem = target;
+        if (self.config.mode === "single")
+            self.selectedDates = [selectedDate];
+        else if (self.config.mode === "multiple") {
+            var selectedIndex = isDateSelected(selectedDate);
+            if (selectedIndex)
+                self.selectedDates.splice(parseInt(selectedIndex), 1);
+            else
+                self.selectedDates.push(selectedDate);
+        }
+        else if (self.config.mode === "range") {
+            if (self.selectedDates.length === 2) {
+                self.clear(false, false);
+            }
+            self.latestSelectedDateObj = selectedDate;
+            self.selectedDates.push(selectedDate);
+            if ((0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(selectedDate, self.selectedDates[0], true) !== 0)
+                self.selectedDates.sort(function (a, b) { return a.getTime() - b.getTime(); });
+        }
+        setHoursFromInputs();
+        if (shouldChangeMonth) {
+            var isNewYear = self.currentYear !== selectedDate.getFullYear();
+            self.currentYear = selectedDate.getFullYear();
+            self.currentMonth = selectedDate.getMonth();
+            if (isNewYear) {
+                triggerEvent("onYearChange");
+                buildMonthSwitch();
+            }
+            triggerEvent("onMonthChange");
+        }
+        updateNavigationCurrentMonth();
+        buildDays();
+        updateValue();
+        if (!shouldChangeMonth &&
+            self.config.mode !== "range" &&
+            self.config.showMonths === 1)
+            focusOnDayElem(target);
+        else if (self.selectedDateElem !== undefined &&
+            self.hourElement === undefined) {
+            self.selectedDateElem && self.selectedDateElem.focus();
+        }
+        if (self.hourElement !== undefined)
+            self.hourElement !== undefined && self.hourElement.focus();
+        if (self.config.closeOnSelect) {
+            var single = self.config.mode === "single" && !self.config.enableTime;
+            var range = self.config.mode === "range" &&
+                self.selectedDates.length === 2 &&
+                !self.config.enableTime;
+            if (single || range) {
+                focusAndClose();
+            }
+        }
+        triggerChange();
+    }
+    var CALLBACKS = {
+        locale: [setupLocale, updateWeekdays],
+        showMonths: [buildMonths, setCalendarWidth, buildWeekdays],
+        minDate: [jumpToDate],
+        maxDate: [jumpToDate],
+        positionElement: [updatePositionElement],
+        clickOpens: [
+            function () {
+                if (self.config.clickOpens === true) {
+                    bind(self._input, "focus", self.open);
+                    bind(self._input, "click", self.open);
+                }
+                else {
+                    self._input.removeEventListener("focus", self.open);
+                    self._input.removeEventListener("click", self.open);
+                }
+            },
+        ],
+    };
+    function set(option, value) {
+        if (option !== null && typeof option === "object") {
+            Object.assign(self.config, option);
+            for (var key in option) {
+                if (CALLBACKS[key] !== undefined)
+                    CALLBACKS[key].forEach(function (x) { return x(); });
+            }
+        }
+        else {
+            self.config[option] = value;
+            if (CALLBACKS[option] !== undefined)
+                CALLBACKS[option].forEach(function (x) { return x(); });
+            else if (_types_options__WEBPACK_IMPORTED_MODULE_0__.HOOKS.indexOf(option) > -1)
+                self.config[option] = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.arrayify)(value);
+        }
+        self.redraw();
+        updateValue(true);
+    }
+    function setSelectedDate(inputDate, format) {
+        var dates = [];
+        if (inputDate instanceof Array)
+            dates = inputDate.map(function (d) { return self.parseDate(d, format); });
+        else if (inputDate instanceof Date || typeof inputDate === "number")
+            dates = [self.parseDate(inputDate, format)];
+        else if (typeof inputDate === "string") {
+            switch (self.config.mode) {
+                case "single":
+                case "time":
+                    dates = [self.parseDate(inputDate, format)];
+                    break;
+                case "multiple":
+                    dates = inputDate
+                        .split(self.config.conjunction)
+                        .map(function (date) { return self.parseDate(date, format); });
+                    break;
+                case "range":
+                    dates = inputDate
+                        .split(self.l10n.rangeSeparator)
+                        .map(function (date) { return self.parseDate(date, format); });
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+            self.config.errorHandler(new Error("Invalid date supplied: " + JSON.stringify(inputDate)));
+        self.selectedDates = (self.config.allowInvalidPreload
+            ? dates
+            : dates.filter(function (d) { return d instanceof Date && isEnabled(d, false); }));
+        if (self.config.mode === "range")
+            self.selectedDates.sort(function (a, b) { return a.getTime() - b.getTime(); });
+    }
+    function setDate(date, triggerChange, format) {
+        if (triggerChange === void 0) { triggerChange = false; }
+        if (format === void 0) { format = self.config.dateFormat; }
+        if ((date !== 0 && !date) || (date instanceof Array && date.length === 0))
+            return self.clear(triggerChange);
+        setSelectedDate(date, format);
+        self.latestSelectedDateObj =
+            self.selectedDates[self.selectedDates.length - 1];
+        self.redraw();
+        jumpToDate(undefined, triggerChange);
+        setHoursFromDate();
+        if (self.selectedDates.length === 0) {
+            self.clear(false);
+        }
+        updateValue(triggerChange);
+        if (triggerChange)
+            triggerEvent("onChange");
+    }
+    function parseDateRules(arr) {
+        return arr
+            .slice()
+            .map(function (rule) {
+            if (typeof rule === "string" ||
+                typeof rule === "number" ||
+                rule instanceof Date) {
+                return self.parseDate(rule, undefined, true);
+            }
+            else if (rule &&
+                typeof rule === "object" &&
+                rule.from &&
+                rule.to)
+                return {
+                    from: self.parseDate(rule.from, undefined),
+                    to: self.parseDate(rule.to, undefined),
+                };
+            return rule;
+        })
+            .filter(function (x) { return x; });
+    }
+    function setupDates() {
+        self.selectedDates = [];
+        self.now = self.parseDate(self.config.now) || new Date();
+        var preloadedDate = self.config.defaultDate ||
+            ((self.input.nodeName === "INPUT" ||
+                self.input.nodeName === "TEXTAREA") &&
+                self.input.placeholder &&
+                self.input.value === self.input.placeholder
+                ? null
+                : self.input.value);
+        if (preloadedDate)
+            setSelectedDate(preloadedDate, self.config.dateFormat);
+        self._initialDate =
+            self.selectedDates.length > 0
+                ? self.selectedDates[0]
+                : self.config.minDate &&
+                    self.config.minDate.getTime() > self.now.getTime()
+                    ? self.config.minDate
+                    : self.config.maxDate &&
+                        self.config.maxDate.getTime() < self.now.getTime()
+                        ? self.config.maxDate
+                        : self.now;
+        self.currentYear = self._initialDate.getFullYear();
+        self.currentMonth = self._initialDate.getMonth();
+        if (self.selectedDates.length > 0)
+            self.latestSelectedDateObj = self.selectedDates[0];
+        if (self.config.minTime !== undefined)
+            self.config.minTime = self.parseDate(self.config.minTime, "H:i");
+        if (self.config.maxTime !== undefined)
+            self.config.maxTime = self.parseDate(self.config.maxTime, "H:i");
+        self.minDateHasTime =
+            !!self.config.minDate &&
+                (self.config.minDate.getHours() > 0 ||
+                    self.config.minDate.getMinutes() > 0 ||
+                    self.config.minDate.getSeconds() > 0);
+        self.maxDateHasTime =
+            !!self.config.maxDate &&
+                (self.config.maxDate.getHours() > 0 ||
+                    self.config.maxDate.getMinutes() > 0 ||
+                    self.config.maxDate.getSeconds() > 0);
+    }
+    function setupInputs() {
+        self.input = getInputElem();
+        if (!self.input) {
+            self.config.errorHandler(new Error("Invalid input element specified"));
+            return;
+        }
+        self.input._type = self.input.type;
+        self.input.type = "text";
+        self.input.classList.add("flatpickr-input");
+        self._input = self.input;
+        if (self.config.altInput) {
+            self.altInput = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)(self.input.nodeName, self.config.altInputClass);
+            self._input = self.altInput;
+            self.altInput.placeholder = self.input.placeholder;
+            self.altInput.disabled = self.input.disabled;
+            self.altInput.required = self.input.required;
+            self.altInput.tabIndex = self.input.tabIndex;
+            self.altInput.type = "text";
+            self.input.setAttribute("type", "hidden");
+            if (!self.config.static && self.input.parentNode)
+                self.input.parentNode.insertBefore(self.altInput, self.input.nextSibling);
+        }
+        if (!self.config.allowInput)
+            self._input.setAttribute("readonly", "readonly");
+        updatePositionElement();
+    }
+    function updatePositionElement() {
+        self._positionElement = self.config.positionElement || self._input;
+    }
+    function setupMobile() {
+        var inputType = self.config.enableTime
+            ? self.config.noCalendar
+                ? "time"
+                : "datetime-local"
+            : "date";
+        self.mobileInput = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.createElement)("input", self.input.className + " flatpickr-mobile");
+        self.mobileInput.tabIndex = 1;
+        self.mobileInput.type = inputType;
+        self.mobileInput.disabled = self.input.disabled;
+        self.mobileInput.required = self.input.required;
+        self.mobileInput.placeholder = self.input.placeholder;
+        self.mobileFormatStr =
+            inputType === "datetime-local"
+                ? "Y-m-d\\TH:i:S"
+                : inputType === "date"
+                    ? "Y-m-d"
+                    : "H:i:S";
+        if (self.selectedDates.length > 0) {
+            self.mobileInput.defaultValue = self.mobileInput.value = self.formatDate(self.selectedDates[0], self.mobileFormatStr);
+        }
+        if (self.config.minDate)
+            self.mobileInput.min = self.formatDate(self.config.minDate, "Y-m-d");
+        if (self.config.maxDate)
+            self.mobileInput.max = self.formatDate(self.config.maxDate, "Y-m-d");
+        if (self.input.getAttribute("step"))
+            self.mobileInput.step = String(self.input.getAttribute("step"));
+        self.input.type = "hidden";
+        if (self.altInput !== undefined)
+            self.altInput.type = "hidden";
+        try {
+            if (self.input.parentNode)
+                self.input.parentNode.insertBefore(self.mobileInput, self.input.nextSibling);
+        }
+        catch (_a) { }
+        bind(self.mobileInput, "change", function (e) {
+            self.setDate((0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e).value, false, self.mobileFormatStr);
+            triggerEvent("onChange");
+            triggerEvent("onClose");
+        });
+    }
+    function toggle(e) {
+        if (self.isOpen === true)
+            return self.close();
+        self.open(e);
+    }
+    function triggerEvent(event, data) {
+        if (self.config === undefined)
+            return;
+        var hooks = self.config[event];
+        if (hooks !== undefined && hooks.length > 0) {
+            for (var i = 0; hooks[i] && i < hooks.length; i++)
+                hooks[i](self.selectedDates, self.input.value, self, data);
+        }
+        if (event === "onChange") {
+            self.input.dispatchEvent(createEvent("change"));
+            self.input.dispatchEvent(createEvent("input"));
+        }
+    }
+    function createEvent(name) {
+        var e = document.createEvent("Event");
+        e.initEvent(name, true, true);
+        return e;
+    }
+    function isDateSelected(date) {
+        for (var i = 0; i < self.selectedDates.length; i++) {
+            var selectedDate = self.selectedDates[i];
+            if (selectedDate instanceof Date &&
+                (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(selectedDate, date) === 0)
+                return "" + i;
+        }
+        return false;
+    }
+    function isDateInRange(date) {
+        if (self.config.mode !== "range" || self.selectedDates.length < 2)
+            return false;
+        return ((0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(date, self.selectedDates[0]) >= 0 &&
+            (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates)(date, self.selectedDates[1]) <= 0);
+    }
+    function updateNavigationCurrentMonth() {
+        if (self.config.noCalendar || self.isMobile || !self.monthNav)
+            return;
+        self.yearElements.forEach(function (yearElement, i) {
+            var d = new Date(self.currentYear, self.currentMonth, 1);
+            d.setMonth(self.currentMonth + i);
+            if (self.config.showMonths > 1 ||
+                self.config.monthSelectorType === "static") {
+                self.monthElements[i].textContent =
+                    (0,_utils_formatting__WEBPACK_IMPORTED_MODULE_5__.monthToStr)(d.getMonth(), self.config.shorthandCurrentMonth, self.l10n) + " ";
+            }
+            else {
+                self.monthsDropdownContainer.value = d.getMonth().toString();
+            }
+            yearElement.value = d.getFullYear().toString();
+        });
+        self._hidePrevMonthArrow =
+            self.config.minDate !== undefined &&
+                (self.currentYear === self.config.minDate.getFullYear()
+                    ? self.currentMonth <= self.config.minDate.getMonth()
+                    : self.currentYear < self.config.minDate.getFullYear());
+        self._hideNextMonthArrow =
+            self.config.maxDate !== undefined &&
+                (self.currentYear === self.config.maxDate.getFullYear()
+                    ? self.currentMonth + 1 > self.config.maxDate.getMonth()
+                    : self.currentYear > self.config.maxDate.getFullYear());
+    }
+    function getDateStr(specificFormat) {
+        var format = specificFormat ||
+            (self.config.altInput ? self.config.altFormat : self.config.dateFormat);
+        return self.selectedDates
+            .map(function (dObj) { return self.formatDate(dObj, format); })
+            .filter(function (d, i, arr) {
+            return self.config.mode !== "range" ||
+                self.config.enableTime ||
+                arr.indexOf(d) === i;
+        })
+            .join(self.config.mode !== "range"
+            ? self.config.conjunction
+            : self.l10n.rangeSeparator);
+    }
+    function updateValue(triggerChange) {
+        if (triggerChange === void 0) { triggerChange = true; }
+        if (self.mobileInput !== undefined && self.mobileFormatStr) {
+            self.mobileInput.value =
+                self.latestSelectedDateObj !== undefined
+                    ? self.formatDate(self.latestSelectedDateObj, self.mobileFormatStr)
+                    : "";
+        }
+        self.input.value = getDateStr(self.config.dateFormat);
+        if (self.altInput !== undefined) {
+            self.altInput.value = getDateStr(self.config.altFormat);
+        }
+        if (triggerChange !== false)
+            triggerEvent("onValueUpdate");
+    }
+    function onMonthNavClick(e) {
+        var eventTarget = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e);
+        var isPrevMonth = self.prevMonthNav.contains(eventTarget);
+        var isNextMonth = self.nextMonthNav.contains(eventTarget);
+        if (isPrevMonth || isNextMonth) {
+            changeMonth(isPrevMonth ? -1 : 1);
+        }
+        else if (self.yearElements.indexOf(eventTarget) >= 0) {
+            eventTarget.select();
+        }
+        else if (eventTarget.classList.contains("arrowUp")) {
+            self.changeYear(self.currentYear + 1);
+        }
+        else if (eventTarget.classList.contains("arrowDown")) {
+            self.changeYear(self.currentYear - 1);
+        }
+    }
+    function timeWrapper(e) {
+        e.preventDefault();
+        var isKeyDown = e.type === "keydown", eventTarget = (0,_utils_dom__WEBPACK_IMPORTED_MODULE_3__.getEventTarget)(e), input = eventTarget;
+        if (self.amPM !== undefined && eventTarget === self.amPM) {
+            self.amPM.textContent =
+                self.l10n.amPM[(0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(self.amPM.textContent === self.l10n.amPM[0])];
+        }
+        var min = parseFloat(input.getAttribute("min")), max = parseFloat(input.getAttribute("max")), step = parseFloat(input.getAttribute("step")), curValue = parseInt(input.value, 10), delta = e.delta ||
+            (isKeyDown ? (e.which === 38 ? 1 : -1) : 0);
+        var newValue = curValue + step * delta;
+        if (typeof input.value !== "undefined" && input.value.length === 2) {
+            var isHourElem = input === self.hourElement, isMinuteElem = input === self.minuteElement;
+            if (newValue < min) {
+                newValue =
+                    max +
+                        newValue +
+                        (0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(!isHourElem) +
+                        ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(isHourElem) && (0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(!self.amPM));
+                if (isMinuteElem)
+                    incrementNumInput(undefined, -1, self.hourElement);
+            }
+            else if (newValue > max) {
+                newValue =
+                    input === self.hourElement ? newValue - max - (0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(!self.amPM) : min;
+                if (isMinuteElem)
+                    incrementNumInput(undefined, 1, self.hourElement);
+            }
+            if (self.amPM &&
+                isHourElem &&
+                (step === 1
+                    ? newValue + curValue === 23
+                    : Math.abs(newValue - curValue) > step)) {
+                self.amPM.textContent =
+                    self.l10n.amPM[(0,_utils__WEBPACK_IMPORTED_MODULE_2__.int)(self.amPM.textContent === self.l10n.amPM[0])];
+            }
+            input.value = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.pad)(newValue);
+        }
+    }
+    init();
+    return self;
+}
+function _flatpickr(nodeList, config) {
+    var nodes = Array.prototype.slice
+        .call(nodeList)
+        .filter(function (x) { return x instanceof HTMLElement; });
+    var instances = [];
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        try {
+            if (node.getAttribute("data-fp-omit") !== null)
+                continue;
+            if (node._flatpickr !== undefined) {
+                node._flatpickr.destroy();
+                node._flatpickr = undefined;
+            }
+            node._flatpickr = FlatpickrInstance(node, config || {});
+            instances.push(node._flatpickr);
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+    return instances.length === 1 ? instances[0] : instances;
+}
+if (typeof HTMLElement !== "undefined" &&
+    typeof HTMLCollection !== "undefined" &&
+    typeof NodeList !== "undefined") {
+    HTMLCollection.prototype.flatpickr = NodeList.prototype.flatpickr = function (config) {
+        return _flatpickr(this, config);
+    };
+    HTMLElement.prototype.flatpickr = function (config) {
+        return _flatpickr([this], config);
+    };
+}
+var flatpickr = function (selector, config) {
+    if (typeof selector === "string") {
+        return _flatpickr(window.document.querySelectorAll(selector), config);
+    }
+    else if (selector instanceof Node) {
+        return _flatpickr([selector], config);
+    }
+    else {
+        return _flatpickr(selector, config);
+    }
+};
+flatpickr.defaultConfig = {};
+flatpickr.l10ns = {
+    en: __assign({}, _l10n_default__WEBPACK_IMPORTED_MODULE_1__["default"]),
+    default: __assign({}, _l10n_default__WEBPACK_IMPORTED_MODULE_1__["default"]),
+};
+flatpickr.localize = function (l10n) {
+    flatpickr.l10ns.default = __assign(__assign({}, flatpickr.l10ns.default), l10n);
+};
+flatpickr.setDefaults = function (config) {
+    flatpickr.defaultConfig = __assign(__assign({}, flatpickr.defaultConfig), config);
+};
+flatpickr.parseDate = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.createDateParser)({});
+flatpickr.formatDate = (0,_utils_dates__WEBPACK_IMPORTED_MODULE_4__.createDateFormatter)({});
+flatpickr.compareDates = _utils_dates__WEBPACK_IMPORTED_MODULE_4__.compareDates;
+if (typeof jQuery !== "undefined" && typeof jQuery.fn !== "undefined") {
+    jQuery.fn.flatpickr = function (config) {
+        return _flatpickr(this, config);
+    };
+}
+Date.prototype.fp_incr = function (days) {
+    return new Date(this.getFullYear(), this.getMonth(), this.getDate() + (typeof days === "string" ? parseInt(days, 10) : days));
+};
+if (typeof window !== "undefined") {
+    window.flatpickr = flatpickr;
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (flatpickr);
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/l10n/default.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/l10n/default.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   english: () => (/* binding */ english)
+/* harmony export */ });
+var english = {
+    weekdays: {
+        shorthand: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        longhand: [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+        ],
+    },
+    months: {
+        shorthand: [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ],
+        longhand: [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ],
+    },
+    daysInMonth: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    firstDayOfWeek: 0,
+    ordinal: function (nth) {
+        var s = nth % 100;
+        if (s > 3 && s < 21)
+            return "th";
+        switch (s % 10) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
+        }
+    },
+    rangeSeparator: " to ",
+    weekAbbreviation: "Wk",
+    scrollTitle: "Scroll to increment",
+    toggleTitle: "Click to toggle",
+    amPM: ["AM", "PM"],
+    yearAriaLabel: "Year",
+    monthAriaLabel: "Month",
+    hourAriaLabel: "Hour",
+    minuteAriaLabel: "Minute",
+    time_24hr: false,
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (english);
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/types/options.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/types/options.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   HOOKS: () => (/* binding */ HOOKS),
+/* harmony export */   defaults: () => (/* binding */ defaults)
+/* harmony export */ });
+var HOOKS = [
+    "onChange",
+    "onClose",
+    "onDayCreate",
+    "onDestroy",
+    "onKeyDown",
+    "onMonthChange",
+    "onOpen",
+    "onParseConfig",
+    "onReady",
+    "onValueUpdate",
+    "onYearChange",
+    "onPreCalendarPosition",
+];
+var defaults = {
+    _disable: [],
+    allowInput: false,
+    allowInvalidPreload: false,
+    altFormat: "F j, Y",
+    altInput: false,
+    altInputClass: "form-control input",
+    animate: typeof window === "object" &&
+        window.navigator.userAgent.indexOf("MSIE") === -1,
+    ariaDateFormat: "F j, Y",
+    autoFillDefaultTime: true,
+    clickOpens: true,
+    closeOnSelect: true,
+    conjunction: ", ",
+    dateFormat: "Y-m-d",
+    defaultHour: 12,
+    defaultMinute: 0,
+    defaultSeconds: 0,
+    disable: [],
+    disableMobile: false,
+    enableSeconds: false,
+    enableTime: false,
+    errorHandler: function (err) {
+        return typeof console !== "undefined" && console.warn(err);
+    },
+    getWeek: function (givenDate) {
+        var date = new Date(givenDate.getTime());
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+        var week1 = new Date(date.getFullYear(), 0, 4);
+        return (1 +
+            Math.round(((date.getTime() - week1.getTime()) / 86400000 -
+                3 +
+                ((week1.getDay() + 6) % 7)) /
+                7));
+    },
+    hourIncrement: 1,
+    ignoredFocusElements: [],
+    inline: false,
+    locale: "default",
+    minuteIncrement: 5,
+    mode: "single",
+    monthSelectorType: "dropdown",
+    nextArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M13.207 8.472l-7.854 7.854-0.707-0.707 7.146-7.146-7.146-7.148 0.707-0.707 7.854 7.854z' /></svg>",
+    noCalendar: false,
+    now: new Date(),
+    onChange: [],
+    onClose: [],
+    onDayCreate: [],
+    onDestroy: [],
+    onKeyDown: [],
+    onMonthChange: [],
+    onOpen: [],
+    onParseConfig: [],
+    onReady: [],
+    onValueUpdate: [],
+    onYearChange: [],
+    onPreCalendarPosition: [],
+    plugins: [],
+    position: "auto",
+    positionElement: undefined,
+    prevArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M5.207 8.471l7.146 7.147-0.707 0.707-7.853-7.854 7.854-7.853 0.707 0.707-7.147 7.146z' /></svg>",
+    shorthandCurrentMonth: false,
+    showMonths: 1,
+    static: false,
+    time_24hr: false,
+    weekNumbers: false,
+    wrap: false,
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/utils/dates.js":
+/*!********************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/utils/dates.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   calculateSecondsSinceMidnight: () => (/* binding */ calculateSecondsSinceMidnight),
+/* harmony export */   compareDates: () => (/* binding */ compareDates),
+/* harmony export */   compareTimes: () => (/* binding */ compareTimes),
+/* harmony export */   createDateFormatter: () => (/* binding */ createDateFormatter),
+/* harmony export */   createDateParser: () => (/* binding */ createDateParser),
+/* harmony export */   duration: () => (/* binding */ duration),
+/* harmony export */   getDefaultHours: () => (/* binding */ getDefaultHours),
+/* harmony export */   isBetween: () => (/* binding */ isBetween),
+/* harmony export */   parseSeconds: () => (/* binding */ parseSeconds)
+/* harmony export */ });
+/* harmony import */ var _formatting__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./formatting */ "./node_modules/flatpickr/dist/esm/utils/formatting.js");
+/* harmony import */ var _types_options__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../types/options */ "./node_modules/flatpickr/dist/esm/types/options.js");
+/* harmony import */ var _l10n_default__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../l10n/default */ "./node_modules/flatpickr/dist/esm/l10n/default.js");
+
+
+
+var createDateFormatter = function (_a) {
+    var _b = _a.config, config = _b === void 0 ? _types_options__WEBPACK_IMPORTED_MODULE_1__.defaults : _b, _c = _a.l10n, l10n = _c === void 0 ? _l10n_default__WEBPACK_IMPORTED_MODULE_2__.english : _c, _d = _a.isMobile, isMobile = _d === void 0 ? false : _d;
+    return function (dateObj, frmt, overrideLocale) {
+        var locale = overrideLocale || l10n;
+        if (config.formatDate !== undefined && !isMobile) {
+            return config.formatDate(dateObj, frmt, locale);
+        }
+        return frmt
+            .split("")
+            .map(function (c, i, arr) {
+            return _formatting__WEBPACK_IMPORTED_MODULE_0__.formats[c] && arr[i - 1] !== "\\"
+                ? _formatting__WEBPACK_IMPORTED_MODULE_0__.formats[c](dateObj, locale, config)
+                : c !== "\\"
+                    ? c
+                    : "";
+        })
+            .join("");
+    };
+};
+var createDateParser = function (_a) {
+    var _b = _a.config, config = _b === void 0 ? _types_options__WEBPACK_IMPORTED_MODULE_1__.defaults : _b, _c = _a.l10n, l10n = _c === void 0 ? _l10n_default__WEBPACK_IMPORTED_MODULE_2__.english : _c;
+    return function (date, givenFormat, timeless, customLocale) {
+        if (date !== 0 && !date)
+            return undefined;
+        var locale = customLocale || l10n;
+        var parsedDate;
+        var dateOrig = date;
+        if (date instanceof Date)
+            parsedDate = new Date(date.getTime());
+        else if (typeof date !== "string" &&
+            date.toFixed !== undefined)
+            parsedDate = new Date(date);
+        else if (typeof date === "string") {
+            var format = givenFormat || (config || _types_options__WEBPACK_IMPORTED_MODULE_1__.defaults).dateFormat;
+            var datestr = String(date).trim();
+            if (datestr === "today") {
+                parsedDate = new Date();
+                timeless = true;
+            }
+            else if (config && config.parseDate) {
+                parsedDate = config.parseDate(date, format);
+            }
+            else if (/Z$/.test(datestr) ||
+                /GMT$/.test(datestr)) {
+                parsedDate = new Date(date);
+            }
+            else {
+                var matched = void 0, ops = [];
+                for (var i = 0, matchIndex = 0, regexStr = ""; i < format.length; i++) {
+                    var token = format[i];
+                    var isBackSlash = token === "\\";
+                    var escaped = format[i - 1] === "\\" || isBackSlash;
+                    if (_formatting__WEBPACK_IMPORTED_MODULE_0__.tokenRegex[token] && !escaped) {
+                        regexStr += _formatting__WEBPACK_IMPORTED_MODULE_0__.tokenRegex[token];
+                        var match = new RegExp(regexStr).exec(date);
+                        if (match && (matched = true)) {
+                            ops[token !== "Y" ? "push" : "unshift"]({
+                                fn: _formatting__WEBPACK_IMPORTED_MODULE_0__.revFormat[token],
+                                val: match[++matchIndex],
+                            });
+                        }
+                    }
+                    else if (!isBackSlash)
+                        regexStr += ".";
+                }
+                parsedDate =
+                    !config || !config.noCalendar
+                        ? new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0)
+                        : new Date(new Date().setHours(0, 0, 0, 0));
+                ops.forEach(function (_a) {
+                    var fn = _a.fn, val = _a.val;
+                    return (parsedDate = fn(parsedDate, val, locale) || parsedDate);
+                });
+                parsedDate = matched ? parsedDate : undefined;
+            }
+        }
+        if (!(parsedDate instanceof Date && !isNaN(parsedDate.getTime()))) {
+            config.errorHandler(new Error("Invalid date provided: " + dateOrig));
+            return undefined;
+        }
+        if (timeless === true)
+            parsedDate.setHours(0, 0, 0, 0);
+        return parsedDate;
+    };
+};
+function compareDates(date1, date2, timeless) {
+    if (timeless === void 0) { timeless = true; }
+    if (timeless !== false) {
+        return (new Date(date1.getTime()).setHours(0, 0, 0, 0) -
+            new Date(date2.getTime()).setHours(0, 0, 0, 0));
+    }
+    return date1.getTime() - date2.getTime();
+}
+function compareTimes(date1, date2) {
+    return (3600 * (date1.getHours() - date2.getHours()) +
+        60 * (date1.getMinutes() - date2.getMinutes()) +
+        date1.getSeconds() -
+        date2.getSeconds());
+}
+var isBetween = function (ts, ts1, ts2) {
+    return ts > Math.min(ts1, ts2) && ts < Math.max(ts1, ts2);
+};
+var calculateSecondsSinceMidnight = function (hours, minutes, seconds) {
+    return hours * 3600 + minutes * 60 + seconds;
+};
+var parseSeconds = function (secondsSinceMidnight) {
+    var hours = Math.floor(secondsSinceMidnight / 3600), minutes = (secondsSinceMidnight - hours * 3600) / 60;
+    return [hours, minutes, secondsSinceMidnight - hours * 3600 - minutes * 60];
+};
+var duration = {
+    DAY: 86400000,
+};
+function getDefaultHours(config) {
+    var hours = config.defaultHour;
+    var minutes = config.defaultMinute;
+    var seconds = config.defaultSeconds;
+    if (config.minDate !== undefined) {
+        var minHour = config.minDate.getHours();
+        var minMinutes = config.minDate.getMinutes();
+        var minSeconds = config.minDate.getSeconds();
+        if (hours < minHour) {
+            hours = minHour;
+        }
+        if (hours === minHour && minutes < minMinutes) {
+            minutes = minMinutes;
+        }
+        if (hours === minHour && minutes === minMinutes && seconds < minSeconds)
+            seconds = config.minDate.getSeconds();
+    }
+    if (config.maxDate !== undefined) {
+        var maxHr = config.maxDate.getHours();
+        var maxMinutes = config.maxDate.getMinutes();
+        hours = Math.min(hours, maxHr);
+        if (hours === maxHr)
+            minutes = Math.min(maxMinutes, minutes);
+        if (hours === maxHr && minutes === maxMinutes)
+            seconds = config.maxDate.getSeconds();
+    }
+    return { hours: hours, minutes: minutes, seconds: seconds };
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/utils/dom.js":
+/*!******************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/utils/dom.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   clearNode: () => (/* binding */ clearNode),
+/* harmony export */   createElement: () => (/* binding */ createElement),
+/* harmony export */   createNumberInput: () => (/* binding */ createNumberInput),
+/* harmony export */   findParent: () => (/* binding */ findParent),
+/* harmony export */   getEventTarget: () => (/* binding */ getEventTarget),
+/* harmony export */   toggleClass: () => (/* binding */ toggleClass)
+/* harmony export */ });
+function toggleClass(elem, className, bool) {
+    if (bool === true)
+        return elem.classList.add(className);
+    elem.classList.remove(className);
+}
+function createElement(tag, className, content) {
+    var e = window.document.createElement(tag);
+    className = className || "";
+    content = content || "";
+    e.className = className;
+    if (content !== undefined)
+        e.textContent = content;
+    return e;
+}
+function clearNode(node) {
+    while (node.firstChild)
+        node.removeChild(node.firstChild);
+}
+function findParent(node, condition) {
+    if (condition(node))
+        return node;
+    else if (node.parentNode)
+        return findParent(node.parentNode, condition);
+    return undefined;
+}
+function createNumberInput(inputClassName, opts) {
+    var wrapper = createElement("div", "numInputWrapper"), numInput = createElement("input", "numInput " + inputClassName), arrowUp = createElement("span", "arrowUp"), arrowDown = createElement("span", "arrowDown");
+    if (navigator.userAgent.indexOf("MSIE 9.0") === -1) {
+        numInput.type = "number";
+    }
+    else {
+        numInput.type = "text";
+        numInput.pattern = "\\d*";
+    }
+    if (opts !== undefined)
+        for (var key in opts)
+            numInput.setAttribute(key, opts[key]);
+    wrapper.appendChild(numInput);
+    wrapper.appendChild(arrowUp);
+    wrapper.appendChild(arrowDown);
+    return wrapper;
+}
+function getEventTarget(event) {
+    try {
+        if (typeof event.composedPath === "function") {
+            var path = event.composedPath();
+            return path[0];
+        }
+        return event.target;
+    }
+    catch (error) {
+        return event.target;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/utils/formatting.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/utils/formatting.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formats: () => (/* binding */ formats),
+/* harmony export */   monthToStr: () => (/* binding */ monthToStr),
+/* harmony export */   revFormat: () => (/* binding */ revFormat),
+/* harmony export */   tokenRegex: () => (/* binding */ tokenRegex)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./node_modules/flatpickr/dist/esm/utils/index.js");
+
+var doNothing = function () { return undefined; };
+var monthToStr = function (monthNumber, shorthand, locale) { return locale.months[shorthand ? "shorthand" : "longhand"][monthNumber]; };
+var revFormat = {
+    D: doNothing,
+    F: function (dateObj, monthName, locale) {
+        dateObj.setMonth(locale.months.longhand.indexOf(monthName));
+    },
+    G: function (dateObj, hour) {
+        dateObj.setHours((dateObj.getHours() >= 12 ? 12 : 0) + parseFloat(hour));
+    },
+    H: function (dateObj, hour) {
+        dateObj.setHours(parseFloat(hour));
+    },
+    J: function (dateObj, day) {
+        dateObj.setDate(parseFloat(day));
+    },
+    K: function (dateObj, amPM, locale) {
+        dateObj.setHours((dateObj.getHours() % 12) +
+            12 * (0,_utils__WEBPACK_IMPORTED_MODULE_0__.int)(new RegExp(locale.amPM[1], "i").test(amPM)));
+    },
+    M: function (dateObj, shortMonth, locale) {
+        dateObj.setMonth(locale.months.shorthand.indexOf(shortMonth));
+    },
+    S: function (dateObj, seconds) {
+        dateObj.setSeconds(parseFloat(seconds));
+    },
+    U: function (_, unixSeconds) { return new Date(parseFloat(unixSeconds) * 1000); },
+    W: function (dateObj, weekNum, locale) {
+        var weekNumber = parseInt(weekNum);
+        var date = new Date(dateObj.getFullYear(), 0, 2 + (weekNumber - 1) * 7, 0, 0, 0, 0);
+        date.setDate(date.getDate() - date.getDay() + locale.firstDayOfWeek);
+        return date;
+    },
+    Y: function (dateObj, year) {
+        dateObj.setFullYear(parseFloat(year));
+    },
+    Z: function (_, ISODate) { return new Date(ISODate); },
+    d: function (dateObj, day) {
+        dateObj.setDate(parseFloat(day));
+    },
+    h: function (dateObj, hour) {
+        dateObj.setHours((dateObj.getHours() >= 12 ? 12 : 0) + parseFloat(hour));
+    },
+    i: function (dateObj, minutes) {
+        dateObj.setMinutes(parseFloat(minutes));
+    },
+    j: function (dateObj, day) {
+        dateObj.setDate(parseFloat(day));
+    },
+    l: doNothing,
+    m: function (dateObj, month) {
+        dateObj.setMonth(parseFloat(month) - 1);
+    },
+    n: function (dateObj, month) {
+        dateObj.setMonth(parseFloat(month) - 1);
+    },
+    s: function (dateObj, seconds) {
+        dateObj.setSeconds(parseFloat(seconds));
+    },
+    u: function (_, unixMillSeconds) {
+        return new Date(parseFloat(unixMillSeconds));
+    },
+    w: doNothing,
+    y: function (dateObj, year) {
+        dateObj.setFullYear(2000 + parseFloat(year));
+    },
+};
+var tokenRegex = {
+    D: "",
+    F: "",
+    G: "(\\d\\d|\\d)",
+    H: "(\\d\\d|\\d)",
+    J: "(\\d\\d|\\d)\\w+",
+    K: "",
+    M: "",
+    S: "(\\d\\d|\\d)",
+    U: "(.+)",
+    W: "(\\d\\d|\\d)",
+    Y: "(\\d{4})",
+    Z: "(.+)",
+    d: "(\\d\\d|\\d)",
+    h: "(\\d\\d|\\d)",
+    i: "(\\d\\d|\\d)",
+    j: "(\\d\\d|\\d)",
+    l: "",
+    m: "(\\d\\d|\\d)",
+    n: "(\\d\\d|\\d)",
+    s: "(\\d\\d|\\d)",
+    u: "(.+)",
+    w: "(\\d\\d|\\d)",
+    y: "(\\d{2})",
+};
+var formats = {
+    Z: function (date) { return date.toISOString(); },
+    D: function (date, locale, options) {
+        return locale.weekdays.shorthand[formats.w(date, locale, options)];
+    },
+    F: function (date, locale, options) {
+        return monthToStr(formats.n(date, locale, options) - 1, false, locale);
+    },
+    G: function (date, locale, options) {
+        return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(formats.h(date, locale, options));
+    },
+    H: function (date) { return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(date.getHours()); },
+    J: function (date, locale) {
+        return locale.ordinal !== undefined
+            ? date.getDate() + locale.ordinal(date.getDate())
+            : date.getDate();
+    },
+    K: function (date, locale) { return locale.amPM[(0,_utils__WEBPACK_IMPORTED_MODULE_0__.int)(date.getHours() > 11)]; },
+    M: function (date, locale) {
+        return monthToStr(date.getMonth(), true, locale);
+    },
+    S: function (date) { return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(date.getSeconds()); },
+    U: function (date) { return date.getTime() / 1000; },
+    W: function (date, _, options) {
+        return options.getWeek(date);
+    },
+    Y: function (date) { return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(date.getFullYear(), 4); },
+    d: function (date) { return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(date.getDate()); },
+    h: function (date) { return (date.getHours() % 12 ? date.getHours() % 12 : 12); },
+    i: function (date) { return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(date.getMinutes()); },
+    j: function (date) { return date.getDate(); },
+    l: function (date, locale) {
+        return locale.weekdays.longhand[date.getDay()];
+    },
+    m: function (date) { return (0,_utils__WEBPACK_IMPORTED_MODULE_0__.pad)(date.getMonth() + 1); },
+    n: function (date) { return date.getMonth() + 1; },
+    s: function (date) { return date.getSeconds(); },
+    u: function (date) { return date.getTime(); },
+    w: function (date) { return date.getDay(); },
+    y: function (date) { return String(date.getFullYear()).substring(2); },
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/utils/index.js":
+/*!********************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/utils/index.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   arrayify: () => (/* binding */ arrayify),
+/* harmony export */   debounce: () => (/* binding */ debounce),
+/* harmony export */   int: () => (/* binding */ int),
+/* harmony export */   pad: () => (/* binding */ pad)
+/* harmony export */ });
+var pad = function (number, length) {
+    if (length === void 0) { length = 2; }
+    return ("000" + number).slice(length * -1);
+};
+var int = function (bool) { return (bool === true ? 1 : 0); };
+function debounce(fn, wait) {
+    var t;
+    return function () {
+        var _this = this;
+        var args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function () { return fn.apply(_this, args); }, wait);
+    };
+}
+var arrayify = function (obj) {
+    return obj instanceof Array ? obj : [obj];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/flatpickr/dist/esm/utils/polyfills.js":
+/*!************************************************************!*\
+  !*** ./node_modules/flatpickr/dist/esm/utils/polyfills.js ***!
+  \************************************************************/
+/***/ (() => {
+
+"use strict";
+
+if (typeof Object.assign !== "function") {
+    Object.assign = function (target) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        if (!target) {
+            throw TypeError("Cannot convert undefined or null to object");
+        }
+        var _loop_1 = function (source) {
+            if (source) {
+                Object.keys(source).forEach(function (key) { return (target[key] = source[key]); });
+            }
+        };
+        for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
+            var source = args_1[_a];
+            _loop_1(source);
+        }
+        return target;
+    };
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/leaflet/dist/leaflet-src.js":
+/*!**************************************************!*\
+  !*** ./node_modules/leaflet/dist/leaflet-src.js ***!
+  \**************************************************/
+/***/ (function(__unused_webpack_module, exports) {
+
+/* @preserve
+ * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
+ * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
+ */
+
+(function (global, factory) {
+   true ? factory(exports) :
+  0;
+})(this, (function (exports) { 'use strict';
+
+  var version = "1.9.4";
+
+  /*
+   * @namespace Util
+   *
+   * Various utility functions, used by Leaflet internally.
+   */
+
+  // @function extend(dest: Object, src?: Object): Object
+  // Merges the properties of the `src` object (or multiple objects) into `dest` object and returns the latter. Has an `L.extend` shortcut.
+  function extend(dest) {
+  	var i, j, len, src;
+
+  	for (j = 1, len = arguments.length; j < len; j++) {
+  		src = arguments[j];
+  		for (i in src) {
+  			dest[i] = src[i];
+  		}
+  	}
+  	return dest;
+  }
+
+  // @function create(proto: Object, properties?: Object): Object
+  // Compatibility polyfill for [Object.create](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
+  var create$2 = Object.create || (function () {
+  	function F() {}
+  	return function (proto) {
+  		F.prototype = proto;
+  		return new F();
+  	};
+  })();
+
+  // @function bind(fn: Function, …): Function
+  // Returns a new function bound to the arguments passed, like [Function.prototype.bind](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/bind).
+  // Has a `L.bind()` shortcut.
+  function bind(fn, obj) {
+  	var slice = Array.prototype.slice;
+
+  	if (fn.bind) {
+  		return fn.bind.apply(fn, slice.call(arguments, 1));
+  	}
+
+  	var args = slice.call(arguments, 2);
+
+  	return function () {
+  		return fn.apply(obj, args.length ? args.concat(slice.call(arguments)) : arguments);
+  	};
+  }
+
+  // @property lastId: Number
+  // Last unique ID used by [`stamp()`](#util-stamp)
+  var lastId = 0;
+
+  // @function stamp(obj: Object): Number
+  // Returns the unique ID of an object, assigning it one if it doesn't have it.
+  function stamp(obj) {
+  	if (!('_leaflet_id' in obj)) {
+  		obj['_leaflet_id'] = ++lastId;
+  	}
+  	return obj._leaflet_id;
+  }
+
+  // @function throttle(fn: Function, time: Number, context: Object): Function
+  // Returns a function which executes function `fn` with the given scope `context`
+  // (so that the `this` keyword refers to `context` inside `fn`'s code). The function
+  // `fn` will be called no more than one time per given amount of `time`. The arguments
+  // received by the bound function will be any arguments passed when binding the
+  // function, followed by any arguments passed when invoking the bound function.
+  // Has an `L.throttle` shortcut.
+  function throttle(fn, time, context) {
+  	var lock, args, wrapperFn, later;
+
+  	later = function () {
+  		// reset lock and call if queued
+  		lock = false;
+  		if (args) {
+  			wrapperFn.apply(context, args);
+  			args = false;
+  		}
+  	};
+
+  	wrapperFn = function () {
+  		if (lock) {
+  			// called too soon, queue to call later
+  			args = arguments;
+
+  		} else {
+  			// call and lock until later
+  			fn.apply(context, arguments);
+  			setTimeout(later, time);
+  			lock = true;
+  		}
+  	};
+
+  	return wrapperFn;
+  }
+
+  // @function wrapNum(num: Number, range: Number[], includeMax?: Boolean): Number
+  // Returns the number `num` modulo `range` in such a way so it lies within
+  // `range[0]` and `range[1]`. The returned value will be always smaller than
+  // `range[1]` unless `includeMax` is set to `true`.
+  function wrapNum(x, range, includeMax) {
+  	var max = range[1],
+  	    min = range[0],
+  	    d = max - min;
+  	return x === max && includeMax ? x : ((x - min) % d + d) % d + min;
+  }
+
+  // @function falseFn(): Function
+  // Returns a function which always returns `false`.
+  function falseFn() { return false; }
+
+  // @function formatNum(num: Number, precision?: Number|false): Number
+  // Returns the number `num` rounded with specified `precision`.
+  // The default `precision` value is 6 decimal places.
+  // `false` can be passed to skip any processing (can be useful to avoid round-off errors).
+  function formatNum(num, precision) {
+  	if (precision === false) { return num; }
+  	var pow = Math.pow(10, precision === undefined ? 6 : precision);
+  	return Math.round(num * pow) / pow;
+  }
+
+  // @function trim(str: String): String
+  // Compatibility polyfill for [String.prototype.trim](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String/Trim)
+  function trim(str) {
+  	return str.trim ? str.trim() : str.replace(/^\s+|\s+$/g, '');
+  }
+
+  // @function splitWords(str: String): String[]
+  // Trims and splits the string on whitespace and returns the array of parts.
+  function splitWords(str) {
+  	return trim(str).split(/\s+/);
+  }
+
+  // @function setOptions(obj: Object, options: Object): Object
+  // Merges the given properties to the `options` of the `obj` object, returning the resulting options. See `Class options`. Has an `L.setOptions` shortcut.
+  function setOptions(obj, options) {
+  	if (!Object.prototype.hasOwnProperty.call(obj, 'options')) {
+  		obj.options = obj.options ? create$2(obj.options) : {};
+  	}
+  	for (var i in options) {
+  		obj.options[i] = options[i];
+  	}
+  	return obj.options;
+  }
+
+  // @function getParamString(obj: Object, existingUrl?: String, uppercase?: Boolean): String
+  // Converts an object into a parameter URL string, e.g. `{a: "foo", b: "bar"}`
+  // translates to `'?a=foo&b=bar'`. If `existingUrl` is set, the parameters will
+  // be appended at the end. If `uppercase` is `true`, the parameter names will
+  // be uppercased (e.g. `'?A=foo&B=bar'`)
+  function getParamString(obj, existingUrl, uppercase) {
+  	var params = [];
+  	for (var i in obj) {
+  		params.push(encodeURIComponent(uppercase ? i.toUpperCase() : i) + '=' + encodeURIComponent(obj[i]));
+  	}
+  	return ((!existingUrl || existingUrl.indexOf('?') === -1) ? '?' : '&') + params.join('&');
+  }
+
+  var templateRe = /\{ *([\w_ -]+) *\}/g;
+
+  // @function template(str: String, data: Object): String
+  // Simple templating facility, accepts a template string of the form `'Hello {a}, {b}'`
+  // and a data object like `{a: 'foo', b: 'bar'}`, returns evaluated string
+  // `('Hello foo, bar')`. You can also specify functions instead of strings for
+  // data values — they will be evaluated passing `data` as an argument.
+  function template(str, data) {
+  	return str.replace(templateRe, function (str, key) {
+  		var value = data[key];
+
+  		if (value === undefined) {
+  			throw new Error('No value provided for variable ' + str);
+
+  		} else if (typeof value === 'function') {
+  			value = value(data);
+  		}
+  		return value;
+  	});
+  }
+
+  // @function isArray(obj): Boolean
+  // Compatibility polyfill for [Array.isArray](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray)
+  var isArray = Array.isArray || function (obj) {
+  	return (Object.prototype.toString.call(obj) === '[object Array]');
+  };
+
+  // @function indexOf(array: Array, el: Object): Number
+  // Compatibility polyfill for [Array.prototype.indexOf](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf)
+  function indexOf(array, el) {
+  	for (var i = 0; i < array.length; i++) {
+  		if (array[i] === el) { return i; }
+  	}
+  	return -1;
+  }
+
+  // @property emptyImageUrl: String
+  // Data URI string containing a base64-encoded empty GIF image.
+  // Used as a hack to free memory from unused images on WebKit-powered
+  // mobile devices (by setting image `src` to this string).
+  var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+
+  // inspired by https://paulirish.com/2011/requestanimationframe-for-smart-animating/
+
+  function getPrefixed(name) {
+  	return window['webkit' + name] || window['moz' + name] || window['ms' + name];
+  }
+
+  var lastTime = 0;
+
+  // fallback for IE 7-8
+  function timeoutDefer(fn) {
+  	var time = +new Date(),
+  	    timeToCall = Math.max(0, 16 - (time - lastTime));
+
+  	lastTime = time + timeToCall;
+  	return window.setTimeout(fn, timeToCall);
+  }
+
+  var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;
+  var cancelFn = window.cancelAnimationFrame || getPrefixed('CancelAnimationFrame') ||
+  		getPrefixed('CancelRequestAnimationFrame') || function (id) { window.clearTimeout(id); };
+
+  // @function requestAnimFrame(fn: Function, context?: Object, immediate?: Boolean): Number
+  // Schedules `fn` to be executed when the browser repaints. `fn` is bound to
+  // `context` if given. When `immediate` is set, `fn` is called immediately if
+  // the browser doesn't have native support for
+  // [`window.requestAnimationFrame`](https://developer.mozilla.org/docs/Web/API/window/requestAnimationFrame),
+  // otherwise it's delayed. Returns a request ID that can be used to cancel the request.
+  function requestAnimFrame(fn, context, immediate) {
+  	if (immediate && requestFn === timeoutDefer) {
+  		fn.call(context);
+  	} else {
+  		return requestFn.call(window, bind(fn, context));
+  	}
+  }
+
+  // @function cancelAnimFrame(id: Number): undefined
+  // Cancels a previous `requestAnimFrame`. See also [window.cancelAnimationFrame](https://developer.mozilla.org/docs/Web/API/window/cancelAnimationFrame).
+  function cancelAnimFrame(id) {
+  	if (id) {
+  		cancelFn.call(window, id);
+  	}
+  }
+
+  var Util = {
+    __proto__: null,
+    extend: extend,
+    create: create$2,
+    bind: bind,
+    get lastId () { return lastId; },
+    stamp: stamp,
+    throttle: throttle,
+    wrapNum: wrapNum,
+    falseFn: falseFn,
+    formatNum: formatNum,
+    trim: trim,
+    splitWords: splitWords,
+    setOptions: setOptions,
+    getParamString: getParamString,
+    template: template,
+    isArray: isArray,
+    indexOf: indexOf,
+    emptyImageUrl: emptyImageUrl,
+    requestFn: requestFn,
+    cancelFn: cancelFn,
+    requestAnimFrame: requestAnimFrame,
+    cancelAnimFrame: cancelAnimFrame
+  };
+
+  // @class Class
+  // @aka L.Class
+
+  // @section
+  // @uninheritable
+
+  // Thanks to John Resig and Dean Edwards for inspiration!
+
+  function Class() {}
+
+  Class.extend = function (props) {
+
+  	// @function extend(props: Object): Function
+  	// [Extends the current class](#class-inheritance) given the properties to be included.
+  	// Returns a Javascript function that is a class constructor (to be called with `new`).
+  	var NewClass = function () {
+
+  		setOptions(this);
+
+  		// call the constructor
+  		if (this.initialize) {
+  			this.initialize.apply(this, arguments);
+  		}
+
+  		// call all constructor hooks
+  		this.callInitHooks();
+  	};
+
+  	var parentProto = NewClass.__super__ = this.prototype;
+
+  	var proto = create$2(parentProto);
+  	proto.constructor = NewClass;
+
+  	NewClass.prototype = proto;
+
+  	// inherit parent's statics
+  	for (var i in this) {
+  		if (Object.prototype.hasOwnProperty.call(this, i) && i !== 'prototype' && i !== '__super__') {
+  			NewClass[i] = this[i];
+  		}
+  	}
+
+  	// mix static properties into the class
+  	if (props.statics) {
+  		extend(NewClass, props.statics);
+  	}
+
+  	// mix includes into the prototype
+  	if (props.includes) {
+  		checkDeprecatedMixinEvents(props.includes);
+  		extend.apply(null, [proto].concat(props.includes));
+  	}
+
+  	// mix given properties into the prototype
+  	extend(proto, props);
+  	delete proto.statics;
+  	delete proto.includes;
+
+  	// merge options
+  	if (proto.options) {
+  		proto.options = parentProto.options ? create$2(parentProto.options) : {};
+  		extend(proto.options, props.options);
+  	}
+
+  	proto._initHooks = [];
+
+  	// add method for calling all hooks
+  	proto.callInitHooks = function () {
+
+  		if (this._initHooksCalled) { return; }
+
+  		if (parentProto.callInitHooks) {
+  			parentProto.callInitHooks.call(this);
+  		}
+
+  		this._initHooksCalled = true;
+
+  		for (var i = 0, len = proto._initHooks.length; i < len; i++) {
+  			proto._initHooks[i].call(this);
+  		}
+  	};
+
+  	return NewClass;
+  };
+
+
+  // @function include(properties: Object): this
+  // [Includes a mixin](#class-includes) into the current class.
+  Class.include = function (props) {
+  	var parentOptions = this.prototype.options;
+  	extend(this.prototype, props);
+  	if (props.options) {
+  		this.prototype.options = parentOptions;
+  		this.mergeOptions(props.options);
+  	}
+  	return this;
+  };
+
+  // @function mergeOptions(options: Object): this
+  // [Merges `options`](#class-options) into the defaults of the class.
+  Class.mergeOptions = function (options) {
+  	extend(this.prototype.options, options);
+  	return this;
+  };
+
+  // @function addInitHook(fn: Function): this
+  // Adds a [constructor hook](#class-constructor-hooks) to the class.
+  Class.addInitHook = function (fn) { // (Function) || (String, args...)
+  	var args = Array.prototype.slice.call(arguments, 1);
+
+  	var init = typeof fn === 'function' ? fn : function () {
+  		this[fn].apply(this, args);
+  	};
+
+  	this.prototype._initHooks = this.prototype._initHooks || [];
+  	this.prototype._initHooks.push(init);
+  	return this;
+  };
+
+  function checkDeprecatedMixinEvents(includes) {
+  	/* global L: true */
+  	if (typeof L === 'undefined' || !L || !L.Mixin) { return; }
+
+  	includes = isArray(includes) ? includes : [includes];
+
+  	for (var i = 0; i < includes.length; i++) {
+  		if (includes[i] === L.Mixin.Events) {
+  			console.warn('Deprecated include of L.Mixin.Events: ' +
+  				'this property will be removed in future releases, ' +
+  				'please inherit from L.Evented instead.', new Error().stack);
+  		}
+  	}
+  }
+
+  /*
+   * @class Evented
+   * @aka L.Evented
+   * @inherits Class
+   *
+   * A set of methods shared between event-powered classes (like `Map` and `Marker`). Generally, events allow you to execute some function when something happens with an object (e.g. the user clicks on the map, causing the map to fire `'click'` event).
+   *
+   * @example
+   *
+   * ```js
+   * map.on('click', function(e) {
+   * 	alert(e.latlng);
+   * } );
+   * ```
+   *
+   * Leaflet deals with event listeners by reference, so if you want to add a listener and then remove it, define it as a function:
+   *
+   * ```js
+   * function onClick(e) { ... }
+   *
+   * map.on('click', onClick);
+   * map.off('click', onClick);
+   * ```
+   */
+
+  var Events = {
+  	/* @method on(type: String, fn: Function, context?: Object): this
+  	 * Adds a listener function (`fn`) to a particular event type of the object. You can optionally specify the context of the listener (object the this keyword will point to). You can also pass several space-separated types (e.g. `'click dblclick'`).
+  	 *
+  	 * @alternative
+  	 * @method on(eventMap: Object): this
+  	 * Adds a set of type/listener pairs, e.g. `{click: onClick, mousemove: onMouseMove}`
+  	 */
+  	on: function (types, fn, context) {
+
+  		// types can be a map of types/handlers
+  		if (typeof types === 'object') {
+  			for (var type in types) {
+  				// we don't process space-separated events here for performance;
+  				// it's a hot path since Layer uses the on(obj) syntax
+  				this._on(type, types[type], fn);
+  			}
+
+  		} else {
+  			// types can be a string of space-separated words
+  			types = splitWords(types);
+
+  			for (var i = 0, len = types.length; i < len; i++) {
+  				this._on(types[i], fn, context);
+  			}
+  		}
+
+  		return this;
+  	},
+
+  	/* @method off(type: String, fn?: Function, context?: Object): this
+  	 * Removes a previously added listener function. If no function is specified, it will remove all the listeners of that particular event from the object. Note that if you passed a custom context to `on`, you must pass the same context to `off` in order to remove the listener.
+  	 *
+  	 * @alternative
+  	 * @method off(eventMap: Object): this
+  	 * Removes a set of type/listener pairs.
+  	 *
+  	 * @alternative
+  	 * @method off: this
+  	 * Removes all listeners to all events on the object. This includes implicitly attached events.
+  	 */
+  	off: function (types, fn, context) {
+
+  		if (!arguments.length) {
+  			// clear all listeners if called without arguments
+  			delete this._events;
+
+  		} else if (typeof types === 'object') {
+  			for (var type in types) {
+  				this._off(type, types[type], fn);
+  			}
+
+  		} else {
+  			types = splitWords(types);
+
+  			var removeAll = arguments.length === 1;
+  			for (var i = 0, len = types.length; i < len; i++) {
+  				if (removeAll) {
+  					this._off(types[i]);
+  				} else {
+  					this._off(types[i], fn, context);
+  				}
+  			}
+  		}
+
+  		return this;
+  	},
+
+  	// attach listener (without syntactic sugar now)
+  	_on: function (type, fn, context, _once) {
+  		if (typeof fn !== 'function') {
+  			console.warn('wrong listener type: ' + typeof fn);
+  			return;
+  		}
+
+  		// check if fn already there
+  		if (this._listens(type, fn, context) !== false) {
+  			return;
+  		}
+
+  		if (context === this) {
+  			// Less memory footprint.
+  			context = undefined;
+  		}
+
+  		var newListener = {fn: fn, ctx: context};
+  		if (_once) {
+  			newListener.once = true;
+  		}
+
+  		this._events = this._events || {};
+  		this._events[type] = this._events[type] || [];
+  		this._events[type].push(newListener);
+  	},
+
+  	_off: function (type, fn, context) {
+  		var listeners,
+  		    i,
+  		    len;
+
+  		if (!this._events) {
+  			return;
+  		}
+
+  		listeners = this._events[type];
+  		if (!listeners) {
+  			return;
+  		}
+
+  		if (arguments.length === 1) { // remove all
+  			if (this._firingCount) {
+  				// Set all removed listeners to noop
+  				// so they are not called if remove happens in fire
+  				for (i = 0, len = listeners.length; i < len; i++) {
+  					listeners[i].fn = falseFn;
+  				}
+  			}
+  			// clear all listeners for a type if function isn't specified
+  			delete this._events[type];
+  			return;
+  		}
+
+  		if (typeof fn !== 'function') {
+  			console.warn('wrong listener type: ' + typeof fn);
+  			return;
+  		}
+
+  		// find fn and remove it
+  		var index = this._listens(type, fn, context);
+  		if (index !== false) {
+  			var listener = listeners[index];
+  			if (this._firingCount) {
+  				// set the removed listener to noop so that's not called if remove happens in fire
+  				listener.fn = falseFn;
+
+  				/* copy array in case events are being fired */
+  				this._events[type] = listeners = listeners.slice();
+  			}
+  			listeners.splice(index, 1);
+  		}
+  	},
+
+  	// @method fire(type: String, data?: Object, propagate?: Boolean): this
+  	// Fires an event of the specified type. You can optionally provide a data
+  	// object — the first argument of the listener function will contain its
+  	// properties. The event can optionally be propagated to event parents.
+  	fire: function (type, data, propagate) {
+  		if (!this.listens(type, propagate)) { return this; }
+
+  		var event = extend({}, data, {
+  			type: type,
+  			target: this,
+  			sourceTarget: data && data.sourceTarget || this
+  		});
+
+  		if (this._events) {
+  			var listeners = this._events[type];
+  			if (listeners) {
+  				this._firingCount = (this._firingCount + 1) || 1;
+  				for (var i = 0, len = listeners.length; i < len; i++) {
+  					var l = listeners[i];
+  					// off overwrites l.fn, so we need to copy fn to a var
+  					var fn = l.fn;
+  					if (l.once) {
+  						this.off(type, fn, l.ctx);
+  					}
+  					fn.call(l.ctx || this, event);
+  				}
+
+  				this._firingCount--;
+  			}
+  		}
+
+  		if (propagate) {
+  			// propagate the event to parents (set with addEventParent)
+  			this._propagateEvent(event);
+  		}
+
+  		return this;
+  	},
+
+  	// @method listens(type: String, propagate?: Boolean): Boolean
+  	// @method listens(type: String, fn: Function, context?: Object, propagate?: Boolean): Boolean
+  	// Returns `true` if a particular event type has any listeners attached to it.
+  	// The verification can optionally be propagated, it will return `true` if parents have the listener attached to it.
+  	listens: function (type, fn, context, propagate) {
+  		if (typeof type !== 'string') {
+  			console.warn('"string" type argument expected');
+  		}
+
+  		// we don't overwrite the input `fn` value, because we need to use it for propagation
+  		var _fn = fn;
+  		if (typeof fn !== 'function') {
+  			propagate = !!fn;
+  			_fn = undefined;
+  			context = undefined;
+  		}
+
+  		var listeners = this._events && this._events[type];
+  		if (listeners && listeners.length) {
+  			if (this._listens(type, _fn, context) !== false) {
+  				return true;
+  			}
+  		}
+
+  		if (propagate) {
+  			// also check parents for listeners if event propagates
+  			for (var id in this._eventParents) {
+  				if (this._eventParents[id].listens(type, fn, context, propagate)) { return true; }
+  			}
+  		}
+  		return false;
+  	},
+
+  	// returns the index (number) or false
+  	_listens: function (type, fn, context) {
+  		if (!this._events) {
+  			return false;
+  		}
+
+  		var listeners = this._events[type] || [];
+  		if (!fn) {
+  			return !!listeners.length;
+  		}
+
+  		if (context === this) {
+  			// Less memory footprint.
+  			context = undefined;
+  		}
+
+  		for (var i = 0, len = listeners.length; i < len; i++) {
+  			if (listeners[i].fn === fn && listeners[i].ctx === context) {
+  				return i;
+  			}
+  		}
+  		return false;
+
+  	},
+
+  	// @method once(…): this
+  	// Behaves as [`on(…)`](#evented-on), except the listener will only get fired once and then removed.
+  	once: function (types, fn, context) {
+
+  		// types can be a map of types/handlers
+  		if (typeof types === 'object') {
+  			for (var type in types) {
+  				// we don't process space-separated events here for performance;
+  				// it's a hot path since Layer uses the on(obj) syntax
+  				this._on(type, types[type], fn, true);
+  			}
+
+  		} else {
+  			// types can be a string of space-separated words
+  			types = splitWords(types);
+
+  			for (var i = 0, len = types.length; i < len; i++) {
+  				this._on(types[i], fn, context, true);
+  			}
+  		}
+
+  		return this;
+  	},
+
+  	// @method addEventParent(obj: Evented): this
+  	// Adds an event parent - an `Evented` that will receive propagated events
+  	addEventParent: function (obj) {
+  		this._eventParents = this._eventParents || {};
+  		this._eventParents[stamp(obj)] = obj;
+  		return this;
+  	},
+
+  	// @method removeEventParent(obj: Evented): this
+  	// Removes an event parent, so it will stop receiving propagated events
+  	removeEventParent: function (obj) {
+  		if (this._eventParents) {
+  			delete this._eventParents[stamp(obj)];
+  		}
+  		return this;
+  	},
+
+  	_propagateEvent: function (e) {
+  		for (var id in this._eventParents) {
+  			this._eventParents[id].fire(e.type, extend({
+  				layer: e.target,
+  				propagatedFrom: e.target
+  			}, e), true);
+  		}
+  	}
+  };
+
+  // aliases; we should ditch those eventually
+
+  // @method addEventListener(…): this
+  // Alias to [`on(…)`](#evented-on)
+  Events.addEventListener = Events.on;
+
+  // @method removeEventListener(…): this
+  // Alias to [`off(…)`](#evented-off)
+
+  // @method clearAllEventListeners(…): this
+  // Alias to [`off()`](#evented-off)
+  Events.removeEventListener = Events.clearAllEventListeners = Events.off;
+
+  // @method addOneTimeEventListener(…): this
+  // Alias to [`once(…)`](#evented-once)
+  Events.addOneTimeEventListener = Events.once;
+
+  // @method fireEvent(…): this
+  // Alias to [`fire(…)`](#evented-fire)
+  Events.fireEvent = Events.fire;
+
+  // @method hasEventListeners(…): Boolean
+  // Alias to [`listens(…)`](#evented-listens)
+  Events.hasEventListeners = Events.listens;
+
+  var Evented = Class.extend(Events);
+
+  /*
+   * @class Point
+   * @aka L.Point
+   *
+   * Represents a point with `x` and `y` coordinates in pixels.
+   *
+   * @example
+   *
+   * ```js
+   * var point = L.point(200, 300);
+   * ```
+   *
+   * All Leaflet methods and options that accept `Point` objects also accept them in a simple Array form (unless noted otherwise), so these lines are equivalent:
+   *
+   * ```js
+   * map.panBy([200, 300]);
+   * map.panBy(L.point(200, 300));
+   * ```
+   *
+   * Note that `Point` does not inherit from Leaflet's `Class` object,
+   * which means new classes can't inherit from it, and new methods
+   * can't be added to it with the `include` function.
+   */
+
+  function Point(x, y, round) {
+  	// @property x: Number; The `x` coordinate of the point
+  	this.x = (round ? Math.round(x) : x);
+  	// @property y: Number; The `y` coordinate of the point
+  	this.y = (round ? Math.round(y) : y);
+  }
+
+  var trunc = Math.trunc || function (v) {
+  	return v > 0 ? Math.floor(v) : Math.ceil(v);
+  };
+
+  Point.prototype = {
+
+  	// @method clone(): Point
+  	// Returns a copy of the current point.
+  	clone: function () {
+  		return new Point(this.x, this.y);
+  	},
+
+  	// @method add(otherPoint: Point): Point
+  	// Returns the result of addition of the current and the given points.
+  	add: function (point) {
+  		// non-destructive, returns a new point
+  		return this.clone()._add(toPoint(point));
+  	},
+
+  	_add: function (point) {
+  		// destructive, used directly for performance in situations where it's safe to modify existing point
+  		this.x += point.x;
+  		this.y += point.y;
+  		return this;
+  	},
+
+  	// @method subtract(otherPoint: Point): Point
+  	// Returns the result of subtraction of the given point from the current.
+  	subtract: function (point) {
+  		return this.clone()._subtract(toPoint(point));
+  	},
+
+  	_subtract: function (point) {
+  		this.x -= point.x;
+  		this.y -= point.y;
+  		return this;
+  	},
+
+  	// @method divideBy(num: Number): Point
+  	// Returns the result of division of the current point by the given number.
+  	divideBy: function (num) {
+  		return this.clone()._divideBy(num);
+  	},
+
+  	_divideBy: function (num) {
+  		this.x /= num;
+  		this.y /= num;
+  		return this;
+  	},
+
+  	// @method multiplyBy(num: Number): Point
+  	// Returns the result of multiplication of the current point by the given number.
+  	multiplyBy: function (num) {
+  		return this.clone()._multiplyBy(num);
+  	},
+
+  	_multiplyBy: function (num) {
+  		this.x *= num;
+  		this.y *= num;
+  		return this;
+  	},
+
+  	// @method scaleBy(scale: Point): Point
+  	// Multiply each coordinate of the current point by each coordinate of
+  	// `scale`. In linear algebra terms, multiply the point by the
+  	// [scaling matrix](https://en.wikipedia.org/wiki/Scaling_%28geometry%29#Matrix_representation)
+  	// defined by `scale`.
+  	scaleBy: function (point) {
+  		return new Point(this.x * point.x, this.y * point.y);
+  	},
+
+  	// @method unscaleBy(scale: Point): Point
+  	// Inverse of `scaleBy`. Divide each coordinate of the current point by
+  	// each coordinate of `scale`.
+  	unscaleBy: function (point) {
+  		return new Point(this.x / point.x, this.y / point.y);
+  	},
+
+  	// @method round(): Point
+  	// Returns a copy of the current point with rounded coordinates.
+  	round: function () {
+  		return this.clone()._round();
+  	},
+
+  	_round: function () {
+  		this.x = Math.round(this.x);
+  		this.y = Math.round(this.y);
+  		return this;
+  	},
+
+  	// @method floor(): Point
+  	// Returns a copy of the current point with floored coordinates (rounded down).
+  	floor: function () {
+  		return this.clone()._floor();
+  	},
+
+  	_floor: function () {
+  		this.x = Math.floor(this.x);
+  		this.y = Math.floor(this.y);
+  		return this;
+  	},
+
+  	// @method ceil(): Point
+  	// Returns a copy of the current point with ceiled coordinates (rounded up).
+  	ceil: function () {
+  		return this.clone()._ceil();
+  	},
+
+  	_ceil: function () {
+  		this.x = Math.ceil(this.x);
+  		this.y = Math.ceil(this.y);
+  		return this;
+  	},
+
+  	// @method trunc(): Point
+  	// Returns a copy of the current point with truncated coordinates (rounded towards zero).
+  	trunc: function () {
+  		return this.clone()._trunc();
+  	},
+
+  	_trunc: function () {
+  		this.x = trunc(this.x);
+  		this.y = trunc(this.y);
+  		return this;
+  	},
+
+  	// @method distanceTo(otherPoint: Point): Number
+  	// Returns the cartesian distance between the current and the given points.
+  	distanceTo: function (point) {
+  		point = toPoint(point);
+
+  		var x = point.x - this.x,
+  		    y = point.y - this.y;
+
+  		return Math.sqrt(x * x + y * y);
+  	},
+
+  	// @method equals(otherPoint: Point): Boolean
+  	// Returns `true` if the given point has the same coordinates.
+  	equals: function (point) {
+  		point = toPoint(point);
+
+  		return point.x === this.x &&
+  		       point.y === this.y;
+  	},
+
+  	// @method contains(otherPoint: Point): Boolean
+  	// Returns `true` if both coordinates of the given point are less than the corresponding current point coordinates (in absolute values).
+  	contains: function (point) {
+  		point = toPoint(point);
+
+  		return Math.abs(point.x) <= Math.abs(this.x) &&
+  		       Math.abs(point.y) <= Math.abs(this.y);
+  	},
+
+  	// @method toString(): String
+  	// Returns a string representation of the point for debugging purposes.
+  	toString: function () {
+  		return 'Point(' +
+  		        formatNum(this.x) + ', ' +
+  		        formatNum(this.y) + ')';
+  	}
+  };
+
+  // @factory L.point(x: Number, y: Number, round?: Boolean)
+  // Creates a Point object with the given `x` and `y` coordinates. If optional `round` is set to true, rounds the `x` and `y` values.
+
+  // @alternative
+  // @factory L.point(coords: Number[])
+  // Expects an array of the form `[x, y]` instead.
+
+  // @alternative
+  // @factory L.point(coords: Object)
+  // Expects a plain object of the form `{x: Number, y: Number}` instead.
+  function toPoint(x, y, round) {
+  	if (x instanceof Point) {
+  		return x;
+  	}
+  	if (isArray(x)) {
+  		return new Point(x[0], x[1]);
+  	}
+  	if (x === undefined || x === null) {
+  		return x;
+  	}
+  	if (typeof x === 'object' && 'x' in x && 'y' in x) {
+  		return new Point(x.x, x.y);
+  	}
+  	return new Point(x, y, round);
+  }
+
+  /*
+   * @class Bounds
+   * @aka L.Bounds
+   *
+   * Represents a rectangular area in pixel coordinates.
+   *
+   * @example
+   *
+   * ```js
+   * var p1 = L.point(10, 10),
+   * p2 = L.point(40, 60),
+   * bounds = L.bounds(p1, p2);
+   * ```
+   *
+   * All Leaflet methods that accept `Bounds` objects also accept them in a simple Array form (unless noted otherwise), so the bounds example above can be passed like this:
+   *
+   * ```js
+   * otherBounds.intersects([[10, 10], [40, 60]]);
+   * ```
+   *
+   * Note that `Bounds` does not inherit from Leaflet's `Class` object,
+   * which means new classes can't inherit from it, and new methods
+   * can't be added to it with the `include` function.
+   */
+
+  function Bounds(a, b) {
+  	if (!a) { return; }
+
+  	var points = b ? [a, b] : a;
+
+  	for (var i = 0, len = points.length; i < len; i++) {
+  		this.extend(points[i]);
+  	}
+  }
+
+  Bounds.prototype = {
+  	// @method extend(point: Point): this
+  	// Extends the bounds to contain the given point.
+
+  	// @alternative
+  	// @method extend(otherBounds: Bounds): this
+  	// Extend the bounds to contain the given bounds
+  	extend: function (obj) {
+  		var min2, max2;
+  		if (!obj) { return this; }
+
+  		if (obj instanceof Point || typeof obj[0] === 'number' || 'x' in obj) {
+  			min2 = max2 = toPoint(obj);
+  		} else {
+  			obj = toBounds(obj);
+  			min2 = obj.min;
+  			max2 = obj.max;
+
+  			if (!min2 || !max2) { return this; }
+  		}
+
+  		// @property min: Point
+  		// The top left corner of the rectangle.
+  		// @property max: Point
+  		// The bottom right corner of the rectangle.
+  		if (!this.min && !this.max) {
+  			this.min = min2.clone();
+  			this.max = max2.clone();
+  		} else {
+  			this.min.x = Math.min(min2.x, this.min.x);
+  			this.max.x = Math.max(max2.x, this.max.x);
+  			this.min.y = Math.min(min2.y, this.min.y);
+  			this.max.y = Math.max(max2.y, this.max.y);
+  		}
+  		return this;
+  	},
+
+  	// @method getCenter(round?: Boolean): Point
+  	// Returns the center point of the bounds.
+  	getCenter: function (round) {
+  		return toPoint(
+  		        (this.min.x + this.max.x) / 2,
+  		        (this.min.y + this.max.y) / 2, round);
+  	},
+
+  	// @method getBottomLeft(): Point
+  	// Returns the bottom-left point of the bounds.
+  	getBottomLeft: function () {
+  		return toPoint(this.min.x, this.max.y);
+  	},
+
+  	// @method getTopRight(): Point
+  	// Returns the top-right point of the bounds.
+  	getTopRight: function () { // -> Point
+  		return toPoint(this.max.x, this.min.y);
+  	},
+
+  	// @method getTopLeft(): Point
+  	// Returns the top-left point of the bounds (i.e. [`this.min`](#bounds-min)).
+  	getTopLeft: function () {
+  		return this.min; // left, top
+  	},
+
+  	// @method getBottomRight(): Point
+  	// Returns the bottom-right point of the bounds (i.e. [`this.max`](#bounds-max)).
+  	getBottomRight: function () {
+  		return this.max; // right, bottom
+  	},
+
+  	// @method getSize(): Point
+  	// Returns the size of the given bounds
+  	getSize: function () {
+  		return this.max.subtract(this.min);
+  	},
+
+  	// @method contains(otherBounds: Bounds): Boolean
+  	// Returns `true` if the rectangle contains the given one.
+  	// @alternative
+  	// @method contains(point: Point): Boolean
+  	// Returns `true` if the rectangle contains the given point.
+  	contains: function (obj) {
+  		var min, max;
+
+  		if (typeof obj[0] === 'number' || obj instanceof Point) {
+  			obj = toPoint(obj);
+  		} else {
+  			obj = toBounds(obj);
+  		}
+
+  		if (obj instanceof Bounds) {
+  			min = obj.min;
+  			max = obj.max;
+  		} else {
+  			min = max = obj;
+  		}
+
+  		return (min.x >= this.min.x) &&
+  		       (max.x <= this.max.x) &&
+  		       (min.y >= this.min.y) &&
+  		       (max.y <= this.max.y);
+  	},
+
+  	// @method intersects(otherBounds: Bounds): Boolean
+  	// Returns `true` if the rectangle intersects the given bounds. Two bounds
+  	// intersect if they have at least one point in common.
+  	intersects: function (bounds) { // (Bounds) -> Boolean
+  		bounds = toBounds(bounds);
+
+  		var min = this.min,
+  		    max = this.max,
+  		    min2 = bounds.min,
+  		    max2 = bounds.max,
+  		    xIntersects = (max2.x >= min.x) && (min2.x <= max.x),
+  		    yIntersects = (max2.y >= min.y) && (min2.y <= max.y);
+
+  		return xIntersects && yIntersects;
+  	},
+
+  	// @method overlaps(otherBounds: Bounds): Boolean
+  	// Returns `true` if the rectangle overlaps the given bounds. Two bounds
+  	// overlap if their intersection is an area.
+  	overlaps: function (bounds) { // (Bounds) -> Boolean
+  		bounds = toBounds(bounds);
+
+  		var min = this.min,
+  		    max = this.max,
+  		    min2 = bounds.min,
+  		    max2 = bounds.max,
+  		    xOverlaps = (max2.x > min.x) && (min2.x < max.x),
+  		    yOverlaps = (max2.y > min.y) && (min2.y < max.y);
+
+  		return xOverlaps && yOverlaps;
+  	},
+
+  	// @method isValid(): Boolean
+  	// Returns `true` if the bounds are properly initialized.
+  	isValid: function () {
+  		return !!(this.min && this.max);
+  	},
+
+
+  	// @method pad(bufferRatio: Number): Bounds
+  	// Returns bounds created by extending or retracting the current bounds by a given ratio in each direction.
+  	// For example, a ratio of 0.5 extends the bounds by 50% in each direction.
+  	// Negative values will retract the bounds.
+  	pad: function (bufferRatio) {
+  		var min = this.min,
+  		max = this.max,
+  		heightBuffer = Math.abs(min.x - max.x) * bufferRatio,
+  		widthBuffer = Math.abs(min.y - max.y) * bufferRatio;
+
+
+  		return toBounds(
+  			toPoint(min.x - heightBuffer, min.y - widthBuffer),
+  			toPoint(max.x + heightBuffer, max.y + widthBuffer));
+  	},
+
+
+  	// @method equals(otherBounds: Bounds): Boolean
+  	// Returns `true` if the rectangle is equivalent to the given bounds.
+  	equals: function (bounds) {
+  		if (!bounds) { return false; }
+
+  		bounds = toBounds(bounds);
+
+  		return this.min.equals(bounds.getTopLeft()) &&
+  			this.max.equals(bounds.getBottomRight());
+  	},
+  };
+
+
+  // @factory L.bounds(corner1: Point, corner2: Point)
+  // Creates a Bounds object from two corners coordinate pairs.
+  // @alternative
+  // @factory L.bounds(points: Point[])
+  // Creates a Bounds object from the given array of points.
+  function toBounds(a, b) {
+  	if (!a || a instanceof Bounds) {
+  		return a;
+  	}
+  	return new Bounds(a, b);
+  }
+
+  /*
+   * @class LatLngBounds
+   * @aka L.LatLngBounds
+   *
+   * Represents a rectangular geographical area on a map.
+   *
+   * @example
+   *
+   * ```js
+   * var corner1 = L.latLng(40.712, -74.227),
+   * corner2 = L.latLng(40.774, -74.125),
+   * bounds = L.latLngBounds(corner1, corner2);
+   * ```
+   *
+   * All Leaflet methods that accept LatLngBounds objects also accept them in a simple Array form (unless noted otherwise), so the bounds example above can be passed like this:
+   *
+   * ```js
+   * map.fitBounds([
+   * 	[40.712, -74.227],
+   * 	[40.774, -74.125]
+   * ]);
+   * ```
+   *
+   * Caution: if the area crosses the antimeridian (often confused with the International Date Line), you must specify corners _outside_ the [-180, 180] degrees longitude range.
+   *
+   * Note that `LatLngBounds` does not inherit from Leaflet's `Class` object,
+   * which means new classes can't inherit from it, and new methods
+   * can't be added to it with the `include` function.
+   */
+
+  function LatLngBounds(corner1, corner2) { // (LatLng, LatLng) or (LatLng[])
+  	if (!corner1) { return; }
+
+  	var latlngs = corner2 ? [corner1, corner2] : corner1;
+
+  	for (var i = 0, len = latlngs.length; i < len; i++) {
+  		this.extend(latlngs[i]);
+  	}
+  }
+
+  LatLngBounds.prototype = {
+
+  	// @method extend(latlng: LatLng): this
+  	// Extend the bounds to contain the given point
+
+  	// @alternative
+  	// @method extend(otherBounds: LatLngBounds): this
+  	// Extend the bounds to contain the given bounds
+  	extend: function (obj) {
+  		var sw = this._southWest,
+  		    ne = this._northEast,
+  		    sw2, ne2;
+
+  		if (obj instanceof LatLng) {
+  			sw2 = obj;
+  			ne2 = obj;
+
+  		} else if (obj instanceof LatLngBounds) {
+  			sw2 = obj._southWest;
+  			ne2 = obj._northEast;
+
+  			if (!sw2 || !ne2) { return this; }
+
+  		} else {
+  			return obj ? this.extend(toLatLng(obj) || toLatLngBounds(obj)) : this;
+  		}
+
+  		if (!sw && !ne) {
+  			this._southWest = new LatLng(sw2.lat, sw2.lng);
+  			this._northEast = new LatLng(ne2.lat, ne2.lng);
+  		} else {
+  			sw.lat = Math.min(sw2.lat, sw.lat);
+  			sw.lng = Math.min(sw2.lng, sw.lng);
+  			ne.lat = Math.max(ne2.lat, ne.lat);
+  			ne.lng = Math.max(ne2.lng, ne.lng);
+  		}
+
+  		return this;
+  	},
+
+  	// @method pad(bufferRatio: Number): LatLngBounds
+  	// Returns bounds created by extending or retracting the current bounds by a given ratio in each direction.
+  	// For example, a ratio of 0.5 extends the bounds by 50% in each direction.
+  	// Negative values will retract the bounds.
+  	pad: function (bufferRatio) {
+  		var sw = this._southWest,
+  		    ne = this._northEast,
+  		    heightBuffer = Math.abs(sw.lat - ne.lat) * bufferRatio,
+  		    widthBuffer = Math.abs(sw.lng - ne.lng) * bufferRatio;
+
+  		return new LatLngBounds(
+  		        new LatLng(sw.lat - heightBuffer, sw.lng - widthBuffer),
+  		        new LatLng(ne.lat + heightBuffer, ne.lng + widthBuffer));
+  	},
+
+  	// @method getCenter(): LatLng
+  	// Returns the center point of the bounds.
+  	getCenter: function () {
+  		return new LatLng(
+  		        (this._southWest.lat + this._northEast.lat) / 2,
+  		        (this._southWest.lng + this._northEast.lng) / 2);
+  	},
+
+  	// @method getSouthWest(): LatLng
+  	// Returns the south-west point of the bounds.
+  	getSouthWest: function () {
+  		return this._southWest;
+  	},
+
+  	// @method getNorthEast(): LatLng
+  	// Returns the north-east point of the bounds.
+  	getNorthEast: function () {
+  		return this._northEast;
+  	},
+
+  	// @method getNorthWest(): LatLng
+  	// Returns the north-west point of the bounds.
+  	getNorthWest: function () {
+  		return new LatLng(this.getNorth(), this.getWest());
+  	},
+
+  	// @method getSouthEast(): LatLng
+  	// Returns the south-east point of the bounds.
+  	getSouthEast: function () {
+  		return new LatLng(this.getSouth(), this.getEast());
+  	},
+
+  	// @method getWest(): Number
+  	// Returns the west longitude of the bounds
+  	getWest: function () {
+  		return this._southWest.lng;
+  	},
+
+  	// @method getSouth(): Number
+  	// Returns the south latitude of the bounds
+  	getSouth: function () {
+  		return this._southWest.lat;
+  	},
+
+  	// @method getEast(): Number
+  	// Returns the east longitude of the bounds
+  	getEast: function () {
+  		return this._northEast.lng;
+  	},
+
+  	// @method getNorth(): Number
+  	// Returns the north latitude of the bounds
+  	getNorth: function () {
+  		return this._northEast.lat;
+  	},
+
+  	// @method contains(otherBounds: LatLngBounds): Boolean
+  	// Returns `true` if the rectangle contains the given one.
+
+  	// @alternative
+  	// @method contains (latlng: LatLng): Boolean
+  	// Returns `true` if the rectangle contains the given point.
+  	contains: function (obj) { // (LatLngBounds) or (LatLng) -> Boolean
+  		if (typeof obj[0] === 'number' || obj instanceof LatLng || 'lat' in obj) {
+  			obj = toLatLng(obj);
+  		} else {
+  			obj = toLatLngBounds(obj);
+  		}
+
+  		var sw = this._southWest,
+  		    ne = this._northEast,
+  		    sw2, ne2;
+
+  		if (obj instanceof LatLngBounds) {
+  			sw2 = obj.getSouthWest();
+  			ne2 = obj.getNorthEast();
+  		} else {
+  			sw2 = ne2 = obj;
+  		}
+
+  		return (sw2.lat >= sw.lat) && (ne2.lat <= ne.lat) &&
+  		       (sw2.lng >= sw.lng) && (ne2.lng <= ne.lng);
+  	},
+
+  	// @method intersects(otherBounds: LatLngBounds): Boolean
+  	// Returns `true` if the rectangle intersects the given bounds. Two bounds intersect if they have at least one point in common.
+  	intersects: function (bounds) {
+  		bounds = toLatLngBounds(bounds);
+
+  		var sw = this._southWest,
+  		    ne = this._northEast,
+  		    sw2 = bounds.getSouthWest(),
+  		    ne2 = bounds.getNorthEast(),
+
+  		    latIntersects = (ne2.lat >= sw.lat) && (sw2.lat <= ne.lat),
+  		    lngIntersects = (ne2.lng >= sw.lng) && (sw2.lng <= ne.lng);
+
+  		return latIntersects && lngIntersects;
+  	},
+
+  	// @method overlaps(otherBounds: LatLngBounds): Boolean
+  	// Returns `true` if the rectangle overlaps the given bounds. Two bounds overlap if their intersection is an area.
+  	overlaps: function (bounds) {
+  		bounds = toLatLngBounds(bounds);
+
+  		var sw = this._southWest,
+  		    ne = this._northEast,
+  		    sw2 = bounds.getSouthWest(),
+  		    ne2 = bounds.getNorthEast(),
+
+  		    latOverlaps = (ne2.lat > sw.lat) && (sw2.lat < ne.lat),
+  		    lngOverlaps = (ne2.lng > sw.lng) && (sw2.lng < ne.lng);
+
+  		return latOverlaps && lngOverlaps;
+  	},
+
+  	// @method toBBoxString(): String
+  	// Returns a string with bounding box coordinates in a 'southwest_lng,southwest_lat,northeast_lng,northeast_lat' format. Useful for sending requests to web services that return geo data.
+  	toBBoxString: function () {
+  		return [this.getWest(), this.getSouth(), this.getEast(), this.getNorth()].join(',');
+  	},
+
+  	// @method equals(otherBounds: LatLngBounds, maxMargin?: Number): Boolean
+  	// Returns `true` if the rectangle is equivalent (within a small margin of error) to the given bounds. The margin of error can be overridden by setting `maxMargin` to a small number.
+  	equals: function (bounds, maxMargin) {
+  		if (!bounds) { return false; }
+
+  		bounds = toLatLngBounds(bounds);
+
+  		return this._southWest.equals(bounds.getSouthWest(), maxMargin) &&
+  		       this._northEast.equals(bounds.getNorthEast(), maxMargin);
+  	},
+
+  	// @method isValid(): Boolean
+  	// Returns `true` if the bounds are properly initialized.
+  	isValid: function () {
+  		return !!(this._southWest && this._northEast);
+  	}
+  };
+
+  // TODO International date line?
+
+  // @factory L.latLngBounds(corner1: LatLng, corner2: LatLng)
+  // Creates a `LatLngBounds` object by defining two diagonally opposite corners of the rectangle.
+
+  // @alternative
+  // @factory L.latLngBounds(latlngs: LatLng[])
+  // Creates a `LatLngBounds` object defined by the geographical points it contains. Very useful for zooming the map to fit a particular set of locations with [`fitBounds`](#map-fitbounds).
+  function toLatLngBounds(a, b) {
+  	if (a instanceof LatLngBounds) {
+  		return a;
+  	}
+  	return new LatLngBounds(a, b);
+  }
+
+  /* @class LatLng
+   * @aka L.LatLng
+   *
+   * Represents a geographical point with a certain latitude and longitude.
+   *
+   * @example
+   *
+   * ```
+   * var latlng = L.latLng(50.5, 30.5);
+   * ```
+   *
+   * All Leaflet methods that accept LatLng objects also accept them in a simple Array form and simple object form (unless noted otherwise), so these lines are equivalent:
+   *
+   * ```
+   * map.panTo([50, 30]);
+   * map.panTo({lon: 30, lat: 50});
+   * map.panTo({lat: 50, lng: 30});
+   * map.panTo(L.latLng(50, 30));
+   * ```
+   *
+   * Note that `LatLng` does not inherit from Leaflet's `Class` object,
+   * which means new classes can't inherit from it, and new methods
+   * can't be added to it with the `include` function.
+   */
+
+  function LatLng(lat, lng, alt) {
+  	if (isNaN(lat) || isNaN(lng)) {
+  		throw new Error('Invalid LatLng object: (' + lat + ', ' + lng + ')');
+  	}
+
+  	// @property lat: Number
+  	// Latitude in degrees
+  	this.lat = +lat;
+
+  	// @property lng: Number
+  	// Longitude in degrees
+  	this.lng = +lng;
+
+  	// @property alt: Number
+  	// Altitude in meters (optional)
+  	if (alt !== undefined) {
+  		this.alt = +alt;
+  	}
+  }
+
+  LatLng.prototype = {
+  	// @method equals(otherLatLng: LatLng, maxMargin?: Number): Boolean
+  	// Returns `true` if the given `LatLng` point is at the same position (within a small margin of error). The margin of error can be overridden by setting `maxMargin` to a small number.
+  	equals: function (obj, maxMargin) {
+  		if (!obj) { return false; }
+
+  		obj = toLatLng(obj);
+
+  		var margin = Math.max(
+  		        Math.abs(this.lat - obj.lat),
+  		        Math.abs(this.lng - obj.lng));
+
+  		return margin <= (maxMargin === undefined ? 1.0E-9 : maxMargin);
+  	},
+
+  	// @method toString(): String
+  	// Returns a string representation of the point (for debugging purposes).
+  	toString: function (precision) {
+  		return 'LatLng(' +
+  		        formatNum(this.lat, precision) + ', ' +
+  		        formatNum(this.lng, precision) + ')';
+  	},
+
+  	// @method distanceTo(otherLatLng: LatLng): Number
+  	// Returns the distance (in meters) to the given `LatLng` calculated using the [Spherical Law of Cosines](https://en.wikipedia.org/wiki/Spherical_law_of_cosines).
+  	distanceTo: function (other) {
+  		return Earth.distance(this, toLatLng(other));
+  	},
+
+  	// @method wrap(): LatLng
+  	// Returns a new `LatLng` object with the longitude wrapped so it's always between -180 and +180 degrees.
+  	wrap: function () {
+  		return Earth.wrapLatLng(this);
+  	},
+
+  	// @method toBounds(sizeInMeters: Number): LatLngBounds
+  	// Returns a new `LatLngBounds` object in which each boundary is `sizeInMeters/2` meters apart from the `LatLng`.
+  	toBounds: function (sizeInMeters) {
+  		var latAccuracy = 180 * sizeInMeters / 40075017,
+  		    lngAccuracy = latAccuracy / Math.cos((Math.PI / 180) * this.lat);
+
+  		return toLatLngBounds(
+  		        [this.lat - latAccuracy, this.lng - lngAccuracy],
+  		        [this.lat + latAccuracy, this.lng + lngAccuracy]);
+  	},
+
+  	clone: function () {
+  		return new LatLng(this.lat, this.lng, this.alt);
+  	}
+  };
+
+
+
+  // @factory L.latLng(latitude: Number, longitude: Number, altitude?: Number): LatLng
+  // Creates an object representing a geographical point with the given latitude and longitude (and optionally altitude).
+
+  // @alternative
+  // @factory L.latLng(coords: Array): LatLng
+  // Expects an array of the form `[Number, Number]` or `[Number, Number, Number]` instead.
+
+  // @alternative
+  // @factory L.latLng(coords: Object): LatLng
+  // Expects an plain object of the form `{lat: Number, lng: Number}` or `{lat: Number, lng: Number, alt: Number}` instead.
+
+  function toLatLng(a, b, c) {
+  	if (a instanceof LatLng) {
+  		return a;
+  	}
+  	if (isArray(a) && typeof a[0] !== 'object') {
+  		if (a.length === 3) {
+  			return new LatLng(a[0], a[1], a[2]);
+  		}
+  		if (a.length === 2) {
+  			return new LatLng(a[0], a[1]);
+  		}
+  		return null;
+  	}
+  	if (a === undefined || a === null) {
+  		return a;
+  	}
+  	if (typeof a === 'object' && 'lat' in a) {
+  		return new LatLng(a.lat, 'lng' in a ? a.lng : a.lon, a.alt);
+  	}
+  	if (b === undefined) {
+  		return null;
+  	}
+  	return new LatLng(a, b, c);
+  }
+
+  /*
+   * @namespace CRS
+   * @crs L.CRS.Base
+   * Object that defines coordinate reference systems for projecting
+   * geographical points into pixel (screen) coordinates and back (and to
+   * coordinates in other units for [WMS](https://en.wikipedia.org/wiki/Web_Map_Service) services). See
+   * [spatial reference system](https://en.wikipedia.org/wiki/Spatial_reference_system).
+   *
+   * Leaflet defines the most usual CRSs by default. If you want to use a
+   * CRS not defined by default, take a look at the
+   * [Proj4Leaflet](https://github.com/kartena/Proj4Leaflet) plugin.
+   *
+   * Note that the CRS instances do not inherit from Leaflet's `Class` object,
+   * and can't be instantiated. Also, new classes can't inherit from them,
+   * and methods can't be added to them with the `include` function.
+   */
+
+  var CRS = {
+  	// @method latLngToPoint(latlng: LatLng, zoom: Number): Point
+  	// Projects geographical coordinates into pixel coordinates for a given zoom.
+  	latLngToPoint: function (latlng, zoom) {
+  		var projectedPoint = this.projection.project(latlng),
+  		    scale = this.scale(zoom);
+
+  		return this.transformation._transform(projectedPoint, scale);
+  	},
+
+  	// @method pointToLatLng(point: Point, zoom: Number): LatLng
+  	// The inverse of `latLngToPoint`. Projects pixel coordinates on a given
+  	// zoom into geographical coordinates.
+  	pointToLatLng: function (point, zoom) {
+  		var scale = this.scale(zoom),
+  		    untransformedPoint = this.transformation.untransform(point, scale);
+
+  		return this.projection.unproject(untransformedPoint);
+  	},
+
+  	// @method project(latlng: LatLng): Point
+  	// Projects geographical coordinates into coordinates in units accepted for
+  	// this CRS (e.g. meters for EPSG:3857, for passing it to WMS services).
+  	project: function (latlng) {
+  		return this.projection.project(latlng);
+  	},
+
+  	// @method unproject(point: Point): LatLng
+  	// Given a projected coordinate returns the corresponding LatLng.
+  	// The inverse of `project`.
+  	unproject: function (point) {
+  		return this.projection.unproject(point);
+  	},
+
+  	// @method scale(zoom: Number): Number
+  	// Returns the scale used when transforming projected coordinates into
+  	// pixel coordinates for a particular zoom. For example, it returns
+  	// `256 * 2^zoom` for Mercator-based CRS.
+  	scale: function (zoom) {
+  		return 256 * Math.pow(2, zoom);
+  	},
+
+  	// @method zoom(scale: Number): Number
+  	// Inverse of `scale()`, returns the zoom level corresponding to a scale
+  	// factor of `scale`.
+  	zoom: function (scale) {
+  		return Math.log(scale / 256) / Math.LN2;
+  	},
+
+  	// @method getProjectedBounds(zoom: Number): Bounds
+  	// Returns the projection's bounds scaled and transformed for the provided `zoom`.
+  	getProjectedBounds: function (zoom) {
+  		if (this.infinite) { return null; }
+
+  		var b = this.projection.bounds,
+  		    s = this.scale(zoom),
+  		    min = this.transformation.transform(b.min, s),
+  		    max = this.transformation.transform(b.max, s);
+
+  		return new Bounds(min, max);
+  	},
+
+  	// @method distance(latlng1: LatLng, latlng2: LatLng): Number
+  	// Returns the distance between two geographical coordinates.
+
+  	// @property code: String
+  	// Standard code name of the CRS passed into WMS services (e.g. `'EPSG:3857'`)
+  	//
+  	// @property wrapLng: Number[]
+  	// An array of two numbers defining whether the longitude (horizontal) coordinate
+  	// axis wraps around a given range and how. Defaults to `[-180, 180]` in most
+  	// geographical CRSs. If `undefined`, the longitude axis does not wrap around.
+  	//
+  	// @property wrapLat: Number[]
+  	// Like `wrapLng`, but for the latitude (vertical) axis.
+
+  	// wrapLng: [min, max],
+  	// wrapLat: [min, max],
+
+  	// @property infinite: Boolean
+  	// If true, the coordinate space will be unbounded (infinite in both axes)
+  	infinite: false,
+
+  	// @method wrapLatLng(latlng: LatLng): LatLng
+  	// Returns a `LatLng` where lat and lng has been wrapped according to the
+  	// CRS's `wrapLat` and `wrapLng` properties, if they are outside the CRS's bounds.
+  	wrapLatLng: function (latlng) {
+  		var lng = this.wrapLng ? wrapNum(latlng.lng, this.wrapLng, true) : latlng.lng,
+  		    lat = this.wrapLat ? wrapNum(latlng.lat, this.wrapLat, true) : latlng.lat,
+  		    alt = latlng.alt;
+
+  		return new LatLng(lat, lng, alt);
+  	},
+
+  	// @method wrapLatLngBounds(bounds: LatLngBounds): LatLngBounds
+  	// Returns a `LatLngBounds` with the same size as the given one, ensuring
+  	// that its center is within the CRS's bounds.
+  	// Only accepts actual `L.LatLngBounds` instances, not arrays.
+  	wrapLatLngBounds: function (bounds) {
+  		var center = bounds.getCenter(),
+  		    newCenter = this.wrapLatLng(center),
+  		    latShift = center.lat - newCenter.lat,
+  		    lngShift = center.lng - newCenter.lng;
+
+  		if (latShift === 0 && lngShift === 0) {
+  			return bounds;
+  		}
+
+  		var sw = bounds.getSouthWest(),
+  		    ne = bounds.getNorthEast(),
+  		    newSw = new LatLng(sw.lat - latShift, sw.lng - lngShift),
+  		    newNe = new LatLng(ne.lat - latShift, ne.lng - lngShift);
+
+  		return new LatLngBounds(newSw, newNe);
+  	}
+  };
+
+  /*
+   * @namespace CRS
+   * @crs L.CRS.Earth
+   *
+   * Serves as the base for CRS that are global such that they cover the earth.
+   * Can only be used as the base for other CRS and cannot be used directly,
+   * since it does not have a `code`, `projection` or `transformation`. `distance()` returns
+   * meters.
+   */
+
+  var Earth = extend({}, CRS, {
+  	wrapLng: [-180, 180],
+
+  	// Mean Earth Radius, as recommended for use by
+  	// the International Union of Geodesy and Geophysics,
+  	// see https://rosettacode.org/wiki/Haversine_formula
+  	R: 6371000,
+
+  	// distance between two geographical points using spherical law of cosines approximation
+  	distance: function (latlng1, latlng2) {
+  		var rad = Math.PI / 180,
+  		    lat1 = latlng1.lat * rad,
+  		    lat2 = latlng2.lat * rad,
+  		    sinDLat = Math.sin((latlng2.lat - latlng1.lat) * rad / 2),
+  		    sinDLon = Math.sin((latlng2.lng - latlng1.lng) * rad / 2),
+  		    a = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon,
+  		    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  		return this.R * c;
+  	}
+  });
+
+  /*
+   * @namespace Projection
+   * @projection L.Projection.SphericalMercator
+   *
+   * Spherical Mercator projection — the most common projection for online maps,
+   * used by almost all free and commercial tile providers. Assumes that Earth is
+   * a sphere. Used by the `EPSG:3857` CRS.
+   */
+
+  var earthRadius = 6378137;
+
+  var SphericalMercator = {
+
+  	R: earthRadius,
+  	MAX_LATITUDE: 85.0511287798,
+
+  	project: function (latlng) {
+  		var d = Math.PI / 180,
+  		    max = this.MAX_LATITUDE,
+  		    lat = Math.max(Math.min(max, latlng.lat), -max),
+  		    sin = Math.sin(lat * d);
+
+  		return new Point(
+  			this.R * latlng.lng * d,
+  			this.R * Math.log((1 + sin) / (1 - sin)) / 2);
+  	},
+
+  	unproject: function (point) {
+  		var d = 180 / Math.PI;
+
+  		return new LatLng(
+  			(2 * Math.atan(Math.exp(point.y / this.R)) - (Math.PI / 2)) * d,
+  			point.x * d / this.R);
+  	},
+
+  	bounds: (function () {
+  		var d = earthRadius * Math.PI;
+  		return new Bounds([-d, -d], [d, d]);
+  	})()
+  };
+
+  /*
+   * @class Transformation
+   * @aka L.Transformation
+   *
+   * Represents an affine transformation: a set of coefficients `a`, `b`, `c`, `d`
+   * for transforming a point of a form `(x, y)` into `(a*x + b, c*y + d)` and doing
+   * the reverse. Used by Leaflet in its projections code.
+   *
+   * @example
+   *
+   * ```js
+   * var transformation = L.transformation(2, 5, -1, 10),
+   * 	p = L.point(1, 2),
+   * 	p2 = transformation.transform(p), //  L.point(7, 8)
+   * 	p3 = transformation.untransform(p2); //  L.point(1, 2)
+   * ```
+   */
+
+
+  // factory new L.Transformation(a: Number, b: Number, c: Number, d: Number)
+  // Creates a `Transformation` object with the given coefficients.
+  function Transformation(a, b, c, d) {
+  	if (isArray(a)) {
+  		// use array properties
+  		this._a = a[0];
+  		this._b = a[1];
+  		this._c = a[2];
+  		this._d = a[3];
+  		return;
+  	}
+  	this._a = a;
+  	this._b = b;
+  	this._c = c;
+  	this._d = d;
+  }
+
+  Transformation.prototype = {
+  	// @method transform(point: Point, scale?: Number): Point
+  	// Returns a transformed point, optionally multiplied by the given scale.
+  	// Only accepts actual `L.Point` instances, not arrays.
+  	transform: function (point, scale) { // (Point, Number) -> Point
+  		return this._transform(point.clone(), scale);
+  	},
+
+  	// destructive transform (faster)
+  	_transform: function (point, scale) {
+  		scale = scale || 1;
+  		point.x = scale * (this._a * point.x + this._b);
+  		point.y = scale * (this._c * point.y + this._d);
+  		return point;
+  	},
+
+  	// @method untransform(point: Point, scale?: Number): Point
+  	// Returns the reverse transformation of the given point, optionally divided
+  	// by the given scale. Only accepts actual `L.Point` instances, not arrays.
+  	untransform: function (point, scale) {
+  		scale = scale || 1;
+  		return new Point(
+  		        (point.x / scale - this._b) / this._a,
+  		        (point.y / scale - this._d) / this._c);
+  	}
+  };
+
+  // factory L.transformation(a: Number, b: Number, c: Number, d: Number)
+
+  // @factory L.transformation(a: Number, b: Number, c: Number, d: Number)
+  // Instantiates a Transformation object with the given coefficients.
+
+  // @alternative
+  // @factory L.transformation(coefficients: Array): Transformation
+  // Expects an coefficients array of the form
+  // `[a: Number, b: Number, c: Number, d: Number]`.
+
+  function toTransformation(a, b, c, d) {
+  	return new Transformation(a, b, c, d);
+  }
+
+  /*
+   * @namespace CRS
+   * @crs L.CRS.EPSG3857
+   *
+   * The most common CRS for online maps, used by almost all free and commercial
+   * tile providers. Uses Spherical Mercator projection. Set in by default in
+   * Map's `crs` option.
+   */
+
+  var EPSG3857 = extend({}, Earth, {
+  	code: 'EPSG:3857',
+  	projection: SphericalMercator,
+
+  	transformation: (function () {
+  		var scale = 0.5 / (Math.PI * SphericalMercator.R);
+  		return toTransformation(scale, 0.5, -scale, 0.5);
+  	}())
+  });
+
+  var EPSG900913 = extend({}, EPSG3857, {
+  	code: 'EPSG:900913'
+  });
+
+  // @namespace SVG; @section
+  // There are several static functions which can be called without instantiating L.SVG:
+
+  // @function create(name: String): SVGElement
+  // Returns a instance of [SVGElement](https://developer.mozilla.org/docs/Web/API/SVGElement),
+  // corresponding to the class name passed. For example, using 'line' will return
+  // an instance of [SVGLineElement](https://developer.mozilla.org/docs/Web/API/SVGLineElement).
+  function svgCreate(name) {
+  	return document.createElementNS('http://www.w3.org/2000/svg', name);
+  }
+
+  // @function pointsToPath(rings: Point[], closed: Boolean): String
+  // Generates a SVG path string for multiple rings, with each ring turning
+  // into "M..L..L.." instructions
+  function pointsToPath(rings, closed) {
+  	var str = '',
+  	i, j, len, len2, points, p;
+
+  	for (i = 0, len = rings.length; i < len; i++) {
+  		points = rings[i];
+
+  		for (j = 0, len2 = points.length; j < len2; j++) {
+  			p = points[j];
+  			str += (j ? 'L' : 'M') + p.x + ' ' + p.y;
+  		}
+
+  		// closes the ring for polygons; "x" is VML syntax
+  		str += closed ? (Browser.svg ? 'z' : 'x') : '';
+  	}
+
+  	// SVG complains about empty path strings
+  	return str || 'M0 0';
+  }
+
+  /*
+   * @namespace Browser
+   * @aka L.Browser
+   *
+   * A namespace with static properties for browser/feature detection used by Leaflet internally.
+   *
+   * @example
+   *
+   * ```js
+   * if (L.Browser.ielt9) {
+   *   alert('Upgrade your browser, dude!');
+   * }
+   * ```
+   */
+
+  var style = document.documentElement.style;
+
+  // @property ie: Boolean; `true` for all Internet Explorer versions (not Edge).
+  var ie = 'ActiveXObject' in window;
+
+  // @property ielt9: Boolean; `true` for Internet Explorer versions less than 9.
+  var ielt9 = ie && !document.addEventListener;
+
+  // @property edge: Boolean; `true` for the Edge web browser.
+  var edge = 'msLaunchUri' in navigator && !('documentMode' in document);
+
+  // @property webkit: Boolean;
+  // `true` for webkit-based browsers like Chrome and Safari (including mobile versions).
+  var webkit = userAgentContains('webkit');
+
+  // @property android: Boolean
+  // **Deprecated.** `true` for any browser running on an Android platform.
+  var android = userAgentContains('android');
+
+  // @property android23: Boolean; **Deprecated.** `true` for browsers running on Android 2 or Android 3.
+  var android23 = userAgentContains('android 2') || userAgentContains('android 3');
+
+  /* See https://stackoverflow.com/a/17961266 for details on detecting stock Android */
+  var webkitVer = parseInt(/WebKit\/([0-9]+)|$/.exec(navigator.userAgent)[1], 10); // also matches AppleWebKit
+  // @property androidStock: Boolean; **Deprecated.** `true` for the Android stock browser (i.e. not Chrome)
+  var androidStock = android && userAgentContains('Google') && webkitVer < 537 && !('AudioNode' in window);
+
+  // @property opera: Boolean; `true` for the Opera browser
+  var opera = !!window.opera;
+
+  // @property chrome: Boolean; `true` for the Chrome browser.
+  var chrome = !edge && userAgentContains('chrome');
+
+  // @property gecko: Boolean; `true` for gecko-based browsers like Firefox.
+  var gecko = userAgentContains('gecko') && !webkit && !opera && !ie;
+
+  // @property safari: Boolean; `true` for the Safari browser.
+  var safari = !chrome && userAgentContains('safari');
+
+  var phantom = userAgentContains('phantom');
+
+  // @property opera12: Boolean
+  // `true` for the Opera browser supporting CSS transforms (version 12 or later).
+  var opera12 = 'OTransition' in style;
+
+  // @property win: Boolean; `true` when the browser is running in a Windows platform
+  var win = navigator.platform.indexOf('Win') === 0;
+
+  // @property ie3d: Boolean; `true` for all Internet Explorer versions supporting CSS transforms.
+  var ie3d = ie && ('transition' in style);
+
+  // @property webkit3d: Boolean; `true` for webkit-based browsers supporting CSS transforms.
+  var webkit3d = ('WebKitCSSMatrix' in window) && ('m11' in new window.WebKitCSSMatrix()) && !android23;
+
+  // @property gecko3d: Boolean; `true` for gecko-based browsers supporting CSS transforms.
+  var gecko3d = 'MozPerspective' in style;
+
+  // @property any3d: Boolean
+  // `true` for all browsers supporting CSS transforms.
+  var any3d = !window.L_DISABLE_3D && (ie3d || webkit3d || gecko3d) && !opera12 && !phantom;
+
+  // @property mobile: Boolean; `true` for all browsers running in a mobile device.
+  var mobile = typeof orientation !== 'undefined' || userAgentContains('mobile');
+
+  // @property mobileWebkit: Boolean; `true` for all webkit-based browsers in a mobile device.
+  var mobileWebkit = mobile && webkit;
+
+  // @property mobileWebkit3d: Boolean
+  // `true` for all webkit-based browsers in a mobile device supporting CSS transforms.
+  var mobileWebkit3d = mobile && webkit3d;
+
+  // @property msPointer: Boolean
+  // `true` for browsers implementing the Microsoft touch events model (notably IE10).
+  var msPointer = !window.PointerEvent && window.MSPointerEvent;
+
+  // @property pointer: Boolean
+  // `true` for all browsers supporting [pointer events](https://msdn.microsoft.com/en-us/library/dn433244%28v=vs.85%29.aspx).
+  var pointer = !!(window.PointerEvent || msPointer);
+
+  // @property touchNative: Boolean
+  // `true` for all browsers supporting [touch events](https://developer.mozilla.org/docs/Web/API/Touch_events).
+  // **This does not necessarily mean** that the browser is running in a computer with
+  // a touchscreen, it only means that the browser is capable of understanding
+  // touch events.
+  var touchNative = 'ontouchstart' in window || !!window.TouchEvent;
+
+  // @property touch: Boolean
+  // `true` for all browsers supporting either [touch](#browser-touch) or [pointer](#browser-pointer) events.
+  // Note: pointer events will be preferred (if available), and processed for all `touch*` listeners.
+  var touch = !window.L_NO_TOUCH && (touchNative || pointer);
+
+  // @property mobileOpera: Boolean; `true` for the Opera browser in a mobile device.
+  var mobileOpera = mobile && opera;
+
+  // @property mobileGecko: Boolean
+  // `true` for gecko-based browsers running in a mobile device.
+  var mobileGecko = mobile && gecko;
+
+  // @property retina: Boolean
+  // `true` for browsers on a high-resolution "retina" screen or on any screen when browser's display zoom is more than 100%.
+  var retina = (window.devicePixelRatio || (window.screen.deviceXDPI / window.screen.logicalXDPI)) > 1;
+
+  // @property passiveEvents: Boolean
+  // `true` for browsers that support passive events.
+  var passiveEvents = (function () {
+  	var supportsPassiveOption = false;
+  	try {
+  		var opts = Object.defineProperty({}, 'passive', {
+  			get: function () { // eslint-disable-line getter-return
+  				supportsPassiveOption = true;
+  			}
+  		});
+  		window.addEventListener('testPassiveEventSupport', falseFn, opts);
+  		window.removeEventListener('testPassiveEventSupport', falseFn, opts);
+  	} catch (e) {
+  		// Errors can safely be ignored since this is only a browser support test.
+  	}
+  	return supportsPassiveOption;
+  }());
+
+  // @property canvas: Boolean
+  // `true` when the browser supports [`<canvas>`](https://developer.mozilla.org/docs/Web/API/Canvas_API).
+  var canvas$1 = (function () {
+  	return !!document.createElement('canvas').getContext;
+  }());
+
+  // @property svg: Boolean
+  // `true` when the browser supports [SVG](https://developer.mozilla.org/docs/Web/SVG).
+  var svg$1 = !!(document.createElementNS && svgCreate('svg').createSVGRect);
+
+  var inlineSvg = !!svg$1 && (function () {
+  	var div = document.createElement('div');
+  	div.innerHTML = '<svg/>';
+  	return (div.firstChild && div.firstChild.namespaceURI) === 'http://www.w3.org/2000/svg';
+  })();
+
+  // @property vml: Boolean
+  // `true` if the browser supports [VML](https://en.wikipedia.org/wiki/Vector_Markup_Language).
+  var vml = !svg$1 && (function () {
+  	try {
+  		var div = document.createElement('div');
+  		div.innerHTML = '<v:shape adj="1"/>';
+
+  		var shape = div.firstChild;
+  		shape.style.behavior = 'url(#default#VML)';
+
+  		return shape && (typeof shape.adj === 'object');
+
+  	} catch (e) {
+  		return false;
+  	}
+  }());
+
+
+  // @property mac: Boolean; `true` when the browser is running in a Mac platform
+  var mac = navigator.platform.indexOf('Mac') === 0;
+
+  // @property mac: Boolean; `true` when the browser is running in a Linux platform
+  var linux = navigator.platform.indexOf('Linux') === 0;
+
+  function userAgentContains(str) {
+  	return navigator.userAgent.toLowerCase().indexOf(str) >= 0;
+  }
+
+
+  var Browser = {
+  	ie: ie,
+  	ielt9: ielt9,
+  	edge: edge,
+  	webkit: webkit,
+  	android: android,
+  	android23: android23,
+  	androidStock: androidStock,
+  	opera: opera,
+  	chrome: chrome,
+  	gecko: gecko,
+  	safari: safari,
+  	phantom: phantom,
+  	opera12: opera12,
+  	win: win,
+  	ie3d: ie3d,
+  	webkit3d: webkit3d,
+  	gecko3d: gecko3d,
+  	any3d: any3d,
+  	mobile: mobile,
+  	mobileWebkit: mobileWebkit,
+  	mobileWebkit3d: mobileWebkit3d,
+  	msPointer: msPointer,
+  	pointer: pointer,
+  	touch: touch,
+  	touchNative: touchNative,
+  	mobileOpera: mobileOpera,
+  	mobileGecko: mobileGecko,
+  	retina: retina,
+  	passiveEvents: passiveEvents,
+  	canvas: canvas$1,
+  	svg: svg$1,
+  	vml: vml,
+  	inlineSvg: inlineSvg,
+  	mac: mac,
+  	linux: linux
+  };
+
+  /*
+   * Extends L.DomEvent to provide touch support for Internet Explorer and Windows-based devices.
+   */
+
+  var POINTER_DOWN =   Browser.msPointer ? 'MSPointerDown'   : 'pointerdown';
+  var POINTER_MOVE =   Browser.msPointer ? 'MSPointerMove'   : 'pointermove';
+  var POINTER_UP =     Browser.msPointer ? 'MSPointerUp'     : 'pointerup';
+  var POINTER_CANCEL = Browser.msPointer ? 'MSPointerCancel' : 'pointercancel';
+  var pEvent = {
+  	touchstart  : POINTER_DOWN,
+  	touchmove   : POINTER_MOVE,
+  	touchend    : POINTER_UP,
+  	touchcancel : POINTER_CANCEL
+  };
+  var handle = {
+  	touchstart  : _onPointerStart,
+  	touchmove   : _handlePointer,
+  	touchend    : _handlePointer,
+  	touchcancel : _handlePointer
+  };
+  var _pointers = {};
+  var _pointerDocListener = false;
+
+  // Provides a touch events wrapper for (ms)pointer events.
+  // ref https://www.w3.org/TR/pointerevents/ https://www.w3.org/Bugs/Public/show_bug.cgi?id=22890
+
+  function addPointerListener(obj, type, handler) {
+  	if (type === 'touchstart') {
+  		_addPointerDocListener();
+  	}
+  	if (!handle[type]) {
+  		console.warn('wrong event specified:', type);
+  		return falseFn;
+  	}
+  	handler = handle[type].bind(this, handler);
+  	obj.addEventListener(pEvent[type], handler, false);
+  	return handler;
+  }
+
+  function removePointerListener(obj, type, handler) {
+  	if (!pEvent[type]) {
+  		console.warn('wrong event specified:', type);
+  		return;
+  	}
+  	obj.removeEventListener(pEvent[type], handler, false);
+  }
+
+  function _globalPointerDown(e) {
+  	_pointers[e.pointerId] = e;
+  }
+
+  function _globalPointerMove(e) {
+  	if (_pointers[e.pointerId]) {
+  		_pointers[e.pointerId] = e;
+  	}
+  }
+
+  function _globalPointerUp(e) {
+  	delete _pointers[e.pointerId];
+  }
+
+  function _addPointerDocListener() {
+  	// need to keep track of what pointers and how many are active to provide e.touches emulation
+  	if (!_pointerDocListener) {
+  		// we listen document as any drags that end by moving the touch off the screen get fired there
+  		document.addEventListener(POINTER_DOWN, _globalPointerDown, true);
+  		document.addEventListener(POINTER_MOVE, _globalPointerMove, true);
+  		document.addEventListener(POINTER_UP, _globalPointerUp, true);
+  		document.addEventListener(POINTER_CANCEL, _globalPointerUp, true);
+
+  		_pointerDocListener = true;
+  	}
+  }
+
+  function _handlePointer(handler, e) {
+  	if (e.pointerType === (e.MSPOINTER_TYPE_MOUSE || 'mouse')) { return; }
+
+  	e.touches = [];
+  	for (var i in _pointers) {
+  		e.touches.push(_pointers[i]);
+  	}
+  	e.changedTouches = [e];
+
+  	handler(e);
+  }
+
+  function _onPointerStart(handler, e) {
+  	// IE10 specific: MsTouch needs preventDefault. See #2000
+  	if (e.MSPOINTER_TYPE_TOUCH && e.pointerType === e.MSPOINTER_TYPE_TOUCH) {
+  		preventDefault(e);
+  	}
+  	_handlePointer(handler, e);
+  }
+
+  /*
+   * Extends the event handling code with double tap support for mobile browsers.
+   *
+   * Note: currently most browsers fire native dblclick, with only a few exceptions
+   * (see https://github.com/Leaflet/Leaflet/issues/7012#issuecomment-595087386)
+   */
+
+  function makeDblclick(event) {
+  	// in modern browsers `type` cannot be just overridden:
+  	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Getter_only
+  	var newEvent = {},
+  	    prop, i;
+  	for (i in event) {
+  		prop = event[i];
+  		newEvent[i] = prop && prop.bind ? prop.bind(event) : prop;
+  	}
+  	event = newEvent;
+  	newEvent.type = 'dblclick';
+  	newEvent.detail = 2;
+  	newEvent.isTrusted = false;
+  	newEvent._simulated = true; // for debug purposes
+  	return newEvent;
+  }
+
+  var delay = 200;
+  function addDoubleTapListener(obj, handler) {
+  	// Most browsers handle double tap natively
+  	obj.addEventListener('dblclick', handler);
+
+  	// On some platforms the browser doesn't fire native dblclicks for touch events.
+  	// It seems that in all such cases `detail` property of `click` event is always `1`.
+  	// So here we rely on that fact to avoid excessive 'dblclick' simulation when not needed.
+  	var last = 0,
+  	    detail;
+  	function simDblclick(e) {
+  		if (e.detail !== 1) {
+  			detail = e.detail; // keep in sync to avoid false dblclick in some cases
+  			return;
+  		}
+
+  		if (e.pointerType === 'mouse' ||
+  			(e.sourceCapabilities && !e.sourceCapabilities.firesTouchEvents)) {
+
+  			return;
+  		}
+
+  		// When clicking on an <input>, the browser generates a click on its
+  		// <label> (and vice versa) triggering two clicks in quick succession.
+  		// This ignores clicks on elements which are a label with a 'for'
+  		// attribute (or children of such a label), but not children of
+  		// a <input>.
+  		var path = getPropagationPath(e);
+  		if (path.some(function (el) {
+  			return el instanceof HTMLLabelElement && el.attributes.for;
+  		}) &&
+  			!path.some(function (el) {
+  				return (
+  					el instanceof HTMLInputElement ||
+  					el instanceof HTMLSelectElement
+  				);
+  			})
+  		) {
+  			return;
+  		}
+
+  		var now = Date.now();
+  		if (now - last <= delay) {
+  			detail++;
+  			if (detail === 2) {
+  				handler(makeDblclick(e));
+  			}
+  		} else {
+  			detail = 1;
+  		}
+  		last = now;
+  	}
+
+  	obj.addEventListener('click', simDblclick);
+
+  	return {
+  		dblclick: handler,
+  		simDblclick: simDblclick
+  	};
+  }
+
+  function removeDoubleTapListener(obj, handlers) {
+  	obj.removeEventListener('dblclick', handlers.dblclick);
+  	obj.removeEventListener('click', handlers.simDblclick);
+  }
+
+  /*
+   * @namespace DomUtil
+   *
+   * Utility functions to work with the [DOM](https://developer.mozilla.org/docs/Web/API/Document_Object_Model)
+   * tree, used by Leaflet internally.
+   *
+   * Most functions expecting or returning a `HTMLElement` also work for
+   * SVG elements. The only difference is that classes refer to CSS classes
+   * in HTML and SVG classes in SVG.
+   */
+
+
+  // @property TRANSFORM: String
+  // Vendor-prefixed transform style name (e.g. `'webkitTransform'` for WebKit).
+  var TRANSFORM = testProp(
+  	['transform', 'webkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
+
+  // webkitTransition comes first because some browser versions that drop vendor prefix don't do
+  // the same for the transitionend event, in particular the Android 4.1 stock browser
+
+  // @property TRANSITION: String
+  // Vendor-prefixed transition style name.
+  var TRANSITION = testProp(
+  	['webkitTransition', 'transition', 'OTransition', 'MozTransition', 'msTransition']);
+
+  // @property TRANSITION_END: String
+  // Vendor-prefixed transitionend event name.
+  var TRANSITION_END =
+  	TRANSITION === 'webkitTransition' || TRANSITION === 'OTransition' ? TRANSITION + 'End' : 'transitionend';
+
+
+  // @function get(id: String|HTMLElement): HTMLElement
+  // Returns an element given its DOM id, or returns the element itself
+  // if it was passed directly.
+  function get(id) {
+  	return typeof id === 'string' ? document.getElementById(id) : id;
+  }
+
+  // @function getStyle(el: HTMLElement, styleAttrib: String): String
+  // Returns the value for a certain style attribute on an element,
+  // including computed values or values set through CSS.
+  function getStyle(el, style) {
+  	var value = el.style[style] || (el.currentStyle && el.currentStyle[style]);
+
+  	if ((!value || value === 'auto') && document.defaultView) {
+  		var css = document.defaultView.getComputedStyle(el, null);
+  		value = css ? css[style] : null;
+  	}
+  	return value === 'auto' ? null : value;
+  }
+
+  // @function create(tagName: String, className?: String, container?: HTMLElement): HTMLElement
+  // Creates an HTML element with `tagName`, sets its class to `className`, and optionally appends it to `container` element.
+  function create$1(tagName, className, container) {
+  	var el = document.createElement(tagName);
+  	el.className = className || '';
+
+  	if (container) {
+  		container.appendChild(el);
+  	}
+  	return el;
+  }
+
+  // @function remove(el: HTMLElement)
+  // Removes `el` from its parent element
+  function remove(el) {
+  	var parent = el.parentNode;
+  	if (parent) {
+  		parent.removeChild(el);
+  	}
+  }
+
+  // @function empty(el: HTMLElement)
+  // Removes all of `el`'s children elements from `el`
+  function empty(el) {
+  	while (el.firstChild) {
+  		el.removeChild(el.firstChild);
+  	}
+  }
+
+  // @function toFront(el: HTMLElement)
+  // Makes `el` the last child of its parent, so it renders in front of the other children.
+  function toFront(el) {
+  	var parent = el.parentNode;
+  	if (parent && parent.lastChild !== el) {
+  		parent.appendChild(el);
+  	}
+  }
+
+  // @function toBack(el: HTMLElement)
+  // Makes `el` the first child of its parent, so it renders behind the other children.
+  function toBack(el) {
+  	var parent = el.parentNode;
+  	if (parent && parent.firstChild !== el) {
+  		parent.insertBefore(el, parent.firstChild);
+  	}
+  }
+
+  // @function hasClass(el: HTMLElement, name: String): Boolean
+  // Returns `true` if the element's class attribute contains `name`.
+  function hasClass(el, name) {
+  	if (el.classList !== undefined) {
+  		return el.classList.contains(name);
+  	}
+  	var className = getClass(el);
+  	return className.length > 0 && new RegExp('(^|\\s)' + name + '(\\s|$)').test(className);
+  }
+
+  // @function addClass(el: HTMLElement, name: String)
+  // Adds `name` to the element's class attribute.
+  function addClass(el, name) {
+  	if (el.classList !== undefined) {
+  		var classes = splitWords(name);
+  		for (var i = 0, len = classes.length; i < len; i++) {
+  			el.classList.add(classes[i]);
+  		}
+  	} else if (!hasClass(el, name)) {
+  		var className = getClass(el);
+  		setClass(el, (className ? className + ' ' : '') + name);
+  	}
+  }
+
+  // @function removeClass(el: HTMLElement, name: String)
+  // Removes `name` from the element's class attribute.
+  function removeClass(el, name) {
+  	if (el.classList !== undefined) {
+  		el.classList.remove(name);
+  	} else {
+  		setClass(el, trim((' ' + getClass(el) + ' ').replace(' ' + name + ' ', ' ')));
+  	}
+  }
+
+  // @function setClass(el: HTMLElement, name: String)
+  // Sets the element's class.
+  function setClass(el, name) {
+  	if (el.className.baseVal === undefined) {
+  		el.className = name;
+  	} else {
+  		// in case of SVG element
+  		el.className.baseVal = name;
+  	}
+  }
+
+  // @function getClass(el: HTMLElement): String
+  // Returns the element's class.
+  function getClass(el) {
+  	// Check if the element is an SVGElementInstance and use the correspondingElement instead
+  	// (Required for linked SVG elements in IE11.)
+  	if (el.correspondingElement) {
+  		el = el.correspondingElement;
+  	}
+  	return el.className.baseVal === undefined ? el.className : el.className.baseVal;
+  }
+
+  // @function setOpacity(el: HTMLElement, opacity: Number)
+  // Set the opacity of an element (including old IE support).
+  // `opacity` must be a number from `0` to `1`.
+  function setOpacity(el, value) {
+  	if ('opacity' in el.style) {
+  		el.style.opacity = value;
+  	} else if ('filter' in el.style) {
+  		_setOpacityIE(el, value);
+  	}
+  }
+
+  function _setOpacityIE(el, value) {
+  	var filter = false,
+  	    filterName = 'DXImageTransform.Microsoft.Alpha';
+
+  	// filters collection throws an error if we try to retrieve a filter that doesn't exist
+  	try {
+  		filter = el.filters.item(filterName);
+  	} catch (e) {
+  		// don't set opacity to 1 if we haven't already set an opacity,
+  		// it isn't needed and breaks transparent pngs.
+  		if (value === 1) { return; }
+  	}
+
+  	value = Math.round(value * 100);
+
+  	if (filter) {
+  		filter.Enabled = (value !== 100);
+  		filter.Opacity = value;
+  	} else {
+  		el.style.filter += ' progid:' + filterName + '(opacity=' + value + ')';
+  	}
+  }
+
+  // @function testProp(props: String[]): String|false
+  // Goes through the array of style names and returns the first name
+  // that is a valid style name for an element. If no such name is found,
+  // it returns false. Useful for vendor-prefixed styles like `transform`.
+  function testProp(props) {
+  	var style = document.documentElement.style;
+
+  	for (var i = 0; i < props.length; i++) {
+  		if (props[i] in style) {
+  			return props[i];
+  		}
+  	}
+  	return false;
+  }
+
+  // @function setTransform(el: HTMLElement, offset: Point, scale?: Number)
+  // Resets the 3D CSS transform of `el` so it is translated by `offset` pixels
+  // and optionally scaled by `scale`. Does not have an effect if the
+  // browser doesn't support 3D CSS transforms.
+  function setTransform(el, offset, scale) {
+  	var pos = offset || new Point(0, 0);
+
+  	el.style[TRANSFORM] =
+  		(Browser.ie3d ?
+  			'translate(' + pos.x + 'px,' + pos.y + 'px)' :
+  			'translate3d(' + pos.x + 'px,' + pos.y + 'px,0)') +
+  		(scale ? ' scale(' + scale + ')' : '');
+  }
+
+  // @function setPosition(el: HTMLElement, position: Point)
+  // Sets the position of `el` to coordinates specified by `position`,
+  // using CSS translate or top/left positioning depending on the browser
+  // (used by Leaflet internally to position its layers).
+  function setPosition(el, point) {
+
+  	/*eslint-disable */
+  	el._leaflet_pos = point;
+  	/* eslint-enable */
+
+  	if (Browser.any3d) {
+  		setTransform(el, point);
+  	} else {
+  		el.style.left = point.x + 'px';
+  		el.style.top = point.y + 'px';
+  	}
+  }
+
+  // @function getPosition(el: HTMLElement): Point
+  // Returns the coordinates of an element previously positioned with setPosition.
+  function getPosition(el) {
+  	// this method is only used for elements previously positioned using setPosition,
+  	// so it's safe to cache the position for performance
+
+  	return el._leaflet_pos || new Point(0, 0);
+  }
+
+  // @function disableTextSelection()
+  // Prevents the user from generating `selectstart` DOM events, usually generated
+  // when the user drags the mouse through a page with text. Used internally
+  // by Leaflet to override the behaviour of any click-and-drag interaction on
+  // the map. Affects drag interactions on the whole document.
+
+  // @function enableTextSelection()
+  // Cancels the effects of a previous [`L.DomUtil.disableTextSelection`](#domutil-disabletextselection).
+  var disableTextSelection;
+  var enableTextSelection;
+  var _userSelect;
+  if ('onselectstart' in document) {
+  	disableTextSelection = function () {
+  		on(window, 'selectstart', preventDefault);
+  	};
+  	enableTextSelection = function () {
+  		off(window, 'selectstart', preventDefault);
+  	};
+  } else {
+  	var userSelectProperty = testProp(
+  		['userSelect', 'WebkitUserSelect', 'OUserSelect', 'MozUserSelect', 'msUserSelect']);
+
+  	disableTextSelection = function () {
+  		if (userSelectProperty) {
+  			var style = document.documentElement.style;
+  			_userSelect = style[userSelectProperty];
+  			style[userSelectProperty] = 'none';
+  		}
+  	};
+  	enableTextSelection = function () {
+  		if (userSelectProperty) {
+  			document.documentElement.style[userSelectProperty] = _userSelect;
+  			_userSelect = undefined;
+  		}
+  	};
+  }
+
+  // @function disableImageDrag()
+  // As [`L.DomUtil.disableTextSelection`](#domutil-disabletextselection), but
+  // for `dragstart` DOM events, usually generated when the user drags an image.
+  function disableImageDrag() {
+  	on(window, 'dragstart', preventDefault);
+  }
+
+  // @function enableImageDrag()
+  // Cancels the effects of a previous [`L.DomUtil.disableImageDrag`](#domutil-disabletextselection).
+  function enableImageDrag() {
+  	off(window, 'dragstart', preventDefault);
+  }
+
+  var _outlineElement, _outlineStyle;
+  // @function preventOutline(el: HTMLElement)
+  // Makes the [outline](https://developer.mozilla.org/docs/Web/CSS/outline)
+  // of the element `el` invisible. Used internally by Leaflet to prevent
+  // focusable elements from displaying an outline when the user performs a
+  // drag interaction on them.
+  function preventOutline(element) {
+  	while (element.tabIndex === -1) {
+  		element = element.parentNode;
+  	}
+  	if (!element.style) { return; }
+  	restoreOutline();
+  	_outlineElement = element;
+  	_outlineStyle = element.style.outlineStyle;
+  	element.style.outlineStyle = 'none';
+  	on(window, 'keydown', restoreOutline);
+  }
+
+  // @function restoreOutline()
+  // Cancels the effects of a previous [`L.DomUtil.preventOutline`]().
+  function restoreOutline() {
+  	if (!_outlineElement) { return; }
+  	_outlineElement.style.outlineStyle = _outlineStyle;
+  	_outlineElement = undefined;
+  	_outlineStyle = undefined;
+  	off(window, 'keydown', restoreOutline);
+  }
+
+  // @function getSizedParentNode(el: HTMLElement): HTMLElement
+  // Finds the closest parent node which size (width and height) is not null.
+  function getSizedParentNode(element) {
+  	do {
+  		element = element.parentNode;
+  	} while ((!element.offsetWidth || !element.offsetHeight) && element !== document.body);
+  	return element;
+  }
+
+  // @function getScale(el: HTMLElement): Object
+  // Computes the CSS scale currently applied on the element.
+  // Returns an object with `x` and `y` members as horizontal and vertical scales respectively,
+  // and `boundingClientRect` as the result of [`getBoundingClientRect()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect).
+  function getScale(element) {
+  	var rect = element.getBoundingClientRect(); // Read-only in old browsers.
+
+  	return {
+  		x: rect.width / element.offsetWidth || 1,
+  		y: rect.height / element.offsetHeight || 1,
+  		boundingClientRect: rect
+  	};
+  }
+
+  var DomUtil = {
+    __proto__: null,
+    TRANSFORM: TRANSFORM,
+    TRANSITION: TRANSITION,
+    TRANSITION_END: TRANSITION_END,
+    get: get,
+    getStyle: getStyle,
+    create: create$1,
+    remove: remove,
+    empty: empty,
+    toFront: toFront,
+    toBack: toBack,
+    hasClass: hasClass,
+    addClass: addClass,
+    removeClass: removeClass,
+    setClass: setClass,
+    getClass: getClass,
+    setOpacity: setOpacity,
+    testProp: testProp,
+    setTransform: setTransform,
+    setPosition: setPosition,
+    getPosition: getPosition,
+    get disableTextSelection () { return disableTextSelection; },
+    get enableTextSelection () { return enableTextSelection; },
+    disableImageDrag: disableImageDrag,
+    enableImageDrag: enableImageDrag,
+    preventOutline: preventOutline,
+    restoreOutline: restoreOutline,
+    getSizedParentNode: getSizedParentNode,
+    getScale: getScale
+  };
+
+  /*
+   * @namespace DomEvent
+   * Utility functions to work with the [DOM events](https://developer.mozilla.org/docs/Web/API/Event), used by Leaflet internally.
+   */
+
+  // Inspired by John Resig, Dean Edwards and YUI addEvent implementations.
+
+  // @function on(el: HTMLElement, types: String, fn: Function, context?: Object): this
+  // Adds a listener function (`fn`) to a particular DOM event type of the
+  // element `el`. You can optionally specify the context of the listener
+  // (object the `this` keyword will point to). You can also pass several
+  // space-separated types (e.g. `'click dblclick'`).
+
+  // @alternative
+  // @function on(el: HTMLElement, eventMap: Object, context?: Object): this
+  // Adds a set of type/listener pairs, e.g. `{click: onClick, mousemove: onMouseMove}`
+  function on(obj, types, fn, context) {
+
+  	if (types && typeof types === 'object') {
+  		for (var type in types) {
+  			addOne(obj, type, types[type], fn);
+  		}
+  	} else {
+  		types = splitWords(types);
+
+  		for (var i = 0, len = types.length; i < len; i++) {
+  			addOne(obj, types[i], fn, context);
+  		}
+  	}
+
+  	return this;
+  }
+
+  var eventsKey = '_leaflet_events';
+
+  // @function off(el: HTMLElement, types: String, fn: Function, context?: Object): this
+  // Removes a previously added listener function.
+  // Note that if you passed a custom context to on, you must pass the same
+  // context to `off` in order to remove the listener.
+
+  // @alternative
+  // @function off(el: HTMLElement, eventMap: Object, context?: Object): this
+  // Removes a set of type/listener pairs, e.g. `{click: onClick, mousemove: onMouseMove}`
+
+  // @alternative
+  // @function off(el: HTMLElement, types: String): this
+  // Removes all previously added listeners of given types.
+
+  // @alternative
+  // @function off(el: HTMLElement): this
+  // Removes all previously added listeners from given HTMLElement
+  function off(obj, types, fn, context) {
+
+  	if (arguments.length === 1) {
+  		batchRemove(obj);
+  		delete obj[eventsKey];
+
+  	} else if (types && typeof types === 'object') {
+  		for (var type in types) {
+  			removeOne(obj, type, types[type], fn);
+  		}
+
+  	} else {
+  		types = splitWords(types);
+
+  		if (arguments.length === 2) {
+  			batchRemove(obj, function (type) {
+  				return indexOf(types, type) !== -1;
+  			});
+  		} else {
+  			for (var i = 0, len = types.length; i < len; i++) {
+  				removeOne(obj, types[i], fn, context);
+  			}
+  		}
+  	}
+
+  	return this;
+  }
+
+  function batchRemove(obj, filterFn) {
+  	for (var id in obj[eventsKey]) {
+  		var type = id.split(/\d/)[0];
+  		if (!filterFn || filterFn(type)) {
+  			removeOne(obj, type, null, null, id);
+  		}
+  	}
+  }
+
+  var mouseSubst = {
+  	mouseenter: 'mouseover',
+  	mouseleave: 'mouseout',
+  	wheel: !('onwheel' in window) && 'mousewheel'
+  };
+
+  function addOne(obj, type, fn, context) {
+  	var id = type + stamp(fn) + (context ? '_' + stamp(context) : '');
+
+  	if (obj[eventsKey] && obj[eventsKey][id]) { return this; }
+
+  	var handler = function (e) {
+  		return fn.call(context || obj, e || window.event);
+  	};
+
+  	var originalHandler = handler;
+
+  	if (!Browser.touchNative && Browser.pointer && type.indexOf('touch') === 0) {
+  		// Needs DomEvent.Pointer.js
+  		handler = addPointerListener(obj, type, handler);
+
+  	} else if (Browser.touch && (type === 'dblclick')) {
+  		handler = addDoubleTapListener(obj, handler);
+
+  	} else if ('addEventListener' in obj) {
+
+  		if (type === 'touchstart' || type === 'touchmove' || type === 'wheel' ||  type === 'mousewheel') {
+  			obj.addEventListener(mouseSubst[type] || type, handler, Browser.passiveEvents ? {passive: false} : false);
+
+  		} else if (type === 'mouseenter' || type === 'mouseleave') {
+  			handler = function (e) {
+  				e = e || window.event;
+  				if (isExternalTarget(obj, e)) {
+  					originalHandler(e);
+  				}
+  			};
+  			obj.addEventListener(mouseSubst[type], handler, false);
+
+  		} else {
+  			obj.addEventListener(type, originalHandler, false);
+  		}
+
+  	} else {
+  		obj.attachEvent('on' + type, handler);
+  	}
+
+  	obj[eventsKey] = obj[eventsKey] || {};
+  	obj[eventsKey][id] = handler;
+  }
+
+  function removeOne(obj, type, fn, context, id) {
+  	id = id || type + stamp(fn) + (context ? '_' + stamp(context) : '');
+  	var handler = obj[eventsKey] && obj[eventsKey][id];
+
+  	if (!handler) { return this; }
+
+  	if (!Browser.touchNative && Browser.pointer && type.indexOf('touch') === 0) {
+  		removePointerListener(obj, type, handler);
+
+  	} else if (Browser.touch && (type === 'dblclick')) {
+  		removeDoubleTapListener(obj, handler);
+
+  	} else if ('removeEventListener' in obj) {
+
+  		obj.removeEventListener(mouseSubst[type] || type, handler, false);
+
+  	} else {
+  		obj.detachEvent('on' + type, handler);
+  	}
+
+  	obj[eventsKey][id] = null;
+  }
+
+  // @function stopPropagation(ev: DOMEvent): this
+  // Stop the given event from propagation to parent elements. Used inside the listener functions:
+  // ```js
+  // L.DomEvent.on(div, 'click', function (ev) {
+  // 	L.DomEvent.stopPropagation(ev);
+  // });
+  // ```
+  function stopPropagation(e) {
+
+  	if (e.stopPropagation) {
+  		e.stopPropagation();
+  	} else if (e.originalEvent) {  // In case of Leaflet event.
+  		e.originalEvent._stopped = true;
+  	} else {
+  		e.cancelBubble = true;
+  	}
+
+  	return this;
+  }
+
+  // @function disableScrollPropagation(el: HTMLElement): this
+  // Adds `stopPropagation` to the element's `'wheel'` events (plus browser variants).
+  function disableScrollPropagation(el) {
+  	addOne(el, 'wheel', stopPropagation);
+  	return this;
+  }
+
+  // @function disableClickPropagation(el: HTMLElement): this
+  // Adds `stopPropagation` to the element's `'click'`, `'dblclick'`, `'contextmenu'`,
+  // `'mousedown'` and `'touchstart'` events (plus browser variants).
+  function disableClickPropagation(el) {
+  	on(el, 'mousedown touchstart dblclick contextmenu', stopPropagation);
+  	el['_leaflet_disable_click'] = true;
+  	return this;
+  }
+
+  // @function preventDefault(ev: DOMEvent): this
+  // Prevents the default action of the DOM Event `ev` from happening (such as
+  // following a link in the href of the a element, or doing a POST request
+  // with page reload when a `<form>` is submitted).
+  // Use it inside listener functions.
+  function preventDefault(e) {
+  	if (e.preventDefault) {
+  		e.preventDefault();
+  	} else {
+  		e.returnValue = false;
+  	}
+  	return this;
+  }
+
+  // @function stop(ev: DOMEvent): this
+  // Does `stopPropagation` and `preventDefault` at the same time.
+  function stop(e) {
+  	preventDefault(e);
+  	stopPropagation(e);
+  	return this;
+  }
+
+  // @function getPropagationPath(ev: DOMEvent): Array
+  // Compatibility polyfill for [`Event.composedPath()`](https://developer.mozilla.org/en-US/docs/Web/API/Event/composedPath).
+  // Returns an array containing the `HTMLElement`s that the given DOM event
+  // should propagate to (if not stopped).
+  function getPropagationPath(ev) {
+  	if (ev.composedPath) {
+  		return ev.composedPath();
+  	}
+
+  	var path = [];
+  	var el = ev.target;
+
+  	while (el) {
+  		path.push(el);
+  		el = el.parentNode;
+  	}
+  	return path;
+  }
+
+
+  // @function getMousePosition(ev: DOMEvent, container?: HTMLElement): Point
+  // Gets normalized mouse position from a DOM event relative to the
+  // `container` (border excluded) or to the whole page if not specified.
+  function getMousePosition(e, container) {
+  	if (!container) {
+  		return new Point(e.clientX, e.clientY);
+  	}
+
+  	var scale = getScale(container),
+  	    offset = scale.boundingClientRect; // left and top  values are in page scale (like the event clientX/Y)
+
+  	return new Point(
+  		// offset.left/top values are in page scale (like clientX/Y),
+  		// whereas clientLeft/Top (border width) values are the original values (before CSS scale applies).
+  		(e.clientX - offset.left) / scale.x - container.clientLeft,
+  		(e.clientY - offset.top) / scale.y - container.clientTop
+  	);
+  }
+
+
+  //  except , Safari and
+  // We need double the scroll pixels (see #7403 and #4538) for all Browsers
+  // except OSX (Mac) -> 3x, Chrome running on Linux 1x
+
+  var wheelPxFactor =
+  	(Browser.linux && Browser.chrome) ? window.devicePixelRatio :
+  	Browser.mac ? window.devicePixelRatio * 3 :
+  	window.devicePixelRatio > 0 ? 2 * window.devicePixelRatio : 1;
+  // @function getWheelDelta(ev: DOMEvent): Number
+  // Gets normalized wheel delta from a wheel DOM event, in vertical
+  // pixels scrolled (negative if scrolling down).
+  // Events from pointing devices without precise scrolling are mapped to
+  // a best guess of 60 pixels.
+  function getWheelDelta(e) {
+  	return (Browser.edge) ? e.wheelDeltaY / 2 : // Don't trust window-geometry-based delta
+  	       (e.deltaY && e.deltaMode === 0) ? -e.deltaY / wheelPxFactor : // Pixels
+  	       (e.deltaY && e.deltaMode === 1) ? -e.deltaY * 20 : // Lines
+  	       (e.deltaY && e.deltaMode === 2) ? -e.deltaY * 60 : // Pages
+  	       (e.deltaX || e.deltaZ) ? 0 :	// Skip horizontal/depth wheel events
+  	       e.wheelDelta ? (e.wheelDeltaY || e.wheelDelta) / 2 : // Legacy IE pixels
+  	       (e.detail && Math.abs(e.detail) < 32765) ? -e.detail * 20 : // Legacy Moz lines
+  	       e.detail ? e.detail / -32765 * 60 : // Legacy Moz pages
+  	       0;
+  }
+
+  // check if element really left/entered the event target (for mouseenter/mouseleave)
+  function isExternalTarget(el, e) {
+
+  	var related = e.relatedTarget;
+
+  	if (!related) { return true; }
+
+  	try {
+  		while (related && (related !== el)) {
+  			related = related.parentNode;
+  		}
+  	} catch (err) {
+  		return false;
+  	}
+  	return (related !== el);
+  }
+
+  var DomEvent = {
+    __proto__: null,
+    on: on,
+    off: off,
+    stopPropagation: stopPropagation,
+    disableScrollPropagation: disableScrollPropagation,
+    disableClickPropagation: disableClickPropagation,
+    preventDefault: preventDefault,
+    stop: stop,
+    getPropagationPath: getPropagationPath,
+    getMousePosition: getMousePosition,
+    getWheelDelta: getWheelDelta,
+    isExternalTarget: isExternalTarget,
+    addListener: on,
+    removeListener: off
+  };
+
+  /*
+   * @class PosAnimation
+   * @aka L.PosAnimation
+   * @inherits Evented
+   * Used internally for panning animations, utilizing CSS3 Transitions for modern browsers and a timer fallback for IE6-9.
+   *
+   * @example
+   * ```js
+   * var myPositionMarker = L.marker([48.864716, 2.294694]).addTo(map);
+   *
+   * myPositionMarker.on("click", function() {
+   * 	var pos = map.latLngToLayerPoint(myPositionMarker.getLatLng());
+   * 	pos.y -= 25;
+   * 	var fx = new L.PosAnimation();
+   *
+   * 	fx.once('end',function() {
+   * 		pos.y += 25;
+   * 		fx.run(myPositionMarker._icon, pos, 0.8);
+   * 	});
+   *
+   * 	fx.run(myPositionMarker._icon, pos, 0.3);
+   * });
+   *
+   * ```
+   *
+   * @constructor L.PosAnimation()
+   * Creates a `PosAnimation` object.
+   *
+   */
+
+  var PosAnimation = Evented.extend({
+
+  	// @method run(el: HTMLElement, newPos: Point, duration?: Number, easeLinearity?: Number)
+  	// Run an animation of a given element to a new position, optionally setting
+  	// duration in seconds (`0.25` by default) and easing linearity factor (3rd
+  	// argument of the [cubic bezier curve](https://cubic-bezier.com/#0,0,.5,1),
+  	// `0.5` by default).
+  	run: function (el, newPos, duration, easeLinearity) {
+  		this.stop();
+
+  		this._el = el;
+  		this._inProgress = true;
+  		this._duration = duration || 0.25;
+  		this._easeOutPower = 1 / Math.max(easeLinearity || 0.5, 0.2);
+
+  		this._startPos = getPosition(el);
+  		this._offset = newPos.subtract(this._startPos);
+  		this._startTime = +new Date();
+
+  		// @event start: Event
+  		// Fired when the animation starts
+  		this.fire('start');
+
+  		this._animate();
+  	},
+
+  	// @method stop()
+  	// Stops the animation (if currently running).
+  	stop: function () {
+  		if (!this._inProgress) { return; }
+
+  		this._step(true);
+  		this._complete();
+  	},
+
+  	_animate: function () {
+  		// animation loop
+  		this._animId = requestAnimFrame(this._animate, this);
+  		this._step();
+  	},
+
+  	_step: function (round) {
+  		var elapsed = (+new Date()) - this._startTime,
+  		    duration = this._duration * 1000;
+
+  		if (elapsed < duration) {
+  			this._runFrame(this._easeOut(elapsed / duration), round);
+  		} else {
+  			this._runFrame(1);
+  			this._complete();
+  		}
+  	},
+
+  	_runFrame: function (progress, round) {
+  		var pos = this._startPos.add(this._offset.multiplyBy(progress));
+  		if (round) {
+  			pos._round();
+  		}
+  		setPosition(this._el, pos);
+
+  		// @event step: Event
+  		// Fired continuously during the animation.
+  		this.fire('step');
+  	},
+
+  	_complete: function () {
+  		cancelAnimFrame(this._animId);
+
+  		this._inProgress = false;
+  		// @event end: Event
+  		// Fired when the animation ends.
+  		this.fire('end');
+  	},
+
+  	_easeOut: function (t) {
+  		return 1 - Math.pow(1 - t, this._easeOutPower);
+  	}
+  });
+
+  /*
+   * @class Map
+   * @aka L.Map
+   * @inherits Evented
+   *
+   * The central class of the API — it is used to create a map on a page and manipulate it.
+   *
+   * @example
+   *
+   * ```js
+   * // initialize the map on the "map" div with a given center and zoom
+   * var map = L.map('map', {
+   * 	center: [51.505, -0.09],
+   * 	zoom: 13
+   * });
+   * ```
+   *
+   */
+
+  var Map = Evented.extend({
+
+  	options: {
+  		// @section Map State Options
+  		// @option crs: CRS = L.CRS.EPSG3857
+  		// The [Coordinate Reference System](#crs) to use. Don't change this if you're not
+  		// sure what it means.
+  		crs: EPSG3857,
+
+  		// @option center: LatLng = undefined
+  		// Initial geographic center of the map
+  		center: undefined,
+
+  		// @option zoom: Number = undefined
+  		// Initial map zoom level
+  		zoom: undefined,
+
+  		// @option minZoom: Number = *
+  		// Minimum zoom level of the map.
+  		// If not specified and at least one `GridLayer` or `TileLayer` is in the map,
+  		// the lowest of their `minZoom` options will be used instead.
+  		minZoom: undefined,
+
+  		// @option maxZoom: Number = *
+  		// Maximum zoom level of the map.
+  		// If not specified and at least one `GridLayer` or `TileLayer` is in the map,
+  		// the highest of their `maxZoom` options will be used instead.
+  		maxZoom: undefined,
+
+  		// @option layers: Layer[] = []
+  		// Array of layers that will be added to the map initially
+  		layers: [],
+
+  		// @option maxBounds: LatLngBounds = null
+  		// When this option is set, the map restricts the view to the given
+  		// geographical bounds, bouncing the user back if the user tries to pan
+  		// outside the view. To set the restriction dynamically, use
+  		// [`setMaxBounds`](#map-setmaxbounds) method.
+  		maxBounds: undefined,
+
+  		// @option renderer: Renderer = *
+  		// The default method for drawing vector layers on the map. `L.SVG`
+  		// or `L.Canvas` by default depending on browser support.
+  		renderer: undefined,
+
+
+  		// @section Animation Options
+  		// @option zoomAnimation: Boolean = true
+  		// Whether the map zoom animation is enabled. By default it's enabled
+  		// in all browsers that support CSS3 Transitions except Android.
+  		zoomAnimation: true,
+
+  		// @option zoomAnimationThreshold: Number = 4
+  		// Won't animate zoom if the zoom difference exceeds this value.
+  		zoomAnimationThreshold: 4,
+
+  		// @option fadeAnimation: Boolean = true
+  		// Whether the tile fade animation is enabled. By default it's enabled
+  		// in all browsers that support CSS3 Transitions except Android.
+  		fadeAnimation: true,
+
+  		// @option markerZoomAnimation: Boolean = true
+  		// Whether markers animate their zoom with the zoom animation, if disabled
+  		// they will disappear for the length of the animation. By default it's
+  		// enabled in all browsers that support CSS3 Transitions except Android.
+  		markerZoomAnimation: true,
+
+  		// @option transform3DLimit: Number = 2^23
+  		// Defines the maximum size of a CSS translation transform. The default
+  		// value should not be changed unless a web browser positions layers in
+  		// the wrong place after doing a large `panBy`.
+  		transform3DLimit: 8388608, // Precision limit of a 32-bit float
+
+  		// @section Interaction Options
+  		// @option zoomSnap: Number = 1
+  		// Forces the map's zoom level to always be a multiple of this, particularly
+  		// right after a [`fitBounds()`](#map-fitbounds) or a pinch-zoom.
+  		// By default, the zoom level snaps to the nearest integer; lower values
+  		// (e.g. `0.5` or `0.1`) allow for greater granularity. A value of `0`
+  		// means the zoom level will not be snapped after `fitBounds` or a pinch-zoom.
+  		zoomSnap: 1,
+
+  		// @option zoomDelta: Number = 1
+  		// Controls how much the map's zoom level will change after a
+  		// [`zoomIn()`](#map-zoomin), [`zoomOut()`](#map-zoomout), pressing `+`
+  		// or `-` on the keyboard, or using the [zoom controls](#control-zoom).
+  		// Values smaller than `1` (e.g. `0.5`) allow for greater granularity.
+  		zoomDelta: 1,
+
+  		// @option trackResize: Boolean = true
+  		// Whether the map automatically handles browser window resize to update itself.
+  		trackResize: true
+  	},
+
+  	initialize: function (id, options) { // (HTMLElement or String, Object)
+  		options = setOptions(this, options);
+
+  		// Make sure to assign internal flags at the beginning,
+  		// to avoid inconsistent state in some edge cases.
+  		this._handlers = [];
+  		this._layers = {};
+  		this._zoomBoundLayers = {};
+  		this._sizeChanged = true;
+
+  		this._initContainer(id);
+  		this._initLayout();
+
+  		// hack for https://github.com/Leaflet/Leaflet/issues/1980
+  		this._onResize = bind(this._onResize, this);
+
+  		this._initEvents();
+
+  		if (options.maxBounds) {
+  			this.setMaxBounds(options.maxBounds);
+  		}
+
+  		if (options.zoom !== undefined) {
+  			this._zoom = this._limitZoom(options.zoom);
+  		}
+
+  		if (options.center && options.zoom !== undefined) {
+  			this.setView(toLatLng(options.center), options.zoom, {reset: true});
+  		}
+
+  		this.callInitHooks();
+
+  		// don't animate on browsers without hardware-accelerated transitions or old Android/Opera
+  		this._zoomAnimated = TRANSITION && Browser.any3d && !Browser.mobileOpera &&
+  				this.options.zoomAnimation;
+
+  		// zoom transitions run with the same duration for all layers, so if one of transitionend events
+  		// happens after starting zoom animation (propagating to the map pane), we know that it ended globally
+  		if (this._zoomAnimated) {
+  			this._createAnimProxy();
+  			on(this._proxy, TRANSITION_END, this._catchTransitionEnd, this);
+  		}
+
+  		this._addLayers(this.options.layers);
+  	},
+
+
+  	// @section Methods for modifying map state
+
+  	// @method setView(center: LatLng, zoom: Number, options?: Zoom/pan options): this
+  	// Sets the view of the map (geographical center and zoom) with the given
+  	// animation options.
+  	setView: function (center, zoom, options) {
+
+  		zoom = zoom === undefined ? this._zoom : this._limitZoom(zoom);
+  		center = this._limitCenter(toLatLng(center), zoom, this.options.maxBounds);
+  		options = options || {};
+
+  		this._stop();
+
+  		if (this._loaded && !options.reset && options !== true) {
+
+  			if (options.animate !== undefined) {
+  				options.zoom = extend({animate: options.animate}, options.zoom);
+  				options.pan = extend({animate: options.animate, duration: options.duration}, options.pan);
+  			}
+
+  			// try animating pan or zoom
+  			var moved = (this._zoom !== zoom) ?
+  				this._tryAnimatedZoom && this._tryAnimatedZoom(center, zoom, options.zoom) :
+  				this._tryAnimatedPan(center, options.pan);
+
+  			if (moved) {
+  				// prevent resize handler call, the view will refresh after animation anyway
+  				clearTimeout(this._sizeTimer);
+  				return this;
+  			}
+  		}
+
+  		// animation didn't start, just reset the map view
+  		this._resetView(center, zoom, options.pan && options.pan.noMoveStart);
+
+  		return this;
+  	},
+
+  	// @method setZoom(zoom: Number, options?: Zoom/pan options): this
+  	// Sets the zoom of the map.
+  	setZoom: function (zoom, options) {
+  		if (!this._loaded) {
+  			this._zoom = zoom;
+  			return this;
+  		}
+  		return this.setView(this.getCenter(), zoom, {zoom: options});
+  	},
+
+  	// @method zoomIn(delta?: Number, options?: Zoom options): this
+  	// Increases the zoom of the map by `delta` ([`zoomDelta`](#map-zoomdelta) by default).
+  	zoomIn: function (delta, options) {
+  		delta = delta || (Browser.any3d ? this.options.zoomDelta : 1);
+  		return this.setZoom(this._zoom + delta, options);
+  	},
+
+  	// @method zoomOut(delta?: Number, options?: Zoom options): this
+  	// Decreases the zoom of the map by `delta` ([`zoomDelta`](#map-zoomdelta) by default).
+  	zoomOut: function (delta, options) {
+  		delta = delta || (Browser.any3d ? this.options.zoomDelta : 1);
+  		return this.setZoom(this._zoom - delta, options);
+  	},
+
+  	// @method setZoomAround(latlng: LatLng, zoom: Number, options: Zoom options): this
+  	// Zooms the map while keeping a specified geographical point on the map
+  	// stationary (e.g. used internally for scroll zoom and double-click zoom).
+  	// @alternative
+  	// @method setZoomAround(offset: Point, zoom: Number, options: Zoom options): this
+  	// Zooms the map while keeping a specified pixel on the map (relative to the top-left corner) stationary.
+  	setZoomAround: function (latlng, zoom, options) {
+  		var scale = this.getZoomScale(zoom),
+  		    viewHalf = this.getSize().divideBy(2),
+  		    containerPoint = latlng instanceof Point ? latlng : this.latLngToContainerPoint(latlng),
+
+  		    centerOffset = containerPoint.subtract(viewHalf).multiplyBy(1 - 1 / scale),
+  		    newCenter = this.containerPointToLatLng(viewHalf.add(centerOffset));
+
+  		return this.setView(newCenter, zoom, {zoom: options});
+  	},
+
+  	_getBoundsCenterZoom: function (bounds, options) {
+
+  		options = options || {};
+  		bounds = bounds.getBounds ? bounds.getBounds() : toLatLngBounds(bounds);
+
+  		var paddingTL = toPoint(options.paddingTopLeft || options.padding || [0, 0]),
+  		    paddingBR = toPoint(options.paddingBottomRight || options.padding || [0, 0]),
+
+  		    zoom = this.getBoundsZoom(bounds, false, paddingTL.add(paddingBR));
+
+  		zoom = (typeof options.maxZoom === 'number') ? Math.min(options.maxZoom, zoom) : zoom;
+
+  		if (zoom === Infinity) {
+  			return {
+  				center: bounds.getCenter(),
+  				zoom: zoom
+  			};
+  		}
+
+  		var paddingOffset = paddingBR.subtract(paddingTL).divideBy(2),
+
+  		    swPoint = this.project(bounds.getSouthWest(), zoom),
+  		    nePoint = this.project(bounds.getNorthEast(), zoom),
+  		    center = this.unproject(swPoint.add(nePoint).divideBy(2).add(paddingOffset), zoom);
+
+  		return {
+  			center: center,
+  			zoom: zoom
+  		};
+  	},
+
+  	// @method fitBounds(bounds: LatLngBounds, options?: fitBounds options): this
+  	// Sets a map view that contains the given geographical bounds with the
+  	// maximum zoom level possible.
+  	fitBounds: function (bounds, options) {
+
+  		bounds = toLatLngBounds(bounds);
+
+  		if (!bounds.isValid()) {
+  			throw new Error('Bounds are not valid.');
+  		}
+
+  		var target = this._getBoundsCenterZoom(bounds, options);
+  		return this.setView(target.center, target.zoom, options);
+  	},
+
+  	// @method fitWorld(options?: fitBounds options): this
+  	// Sets a map view that mostly contains the whole world with the maximum
+  	// zoom level possible.
+  	fitWorld: function (options) {
+  		return this.fitBounds([[-90, -180], [90, 180]], options);
+  	},
+
+  	// @method panTo(latlng: LatLng, options?: Pan options): this
+  	// Pans the map to a given center.
+  	panTo: function (center, options) { // (LatLng)
+  		return this.setView(center, this._zoom, {pan: options});
+  	},
+
+  	// @method panBy(offset: Point, options?: Pan options): this
+  	// Pans the map by a given number of pixels (animated).
+  	panBy: function (offset, options) {
+  		offset = toPoint(offset).round();
+  		options = options || {};
+
+  		if (!offset.x && !offset.y) {
+  			return this.fire('moveend');
+  		}
+  		// If we pan too far, Chrome gets issues with tiles
+  		// and makes them disappear or appear in the wrong place (slightly offset) #2602
+  		if (options.animate !== true && !this.getSize().contains(offset)) {
+  			this._resetView(this.unproject(this.project(this.getCenter()).add(offset)), this.getZoom());
+  			return this;
+  		}
+
+  		if (!this._panAnim) {
+  			this._panAnim = new PosAnimation();
+
+  			this._panAnim.on({
+  				'step': this._onPanTransitionStep,
+  				'end': this._onPanTransitionEnd
+  			}, this);
+  		}
+
+  		// don't fire movestart if animating inertia
+  		if (!options.noMoveStart) {
+  			this.fire('movestart');
+  		}
+
+  		// animate pan unless animate: false specified
+  		if (options.animate !== false) {
+  			addClass(this._mapPane, 'leaflet-pan-anim');
+
+  			var newPos = this._getMapPanePos().subtract(offset).round();
+  			this._panAnim.run(this._mapPane, newPos, options.duration || 0.25, options.easeLinearity);
+  		} else {
+  			this._rawPanBy(offset);
+  			this.fire('move').fire('moveend');
+  		}
+
+  		return this;
+  	},
+
+  	// @method flyTo(latlng: LatLng, zoom?: Number, options?: Zoom/pan options): this
+  	// Sets the view of the map (geographical center and zoom) performing a smooth
+  	// pan-zoom animation.
+  	flyTo: function (targetCenter, targetZoom, options) {
+
+  		options = options || {};
+  		if (options.animate === false || !Browser.any3d) {
+  			return this.setView(targetCenter, targetZoom, options);
+  		}
+
+  		this._stop();
+
+  		var from = this.project(this.getCenter()),
+  		    to = this.project(targetCenter),
+  		    size = this.getSize(),
+  		    startZoom = this._zoom;
+
+  		targetCenter = toLatLng(targetCenter);
+  		targetZoom = targetZoom === undefined ? startZoom : targetZoom;
+
+  		var w0 = Math.max(size.x, size.y),
+  		    w1 = w0 * this.getZoomScale(startZoom, targetZoom),
+  		    u1 = (to.distanceTo(from)) || 1,
+  		    rho = 1.42,
+  		    rho2 = rho * rho;
+
+  		function r(i) {
+  			var s1 = i ? -1 : 1,
+  			    s2 = i ? w1 : w0,
+  			    t1 = w1 * w1 - w0 * w0 + s1 * rho2 * rho2 * u1 * u1,
+  			    b1 = 2 * s2 * rho2 * u1,
+  			    b = t1 / b1,
+  			    sq = Math.sqrt(b * b + 1) - b;
+
+  			    // workaround for floating point precision bug when sq = 0, log = -Infinite,
+  			    // thus triggering an infinite loop in flyTo
+  			    var log = sq < 0.000000001 ? -18 : Math.log(sq);
+
+  			return log;
+  		}
+
+  		function sinh(n) { return (Math.exp(n) - Math.exp(-n)) / 2; }
+  		function cosh(n) { return (Math.exp(n) + Math.exp(-n)) / 2; }
+  		function tanh(n) { return sinh(n) / cosh(n); }
+
+  		var r0 = r(0);
+
+  		function w(s) { return w0 * (cosh(r0) / cosh(r0 + rho * s)); }
+  		function u(s) { return w0 * (cosh(r0) * tanh(r0 + rho * s) - sinh(r0)) / rho2; }
+
+  		function easeOut(t) { return 1 - Math.pow(1 - t, 1.5); }
+
+  		var start = Date.now(),
+  		    S = (r(1) - r0) / rho,
+  		    duration = options.duration ? 1000 * options.duration : 1000 * S * 0.8;
+
+  		function frame() {
+  			var t = (Date.now() - start) / duration,
+  			    s = easeOut(t) * S;
+
+  			if (t <= 1) {
+  				this._flyToFrame = requestAnimFrame(frame, this);
+
+  				this._move(
+  					this.unproject(from.add(to.subtract(from).multiplyBy(u(s) / u1)), startZoom),
+  					this.getScaleZoom(w0 / w(s), startZoom),
+  					{flyTo: true});
+
+  			} else {
+  				this
+  					._move(targetCenter, targetZoom)
+  					._moveEnd(true);
+  			}
+  		}
+
+  		this._moveStart(true, options.noMoveStart);
+
+  		frame.call(this);
+  		return this;
+  	},
+
+  	// @method flyToBounds(bounds: LatLngBounds, options?: fitBounds options): this
+  	// Sets the view of the map with a smooth animation like [`flyTo`](#map-flyto),
+  	// but takes a bounds parameter like [`fitBounds`](#map-fitbounds).
+  	flyToBounds: function (bounds, options) {
+  		var target = this._getBoundsCenterZoom(bounds, options);
+  		return this.flyTo(target.center, target.zoom, options);
+  	},
+
+  	// @method setMaxBounds(bounds: LatLngBounds): this
+  	// Restricts the map view to the given bounds (see the [maxBounds](#map-maxbounds) option).
+  	setMaxBounds: function (bounds) {
+  		bounds = toLatLngBounds(bounds);
+
+  		if (this.listens('moveend', this._panInsideMaxBounds)) {
+  			this.off('moveend', this._panInsideMaxBounds);
+  		}
+
+  		if (!bounds.isValid()) {
+  			this.options.maxBounds = null;
+  			return this;
+  		}
+
+  		this.options.maxBounds = bounds;
+
+  		if (this._loaded) {
+  			this._panInsideMaxBounds();
+  		}
+
+  		return this.on('moveend', this._panInsideMaxBounds);
+  	},
+
+  	// @method setMinZoom(zoom: Number): this
+  	// Sets the lower limit for the available zoom levels (see the [minZoom](#map-minzoom) option).
+  	setMinZoom: function (zoom) {
+  		var oldZoom = this.options.minZoom;
+  		this.options.minZoom = zoom;
+
+  		if (this._loaded && oldZoom !== zoom) {
+  			this.fire('zoomlevelschange');
+
+  			if (this.getZoom() < this.options.minZoom) {
+  				return this.setZoom(zoom);
+  			}
+  		}
+
+  		return this;
+  	},
+
+  	// @method setMaxZoom(zoom: Number): this
+  	// Sets the upper limit for the available zoom levels (see the [maxZoom](#map-maxzoom) option).
+  	setMaxZoom: function (zoom) {
+  		var oldZoom = this.options.maxZoom;
+  		this.options.maxZoom = zoom;
+
+  		if (this._loaded && oldZoom !== zoom) {
+  			this.fire('zoomlevelschange');
+
+  			if (this.getZoom() > this.options.maxZoom) {
+  				return this.setZoom(zoom);
+  			}
+  		}
+
+  		return this;
+  	},
+
+  	// @method panInsideBounds(bounds: LatLngBounds, options?: Pan options): this
+  	// Pans the map to the closest view that would lie inside the given bounds (if it's not already), controlling the animation using the options specific, if any.
+  	panInsideBounds: function (bounds, options) {
+  		this._enforcingBounds = true;
+  		var center = this.getCenter(),
+  		    newCenter = this._limitCenter(center, this._zoom, toLatLngBounds(bounds));
+
+  		if (!center.equals(newCenter)) {
+  			this.panTo(newCenter, options);
+  		}
+
+  		this._enforcingBounds = false;
+  		return this;
+  	},
+
+  	// @method panInside(latlng: LatLng, options?: padding options): this
+  	// Pans the map the minimum amount to make the `latlng` visible. Use
+  	// padding options to fit the display to more restricted bounds.
+  	// If `latlng` is already within the (optionally padded) display bounds,
+  	// the map will not be panned.
+  	panInside: function (latlng, options) {
+  		options = options || {};
+
+  		var paddingTL = toPoint(options.paddingTopLeft || options.padding || [0, 0]),
+  		    paddingBR = toPoint(options.paddingBottomRight || options.padding || [0, 0]),
+  		    pixelCenter = this.project(this.getCenter()),
+  		    pixelPoint = this.project(latlng),
+  		    pixelBounds = this.getPixelBounds(),
+  		    paddedBounds = toBounds([pixelBounds.min.add(paddingTL), pixelBounds.max.subtract(paddingBR)]),
+  		    paddedSize = paddedBounds.getSize();
+
+  		if (!paddedBounds.contains(pixelPoint)) {
+  			this._enforcingBounds = true;
+  			var centerOffset = pixelPoint.subtract(paddedBounds.getCenter());
+  			var offset = paddedBounds.extend(pixelPoint).getSize().subtract(paddedSize);
+  			pixelCenter.x += centerOffset.x < 0 ? -offset.x : offset.x;
+  			pixelCenter.y += centerOffset.y < 0 ? -offset.y : offset.y;
+  			this.panTo(this.unproject(pixelCenter), options);
+  			this._enforcingBounds = false;
+  		}
+  		return this;
+  	},
+
+  	// @method invalidateSize(options: Zoom/pan options): this
+  	// Checks if the map container size changed and updates the map if so —
+  	// call it after you've changed the map size dynamically, also animating
+  	// pan by default. If `options.pan` is `false`, panning will not occur.
+  	// If `options.debounceMoveend` is `true`, it will delay `moveend` event so
+  	// that it doesn't happen often even if the method is called many
+  	// times in a row.
+
+  	// @alternative
+  	// @method invalidateSize(animate: Boolean): this
+  	// Checks if the map container size changed and updates the map if so —
+  	// call it after you've changed the map size dynamically, also animating
+  	// pan by default.
+  	invalidateSize: function (options) {
+  		if (!this._loaded) { return this; }
+
+  		options = extend({
+  			animate: false,
+  			pan: true
+  		}, options === true ? {animate: true} : options);
+
+  		var oldSize = this.getSize();
+  		this._sizeChanged = true;
+  		this._lastCenter = null;
+
+  		var newSize = this.getSize(),
+  		    oldCenter = oldSize.divideBy(2).round(),
+  		    newCenter = newSize.divideBy(2).round(),
+  		    offset = oldCenter.subtract(newCenter);
+
+  		if (!offset.x && !offset.y) { return this; }
+
+  		if (options.animate && options.pan) {
+  			this.panBy(offset);
+
+  		} else {
+  			if (options.pan) {
+  				this._rawPanBy(offset);
+  			}
+
+  			this.fire('move');
+
+  			if (options.debounceMoveend) {
+  				clearTimeout(this._sizeTimer);
+  				this._sizeTimer = setTimeout(bind(this.fire, this, 'moveend'), 200);
+  			} else {
+  				this.fire('moveend');
+  			}
+  		}
+
+  		// @section Map state change events
+  		// @event resize: ResizeEvent
+  		// Fired when the map is resized.
+  		return this.fire('resize', {
+  			oldSize: oldSize,
+  			newSize: newSize
+  		});
+  	},
+
+  	// @section Methods for modifying map state
+  	// @method stop(): this
+  	// Stops the currently running `panTo` or `flyTo` animation, if any.
+  	stop: function () {
+  		this.setZoom(this._limitZoom(this._zoom));
+  		if (!this.options.zoomSnap) {
+  			this.fire('viewreset');
+  		}
+  		return this._stop();
+  	},
+
+  	// @section Geolocation methods
+  	// @method locate(options?: Locate options): this
+  	// Tries to locate the user using the Geolocation API, firing a [`locationfound`](#map-locationfound)
+  	// event with location data on success or a [`locationerror`](#map-locationerror) event on failure,
+  	// and optionally sets the map view to the user's location with respect to
+  	// detection accuracy (or to the world view if geolocation failed).
+  	// Note that, if your page doesn't use HTTPS, this method will fail in
+  	// modern browsers ([Chrome 50 and newer](https://sites.google.com/a/chromium.org/dev/Home/chromium-security/deprecating-powerful-features-on-insecure-origins))
+  	// See `Locate options` for more details.
+  	locate: function (options) {
+
+  		options = this._locateOptions = extend({
+  			timeout: 10000,
+  			watch: false
+  			// setView: false
+  			// maxZoom: <Number>
+  			// maximumAge: 0
+  			// enableHighAccuracy: false
+  		}, options);
+
+  		if (!('geolocation' in navigator)) {
+  			this._handleGeolocationError({
+  				code: 0,
+  				message: 'Geolocation not supported.'
+  			});
+  			return this;
+  		}
+
+  		var onResponse = bind(this._handleGeolocationResponse, this),
+  		    onError = bind(this._handleGeolocationError, this);
+
+  		if (options.watch) {
+  			this._locationWatchId =
+  			        navigator.geolocation.watchPosition(onResponse, onError, options);
+  		} else {
+  			navigator.geolocation.getCurrentPosition(onResponse, onError, options);
+  		}
+  		return this;
+  	},
+
+  	// @method stopLocate(): this
+  	// Stops watching location previously initiated by `map.locate({watch: true})`
+  	// and aborts resetting the map view if map.locate was called with
+  	// `{setView: true}`.
+  	stopLocate: function () {
+  		if (navigator.geolocation && navigator.geolocation.clearWatch) {
+  			navigator.geolocation.clearWatch(this._locationWatchId);
+  		}
+  		if (this._locateOptions) {
+  			this._locateOptions.setView = false;
+  		}
+  		return this;
+  	},
+
+  	_handleGeolocationError: function (error) {
+  		if (!this._container._leaflet_id) { return; }
+
+  		var c = error.code,
+  		    message = error.message ||
+  		            (c === 1 ? 'permission denied' :
+  		            (c === 2 ? 'position unavailable' : 'timeout'));
+
+  		if (this._locateOptions.setView && !this._loaded) {
+  			this.fitWorld();
+  		}
+
+  		// @section Location events
+  		// @event locationerror: ErrorEvent
+  		// Fired when geolocation (using the [`locate`](#map-locate) method) failed.
+  		this.fire('locationerror', {
+  			code: c,
+  			message: 'Geolocation error: ' + message + '.'
+  		});
+  	},
+
+  	_handleGeolocationResponse: function (pos) {
+  		if (!this._container._leaflet_id) { return; }
+
+  		var lat = pos.coords.latitude,
+  		    lng = pos.coords.longitude,
+  		    latlng = new LatLng(lat, lng),
+  		    bounds = latlng.toBounds(pos.coords.accuracy * 2),
+  		    options = this._locateOptions;
+
+  		if (options.setView) {
+  			var zoom = this.getBoundsZoom(bounds);
+  			this.setView(latlng, options.maxZoom ? Math.min(zoom, options.maxZoom) : zoom);
+  		}
+
+  		var data = {
+  			latlng: latlng,
+  			bounds: bounds,
+  			timestamp: pos.timestamp
+  		};
+
+  		for (var i in pos.coords) {
+  			if (typeof pos.coords[i] === 'number') {
+  				data[i] = pos.coords[i];
+  			}
+  		}
+
+  		// @event locationfound: LocationEvent
+  		// Fired when geolocation (using the [`locate`](#map-locate) method)
+  		// went successfully.
+  		this.fire('locationfound', data);
+  	},
+
+  	// TODO Appropriate docs section?
+  	// @section Other Methods
+  	// @method addHandler(name: String, HandlerClass: Function): this
+  	// Adds a new `Handler` to the map, given its name and constructor function.
+  	addHandler: function (name, HandlerClass) {
+  		if (!HandlerClass) { return this; }
+
+  		var handler = this[name] = new HandlerClass(this);
+
+  		this._handlers.push(handler);
+
+  		if (this.options[name]) {
+  			handler.enable();
+  		}
+
+  		return this;
+  	},
+
+  	// @method remove(): this
+  	// Destroys the map and clears all related event listeners.
+  	remove: function () {
+
+  		this._initEvents(true);
+  		if (this.options.maxBounds) { this.off('moveend', this._panInsideMaxBounds); }
+
+  		if (this._containerId !== this._container._leaflet_id) {
+  			throw new Error('Map container is being reused by another instance');
+  		}
+
+  		try {
+  			// throws error in IE6-8
+  			delete this._container._leaflet_id;
+  			delete this._containerId;
+  		} catch (e) {
+  			/*eslint-disable */
+  			this._container._leaflet_id = undefined;
+  			/* eslint-enable */
+  			this._containerId = undefined;
+  		}
+
+  		if (this._locationWatchId !== undefined) {
+  			this.stopLocate();
+  		}
+
+  		this._stop();
+
+  		remove(this._mapPane);
+
+  		if (this._clearControlPos) {
+  			this._clearControlPos();
+  		}
+  		if (this._resizeRequest) {
+  			cancelAnimFrame(this._resizeRequest);
+  			this._resizeRequest = null;
+  		}
+
+  		this._clearHandlers();
+
+  		if (this._loaded) {
+  			// @section Map state change events
+  			// @event unload: Event
+  			// Fired when the map is destroyed with [remove](#map-remove) method.
+  			this.fire('unload');
+  		}
+
+  		var i;
+  		for (i in this._layers) {
+  			this._layers[i].remove();
+  		}
+  		for (i in this._panes) {
+  			remove(this._panes[i]);
+  		}
+
+  		this._layers = [];
+  		this._panes = [];
+  		delete this._mapPane;
+  		delete this._renderer;
+
+  		return this;
+  	},
+
+  	// @section Other Methods
+  	// @method createPane(name: String, container?: HTMLElement): HTMLElement
+  	// Creates a new [map pane](#map-pane) with the given name if it doesn't exist already,
+  	// then returns it. The pane is created as a child of `container`, or
+  	// as a child of the main map pane if not set.
+  	createPane: function (name, container) {
+  		var className = 'leaflet-pane' + (name ? ' leaflet-' + name.replace('Pane', '') + '-pane' : ''),
+  		    pane = create$1('div', className, container || this._mapPane);
+
+  		if (name) {
+  			this._panes[name] = pane;
+  		}
+  		return pane;
+  	},
+
+  	// @section Methods for Getting Map State
+
+  	// @method getCenter(): LatLng
+  	// Returns the geographical center of the map view
+  	getCenter: function () {
+  		this._checkIfLoaded();
+
+  		if (this._lastCenter && !this._moved()) {
+  			return this._lastCenter.clone();
+  		}
+  		return this.layerPointToLatLng(this._getCenterLayerPoint());
+  	},
+
+  	// @method getZoom(): Number
+  	// Returns the current zoom level of the map view
+  	getZoom: function () {
+  		return this._zoom;
+  	},
+
+  	// @method getBounds(): LatLngBounds
+  	// Returns the geographical bounds visible in the current map view
+  	getBounds: function () {
+  		var bounds = this.getPixelBounds(),
+  		    sw = this.unproject(bounds.getBottomLeft()),
+  		    ne = this.unproject(bounds.getTopRight());
+
+  		return new LatLngBounds(sw, ne);
+  	},
+
+  	// @method getMinZoom(): Number
+  	// Returns the minimum zoom level of the map (if set in the `minZoom` option of the map or of any layers), or `0` by default.
+  	getMinZoom: function () {
+  		return this.options.minZoom === undefined ? this._layersMinZoom || 0 : this.options.minZoom;
+  	},
+
+  	// @method getMaxZoom(): Number
+  	// Returns the maximum zoom level of the map (if set in the `maxZoom` option of the map or of any layers).
+  	getMaxZoom: function () {
+  		return this.options.maxZoom === undefined ?
+  			(this._layersMaxZoom === undefined ? Infinity : this._layersMaxZoom) :
+  			this.options.maxZoom;
+  	},
+
+  	// @method getBoundsZoom(bounds: LatLngBounds, inside?: Boolean, padding?: Point): Number
+  	// Returns the maximum zoom level on which the given bounds fit to the map
+  	// view in its entirety. If `inside` (optional) is set to `true`, the method
+  	// instead returns the minimum zoom level on which the map view fits into
+  	// the given bounds in its entirety.
+  	getBoundsZoom: function (bounds, inside, padding) { // (LatLngBounds[, Boolean, Point]) -> Number
+  		bounds = toLatLngBounds(bounds);
+  		padding = toPoint(padding || [0, 0]);
+
+  		var zoom = this.getZoom() || 0,
+  		    min = this.getMinZoom(),
+  		    max = this.getMaxZoom(),
+  		    nw = bounds.getNorthWest(),
+  		    se = bounds.getSouthEast(),
+  		    size = this.getSize().subtract(padding),
+  		    boundsSize = toBounds(this.project(se, zoom), this.project(nw, zoom)).getSize(),
+  		    snap = Browser.any3d ? this.options.zoomSnap : 1,
+  		    scalex = size.x / boundsSize.x,
+  		    scaley = size.y / boundsSize.y,
+  		    scale = inside ? Math.max(scalex, scaley) : Math.min(scalex, scaley);
+
+  		zoom = this.getScaleZoom(scale, zoom);
+
+  		if (snap) {
+  			zoom = Math.round(zoom / (snap / 100)) * (snap / 100); // don't jump if within 1% of a snap level
+  			zoom = inside ? Math.ceil(zoom / snap) * snap : Math.floor(zoom / snap) * snap;
+  		}
+
+  		return Math.max(min, Math.min(max, zoom));
+  	},
+
+  	// @method getSize(): Point
+  	// Returns the current size of the map container (in pixels).
+  	getSize: function () {
+  		if (!this._size || this._sizeChanged) {
+  			this._size = new Point(
+  				this._container.clientWidth || 0,
+  				this._container.clientHeight || 0);
+
+  			this._sizeChanged = false;
+  		}
+  		return this._size.clone();
+  	},
+
+  	// @method getPixelBounds(): Bounds
+  	// Returns the bounds of the current map view in projected pixel
+  	// coordinates (sometimes useful in layer and overlay implementations).
+  	getPixelBounds: function (center, zoom) {
+  		var topLeftPoint = this._getTopLeftPoint(center, zoom);
+  		return new Bounds(topLeftPoint, topLeftPoint.add(this.getSize()));
+  	},
+
+  	// TODO: Check semantics - isn't the pixel origin the 0,0 coord relative to
+  	// the map pane? "left point of the map layer" can be confusing, specially
+  	// since there can be negative offsets.
+  	// @method getPixelOrigin(): Point
+  	// Returns the projected pixel coordinates of the top left point of
+  	// the map layer (useful in custom layer and overlay implementations).
+  	getPixelOrigin: function () {
+  		this._checkIfLoaded();
+  		return this._pixelOrigin;
+  	},
+
+  	// @method getPixelWorldBounds(zoom?: Number): Bounds
+  	// Returns the world's bounds in pixel coordinates for zoom level `zoom`.
+  	// If `zoom` is omitted, the map's current zoom level is used.
+  	getPixelWorldBounds: function (zoom) {
+  		return this.options.crs.getProjectedBounds(zoom === undefined ? this.getZoom() : zoom);
+  	},
+
+  	// @section Other Methods
+
+  	// @method getPane(pane: String|HTMLElement): HTMLElement
+  	// Returns a [map pane](#map-pane), given its name or its HTML element (its identity).
+  	getPane: function (pane) {
+  		return typeof pane === 'string' ? this._panes[pane] : pane;
+  	},
+
+  	// @method getPanes(): Object
+  	// Returns a plain object containing the names of all [panes](#map-pane) as keys and
+  	// the panes as values.
+  	getPanes: function () {
+  		return this._panes;
+  	},
+
+  	// @method getContainer: HTMLElement
+  	// Returns the HTML element that contains the map.
+  	getContainer: function () {
+  		return this._container;
+  	},
+
+
+  	// @section Conversion Methods
+
+  	// @method getZoomScale(toZoom: Number, fromZoom: Number): Number
+  	// Returns the scale factor to be applied to a map transition from zoom level
+  	// `fromZoom` to `toZoom`. Used internally to help with zoom animations.
+  	getZoomScale: function (toZoom, fromZoom) {
+  		// TODO replace with universal implementation after refactoring projections
+  		var crs = this.options.crs;
+  		fromZoom = fromZoom === undefined ? this._zoom : fromZoom;
+  		return crs.scale(toZoom) / crs.scale(fromZoom);
+  	},
+
+  	// @method getScaleZoom(scale: Number, fromZoom: Number): Number
+  	// Returns the zoom level that the map would end up at, if it is at `fromZoom`
+  	// level and everything is scaled by a factor of `scale`. Inverse of
+  	// [`getZoomScale`](#map-getZoomScale).
+  	getScaleZoom: function (scale, fromZoom) {
+  		var crs = this.options.crs;
+  		fromZoom = fromZoom === undefined ? this._zoom : fromZoom;
+  		var zoom = crs.zoom(scale * crs.scale(fromZoom));
+  		return isNaN(zoom) ? Infinity : zoom;
+  	},
+
+  	// @method project(latlng: LatLng, zoom: Number): Point
+  	// Projects a geographical coordinate `LatLng` according to the projection
+  	// of the map's CRS, then scales it according to `zoom` and the CRS's
+  	// `Transformation`. The result is pixel coordinate relative to
+  	// the CRS origin.
+  	project: function (latlng, zoom) {
+  		zoom = zoom === undefined ? this._zoom : zoom;
+  		return this.options.crs.latLngToPoint(toLatLng(latlng), zoom);
+  	},
+
+  	// @method unproject(point: Point, zoom: Number): LatLng
+  	// Inverse of [`project`](#map-project).
+  	unproject: function (point, zoom) {
+  		zoom = zoom === undefined ? this._zoom : zoom;
+  		return this.options.crs.pointToLatLng(toPoint(point), zoom);
+  	},
+
+  	// @method layerPointToLatLng(point: Point): LatLng
+  	// Given a pixel coordinate relative to the [origin pixel](#map-getpixelorigin),
+  	// returns the corresponding geographical coordinate (for the current zoom level).
+  	layerPointToLatLng: function (point) {
+  		var projectedPoint = toPoint(point).add(this.getPixelOrigin());
+  		return this.unproject(projectedPoint);
+  	},
+
+  	// @method latLngToLayerPoint(latlng: LatLng): Point
+  	// Given a geographical coordinate, returns the corresponding pixel coordinate
+  	// relative to the [origin pixel](#map-getpixelorigin).
+  	latLngToLayerPoint: function (latlng) {
+  		var projectedPoint = this.project(toLatLng(latlng))._round();
+  		return projectedPoint._subtract(this.getPixelOrigin());
+  	},
+
+  	// @method wrapLatLng(latlng: LatLng): LatLng
+  	// Returns a `LatLng` where `lat` and `lng` has been wrapped according to the
+  	// map's CRS's `wrapLat` and `wrapLng` properties, if they are outside the
+  	// CRS's bounds.
+  	// By default this means longitude is wrapped around the dateline so its
+  	// value is between -180 and +180 degrees.
+  	wrapLatLng: function (latlng) {
+  		return this.options.crs.wrapLatLng(toLatLng(latlng));
+  	},
+
+  	// @method wrapLatLngBounds(bounds: LatLngBounds): LatLngBounds
+  	// Returns a `LatLngBounds` with the same size as the given one, ensuring that
+  	// its center is within the CRS's bounds.
+  	// By default this means the center longitude is wrapped around the dateline so its
+  	// value is between -180 and +180 degrees, and the majority of the bounds
+  	// overlaps the CRS's bounds.
+  	wrapLatLngBounds: function (latlng) {
+  		return this.options.crs.wrapLatLngBounds(toLatLngBounds(latlng));
+  	},
+
+  	// @method distance(latlng1: LatLng, latlng2: LatLng): Number
+  	// Returns the distance between two geographical coordinates according to
+  	// the map's CRS. By default this measures distance in meters.
+  	distance: function (latlng1, latlng2) {
+  		return this.options.crs.distance(toLatLng(latlng1), toLatLng(latlng2));
+  	},
+
+  	// @method containerPointToLayerPoint(point: Point): Point
+  	// Given a pixel coordinate relative to the map container, returns the corresponding
+  	// pixel coordinate relative to the [origin pixel](#map-getpixelorigin).
+  	containerPointToLayerPoint: function (point) { // (Point)
+  		return toPoint(point).subtract(this._getMapPanePos());
+  	},
+
+  	// @method layerPointToContainerPoint(point: Point): Point
+  	// Given a pixel coordinate relative to the [origin pixel](#map-getpixelorigin),
+  	// returns the corresponding pixel coordinate relative to the map container.
+  	layerPointToContainerPoint: function (point) { // (Point)
+  		return toPoint(point).add(this._getMapPanePos());
+  	},
+
+  	// @method containerPointToLatLng(point: Point): LatLng
+  	// Given a pixel coordinate relative to the map container, returns
+  	// the corresponding geographical coordinate (for the current zoom level).
+  	containerPointToLatLng: function (point) {
+  		var layerPoint = this.containerPointToLayerPoint(toPoint(point));
+  		return this.layerPointToLatLng(layerPoint);
+  	},
+
+  	// @method latLngToContainerPoint(latlng: LatLng): Point
+  	// Given a geographical coordinate, returns the corresponding pixel coordinate
+  	// relative to the map container.
+  	latLngToContainerPoint: function (latlng) {
+  		return this.layerPointToContainerPoint(this.latLngToLayerPoint(toLatLng(latlng)));
+  	},
+
+  	// @method mouseEventToContainerPoint(ev: MouseEvent): Point
+  	// Given a MouseEvent object, returns the pixel coordinate relative to the
+  	// map container where the event took place.
+  	mouseEventToContainerPoint: function (e) {
+  		return getMousePosition(e, this._container);
+  	},
+
+  	// @method mouseEventToLayerPoint(ev: MouseEvent): Point
+  	// Given a MouseEvent object, returns the pixel coordinate relative to
+  	// the [origin pixel](#map-getpixelorigin) where the event took place.
+  	mouseEventToLayerPoint: function (e) {
+  		return this.containerPointToLayerPoint(this.mouseEventToContainerPoint(e));
+  	},
+
+  	// @method mouseEventToLatLng(ev: MouseEvent): LatLng
+  	// Given a MouseEvent object, returns geographical coordinate where the
+  	// event took place.
+  	mouseEventToLatLng: function (e) { // (MouseEvent)
+  		return this.layerPointToLatLng(this.mouseEventToLayerPoint(e));
+  	},
+
+
+  	// map initialization methods
+
+  	_initContainer: function (id) {
+  		var container = this._container = get(id);
+
+  		if (!container) {
+  			throw new Error('Map container not found.');
+  		} else if (container._leaflet_id) {
+  			throw new Error('Map container is already initialized.');
+  		}
+
+  		on(container, 'scroll', this._onScroll, this);
+  		this._containerId = stamp(container);
+  	},
+
+  	_initLayout: function () {
+  		var container = this._container;
+
+  		this._fadeAnimated = this.options.fadeAnimation && Browser.any3d;
+
+  		addClass(container, 'leaflet-container' +
+  			(Browser.touch ? ' leaflet-touch' : '') +
+  			(Browser.retina ? ' leaflet-retina' : '') +
+  			(Browser.ielt9 ? ' leaflet-oldie' : '') +
+  			(Browser.safari ? ' leaflet-safari' : '') +
+  			(this._fadeAnimated ? ' leaflet-fade-anim' : ''));
+
+  		var position = getStyle(container, 'position');
+
+  		if (position !== 'absolute' && position !== 'relative' && position !== 'fixed' && position !== 'sticky') {
+  			container.style.position = 'relative';
+  		}
+
+  		this._initPanes();
+
+  		if (this._initControlPos) {
+  			this._initControlPos();
+  		}
+  	},
+
+  	_initPanes: function () {
+  		var panes = this._panes = {};
+  		this._paneRenderers = {};
+
+  		// @section
+  		//
+  		// Panes are DOM elements used to control the ordering of layers on the map. You
+  		// can access panes with [`map.getPane`](#map-getpane) or
+  		// [`map.getPanes`](#map-getpanes) methods. New panes can be created with the
+  		// [`map.createPane`](#map-createpane) method.
+  		//
+  		// Every map has the following default panes that differ only in zIndex.
+  		//
+  		// @pane mapPane: HTMLElement = 'auto'
+  		// Pane that contains all other map panes
+
+  		this._mapPane = this.createPane('mapPane', this._container);
+  		setPosition(this._mapPane, new Point(0, 0));
+
+  		// @pane tilePane: HTMLElement = 200
+  		// Pane for `GridLayer`s and `TileLayer`s
+  		this.createPane('tilePane');
+  		// @pane overlayPane: HTMLElement = 400
+  		// Pane for vectors (`Path`s, like `Polyline`s and `Polygon`s), `ImageOverlay`s and `VideoOverlay`s
+  		this.createPane('overlayPane');
+  		// @pane shadowPane: HTMLElement = 500
+  		// Pane for overlay shadows (e.g. `Marker` shadows)
+  		this.createPane('shadowPane');
+  		// @pane markerPane: HTMLElement = 600
+  		// Pane for `Icon`s of `Marker`s
+  		this.createPane('markerPane');
+  		// @pane tooltipPane: HTMLElement = 650
+  		// Pane for `Tooltip`s.
+  		this.createPane('tooltipPane');
+  		// @pane popupPane: HTMLElement = 700
+  		// Pane for `Popup`s.
+  		this.createPane('popupPane');
+
+  		if (!this.options.markerZoomAnimation) {
+  			addClass(panes.markerPane, 'leaflet-zoom-hide');
+  			addClass(panes.shadowPane, 'leaflet-zoom-hide');
+  		}
+  	},
+
+
+  	// private methods that modify map state
+
+  	// @section Map state change events
+  	_resetView: function (center, zoom, noMoveStart) {
+  		setPosition(this._mapPane, new Point(0, 0));
+
+  		var loading = !this._loaded;
+  		this._loaded = true;
+  		zoom = this._limitZoom(zoom);
+
+  		this.fire('viewprereset');
+
+  		var zoomChanged = this._zoom !== zoom;
+  		this
+  			._moveStart(zoomChanged, noMoveStart)
+  			._move(center, zoom)
+  			._moveEnd(zoomChanged);
+
+  		// @event viewreset: Event
+  		// Fired when the map needs to redraw its content (this usually happens
+  		// on map zoom or load). Very useful for creating custom overlays.
+  		this.fire('viewreset');
+
+  		// @event load: Event
+  		// Fired when the map is initialized (when its center and zoom are set
+  		// for the first time).
+  		if (loading) {
+  			this.fire('load');
+  		}
+  	},
+
+  	_moveStart: function (zoomChanged, noMoveStart) {
+  		// @event zoomstart: Event
+  		// Fired when the map zoom is about to change (e.g. before zoom animation).
+  		// @event movestart: Event
+  		// Fired when the view of the map starts changing (e.g. user starts dragging the map).
+  		if (zoomChanged) {
+  			this.fire('zoomstart');
+  		}
+  		if (!noMoveStart) {
+  			this.fire('movestart');
+  		}
+  		return this;
+  	},
+
+  	_move: function (center, zoom, data, supressEvent) {
+  		if (zoom === undefined) {
+  			zoom = this._zoom;
+  		}
+  		var zoomChanged = this._zoom !== zoom;
+
+  		this._zoom = zoom;
+  		this._lastCenter = center;
+  		this._pixelOrigin = this._getNewPixelOrigin(center);
+
+  		if (!supressEvent) {
+  			// @event zoom: Event
+  			// Fired repeatedly during any change in zoom level,
+  			// including zoom and fly animations.
+  			if (zoomChanged || (data && data.pinch)) {	// Always fire 'zoom' if pinching because #3530
+  				this.fire('zoom', data);
+  			}
+
+  			// @event move: Event
+  			// Fired repeatedly during any movement of the map,
+  			// including pan and fly animations.
+  			this.fire('move', data);
+  		} else if (data && data.pinch) {	// Always fire 'zoom' if pinching because #3530
+  			this.fire('zoom', data);
+  		}
+  		return this;
+  	},
+
+  	_moveEnd: function (zoomChanged) {
+  		// @event zoomend: Event
+  		// Fired when the map zoom changed, after any animations.
+  		if (zoomChanged) {
+  			this.fire('zoomend');
+  		}
+
+  		// @event moveend: Event
+  		// Fired when the center of the map stops changing
+  		// (e.g. user stopped dragging the map or after non-centered zoom).
+  		return this.fire('moveend');
+  	},
+
+  	_stop: function () {
+  		cancelAnimFrame(this._flyToFrame);
+  		if (this._panAnim) {
+  			this._panAnim.stop();
+  		}
+  		return this;
+  	},
+
+  	_rawPanBy: function (offset) {
+  		setPosition(this._mapPane, this._getMapPanePos().subtract(offset));
+  	},
+
+  	_getZoomSpan: function () {
+  		return this.getMaxZoom() - this.getMinZoom();
+  	},
+
+  	_panInsideMaxBounds: function () {
+  		if (!this._enforcingBounds) {
+  			this.panInsideBounds(this.options.maxBounds);
+  		}
+  	},
+
+  	_checkIfLoaded: function () {
+  		if (!this._loaded) {
+  			throw new Error('Set map center and zoom first.');
+  		}
+  	},
+
+  	// DOM event handling
+
+  	// @section Interaction events
+  	_initEvents: function (remove) {
+  		this._targets = {};
+  		this._targets[stamp(this._container)] = this;
+
+  		var onOff = remove ? off : on;
+
+  		// @event click: MouseEvent
+  		// Fired when the user clicks (or taps) the map.
+  		// @event dblclick: MouseEvent
+  		// Fired when the user double-clicks (or double-taps) the map.
+  		// @event mousedown: MouseEvent
+  		// Fired when the user pushes the mouse button on the map.
+  		// @event mouseup: MouseEvent
+  		// Fired when the user releases the mouse button on the map.
+  		// @event mouseover: MouseEvent
+  		// Fired when the mouse enters the map.
+  		// @event mouseout: MouseEvent
+  		// Fired when the mouse leaves the map.
+  		// @event mousemove: MouseEvent
+  		// Fired while the mouse moves over the map.
+  		// @event contextmenu: MouseEvent
+  		// Fired when the user pushes the right mouse button on the map, prevents
+  		// default browser context menu from showing if there are listeners on
+  		// this event. Also fired on mobile when the user holds a single touch
+  		// for a second (also called long press).
+  		// @event keypress: KeyboardEvent
+  		// Fired when the user presses a key from the keyboard that produces a character value while the map is focused.
+  		// @event keydown: KeyboardEvent
+  		// Fired when the user presses a key from the keyboard while the map is focused. Unlike the `keypress` event,
+  		// the `keydown` event is fired for keys that produce a character value and for keys
+  		// that do not produce a character value.
+  		// @event keyup: KeyboardEvent
+  		// Fired when the user releases a key from the keyboard while the map is focused.
+  		onOff(this._container, 'click dblclick mousedown mouseup ' +
+  			'mouseover mouseout mousemove contextmenu keypress keydown keyup', this._handleDOMEvent, this);
+
+  		if (this.options.trackResize) {
+  			onOff(window, 'resize', this._onResize, this);
+  		}
+
+  		if (Browser.any3d && this.options.transform3DLimit) {
+  			(remove ? this.off : this.on).call(this, 'moveend', this._onMoveEnd);
+  		}
+  	},
+
+  	_onResize: function () {
+  		cancelAnimFrame(this._resizeRequest);
+  		this._resizeRequest = requestAnimFrame(
+  		        function () { this.invalidateSize({debounceMoveend: true}); }, this);
+  	},
+
+  	_onScroll: function () {
+  		this._container.scrollTop  = 0;
+  		this._container.scrollLeft = 0;
+  	},
+
+  	_onMoveEnd: function () {
+  		var pos = this._getMapPanePos();
+  		if (Math.max(Math.abs(pos.x), Math.abs(pos.y)) >= this.options.transform3DLimit) {
+  			// https://bugzilla.mozilla.org/show_bug.cgi?id=1203873 but Webkit also have
+  			// a pixel offset on very high values, see: https://jsfiddle.net/dg6r5hhb/
+  			this._resetView(this.getCenter(), this.getZoom());
+  		}
+  	},
+
+  	_findEventTargets: function (e, type) {
+  		var targets = [],
+  		    target,
+  		    isHover = type === 'mouseout' || type === 'mouseover',
+  		    src = e.target || e.srcElement,
+  		    dragging = false;
+
+  		while (src) {
+  			target = this._targets[stamp(src)];
+  			if (target && (type === 'click' || type === 'preclick') && this._draggableMoved(target)) {
+  				// Prevent firing click after you just dragged an object.
+  				dragging = true;
+  				break;
+  			}
+  			if (target && target.listens(type, true)) {
+  				if (isHover && !isExternalTarget(src, e)) { break; }
+  				targets.push(target);
+  				if (isHover) { break; }
+  			}
+  			if (src === this._container) { break; }
+  			src = src.parentNode;
+  		}
+  		if (!targets.length && !dragging && !isHover && this.listens(type, true)) {
+  			targets = [this];
+  		}
+  		return targets;
+  	},
+
+  	_isClickDisabled: function (el) {
+  		while (el && el !== this._container) {
+  			if (el['_leaflet_disable_click']) { return true; }
+  			el = el.parentNode;
+  		}
+  	},
+
+  	_handleDOMEvent: function (e) {
+  		var el = (e.target || e.srcElement);
+  		if (!this._loaded || el['_leaflet_disable_events'] || e.type === 'click' && this._isClickDisabled(el)) {
+  			return;
+  		}
+
+  		var type = e.type;
+
+  		if (type === 'mousedown') {
+  			// prevents outline when clicking on keyboard-focusable element
+  			preventOutline(el);
+  		}
+
+  		this._fireDOMEvent(e, type);
+  	},
+
+  	_mouseEvents: ['click', 'dblclick', 'mouseover', 'mouseout', 'contextmenu'],
+
+  	_fireDOMEvent: function (e, type, canvasTargets) {
+
+  		if (e.type === 'click') {
+  			// Fire a synthetic 'preclick' event which propagates up (mainly for closing popups).
+  			// @event preclick: MouseEvent
+  			// Fired before mouse click on the map (sometimes useful when you
+  			// want something to happen on click before any existing click
+  			// handlers start running).
+  			var synth = extend({}, e);
+  			synth.type = 'preclick';
+  			this._fireDOMEvent(synth, synth.type, canvasTargets);
+  		}
+
+  		// Find the layer the event is propagating from and its parents.
+  		var targets = this._findEventTargets(e, type);
+
+  		if (canvasTargets) {
+  			var filtered = []; // pick only targets with listeners
+  			for (var i = 0; i < canvasTargets.length; i++) {
+  				if (canvasTargets[i].listens(type, true)) {
+  					filtered.push(canvasTargets[i]);
+  				}
+  			}
+  			targets = filtered.concat(targets);
+  		}
+
+  		if (!targets.length) { return; }
+
+  		if (type === 'contextmenu') {
+  			preventDefault(e);
+  		}
+
+  		var target = targets[0];
+  		var data = {
+  			originalEvent: e
+  		};
+
+  		if (e.type !== 'keypress' && e.type !== 'keydown' && e.type !== 'keyup') {
+  			var isMarker = target.getLatLng && (!target._radius || target._radius <= 10);
+  			data.containerPoint = isMarker ?
+  				this.latLngToContainerPoint(target.getLatLng()) : this.mouseEventToContainerPoint(e);
+  			data.layerPoint = this.containerPointToLayerPoint(data.containerPoint);
+  			data.latlng = isMarker ? target.getLatLng() : this.layerPointToLatLng(data.layerPoint);
+  		}
+
+  		for (i = 0; i < targets.length; i++) {
+  			targets[i].fire(type, data, true);
+  			if (data.originalEvent._stopped ||
+  				(targets[i].options.bubblingMouseEvents === false && indexOf(this._mouseEvents, type) !== -1)) { return; }
+  		}
+  	},
+
+  	_draggableMoved: function (obj) {
+  		obj = obj.dragging && obj.dragging.enabled() ? obj : this;
+  		return (obj.dragging && obj.dragging.moved()) || (this.boxZoom && this.boxZoom.moved());
+  	},
+
+  	_clearHandlers: function () {
+  		for (var i = 0, len = this._handlers.length; i < len; i++) {
+  			this._handlers[i].disable();
+  		}
+  	},
+
+  	// @section Other Methods
+
+  	// @method whenReady(fn: Function, context?: Object): this
+  	// Runs the given function `fn` when the map gets initialized with
+  	// a view (center and zoom) and at least one layer, or immediately
+  	// if it's already initialized, optionally passing a function context.
+  	whenReady: function (callback, context) {
+  		if (this._loaded) {
+  			callback.call(context || this, {target: this});
+  		} else {
+  			this.on('load', callback, context);
+  		}
+  		return this;
+  	},
+
+
+  	// private methods for getting map state
+
+  	_getMapPanePos: function () {
+  		return getPosition(this._mapPane) || new Point(0, 0);
+  	},
+
+  	_moved: function () {
+  		var pos = this._getMapPanePos();
+  		return pos && !pos.equals([0, 0]);
+  	},
+
+  	_getTopLeftPoint: function (center, zoom) {
+  		var pixelOrigin = center && zoom !== undefined ?
+  			this._getNewPixelOrigin(center, zoom) :
+  			this.getPixelOrigin();
+  		return pixelOrigin.subtract(this._getMapPanePos());
+  	},
+
+  	_getNewPixelOrigin: function (center, zoom) {
+  		var viewHalf = this.getSize()._divideBy(2);
+  		return this.project(center, zoom)._subtract(viewHalf)._add(this._getMapPanePos())._round();
+  	},
+
+  	_latLngToNewLayerPoint: function (latlng, zoom, center) {
+  		var topLeft = this._getNewPixelOrigin(center, zoom);
+  		return this.project(latlng, zoom)._subtract(topLeft);
+  	},
+
+  	_latLngBoundsToNewLayerBounds: function (latLngBounds, zoom, center) {
+  		var topLeft = this._getNewPixelOrigin(center, zoom);
+  		return toBounds([
+  			this.project(latLngBounds.getSouthWest(), zoom)._subtract(topLeft),
+  			this.project(latLngBounds.getNorthWest(), zoom)._subtract(topLeft),
+  			this.project(latLngBounds.getSouthEast(), zoom)._subtract(topLeft),
+  			this.project(latLngBounds.getNorthEast(), zoom)._subtract(topLeft)
+  		]);
+  	},
+
+  	// layer point of the current center
+  	_getCenterLayerPoint: function () {
+  		return this.containerPointToLayerPoint(this.getSize()._divideBy(2));
+  	},
+
+  	// offset of the specified place to the current center in pixels
+  	_getCenterOffset: function (latlng) {
+  		return this.latLngToLayerPoint(latlng).subtract(this._getCenterLayerPoint());
+  	},
+
+  	// adjust center for view to get inside bounds
+  	_limitCenter: function (center, zoom, bounds) {
+
+  		if (!bounds) { return center; }
+
+  		var centerPoint = this.project(center, zoom),
+  		    viewHalf = this.getSize().divideBy(2),
+  		    viewBounds = new Bounds(centerPoint.subtract(viewHalf), centerPoint.add(viewHalf)),
+  		    offset = this._getBoundsOffset(viewBounds, bounds, zoom);
+
+  		// If offset is less than a pixel, ignore.
+  		// This prevents unstable projections from getting into
+  		// an infinite loop of tiny offsets.
+  		if (Math.abs(offset.x) <= 1 && Math.abs(offset.y) <= 1) {
+  			return center;
+  		}
+
+  		return this.unproject(centerPoint.add(offset), zoom);
+  	},
+
+  	// adjust offset for view to get inside bounds
+  	_limitOffset: function (offset, bounds) {
+  		if (!bounds) { return offset; }
+
+  		var viewBounds = this.getPixelBounds(),
+  		    newBounds = new Bounds(viewBounds.min.add(offset), viewBounds.max.add(offset));
+
+  		return offset.add(this._getBoundsOffset(newBounds, bounds));
+  	},
+
+  	// returns offset needed for pxBounds to get inside maxBounds at a specified zoom
+  	_getBoundsOffset: function (pxBounds, maxBounds, zoom) {
+  		var projectedMaxBounds = toBounds(
+  		        this.project(maxBounds.getNorthEast(), zoom),
+  		        this.project(maxBounds.getSouthWest(), zoom)
+  		    ),
+  		    minOffset = projectedMaxBounds.min.subtract(pxBounds.min),
+  		    maxOffset = projectedMaxBounds.max.subtract(pxBounds.max),
+
+  		    dx = this._rebound(minOffset.x, -maxOffset.x),
+  		    dy = this._rebound(minOffset.y, -maxOffset.y);
+
+  		return new Point(dx, dy);
+  	},
+
+  	_rebound: function (left, right) {
+  		return left + right > 0 ?
+  			Math.round(left - right) / 2 :
+  			Math.max(0, Math.ceil(left)) - Math.max(0, Math.floor(right));
+  	},
+
+  	_limitZoom: function (zoom) {
+  		var min = this.getMinZoom(),
+  		    max = this.getMaxZoom(),
+  		    snap = Browser.any3d ? this.options.zoomSnap : 1;
+  		if (snap) {
+  			zoom = Math.round(zoom / snap) * snap;
+  		}
+  		return Math.max(min, Math.min(max, zoom));
+  	},
+
+  	_onPanTransitionStep: function () {
+  		this.fire('move');
+  	},
+
+  	_onPanTransitionEnd: function () {
+  		removeClass(this._mapPane, 'leaflet-pan-anim');
+  		this.fire('moveend');
+  	},
+
+  	_tryAnimatedPan: function (center, options) {
+  		// difference between the new and current centers in pixels
+  		var offset = this._getCenterOffset(center)._trunc();
+
+  		// don't animate too far unless animate: true specified in options
+  		if ((options && options.animate) !== true && !this.getSize().contains(offset)) { return false; }
+
+  		this.panBy(offset, options);
+
+  		return true;
+  	},
+
+  	_createAnimProxy: function () {
+
+  		var proxy = this._proxy = create$1('div', 'leaflet-proxy leaflet-zoom-animated');
+  		this._panes.mapPane.appendChild(proxy);
+
+  		this.on('zoomanim', function (e) {
+  			var prop = TRANSFORM,
+  			    transform = this._proxy.style[prop];
+
+  			setTransform(this._proxy, this.project(e.center, e.zoom), this.getZoomScale(e.zoom, 1));
+
+  			// workaround for case when transform is the same and so transitionend event is not fired
+  			if (transform === this._proxy.style[prop] && this._animatingZoom) {
+  				this._onZoomTransitionEnd();
+  			}
+  		}, this);
+
+  		this.on('load moveend', this._animMoveEnd, this);
+
+  		this._on('unload', this._destroyAnimProxy, this);
+  	},
+
+  	_destroyAnimProxy: function () {
+  		remove(this._proxy);
+  		this.off('load moveend', this._animMoveEnd, this);
+  		delete this._proxy;
+  	},
+
+  	_animMoveEnd: function () {
+  		var c = this.getCenter(),
+  		    z = this.getZoom();
+  		setTransform(this._proxy, this.project(c, z), this.getZoomScale(z, 1));
+  	},
+
+  	_catchTransitionEnd: function (e) {
+  		if (this._animatingZoom && e.propertyName.indexOf('transform') >= 0) {
+  			this._onZoomTransitionEnd();
+  		}
+  	},
+
+  	_nothingToAnimate: function () {
+  		return !this._container.getElementsByClassName('leaflet-zoom-animated').length;
+  	},
+
+  	_tryAnimatedZoom: function (center, zoom, options) {
+
+  		if (this._animatingZoom) { return true; }
+
+  		options = options || {};
+
+  		// don't animate if disabled, not supported or zoom difference is too large
+  		if (!this._zoomAnimated || options.animate === false || this._nothingToAnimate() ||
+  		        Math.abs(zoom - this._zoom) > this.options.zoomAnimationThreshold) { return false; }
+
+  		// offset is the pixel coords of the zoom origin relative to the current center
+  		var scale = this.getZoomScale(zoom),
+  		    offset = this._getCenterOffset(center)._divideBy(1 - 1 / scale);
+
+  		// don't animate if the zoom origin isn't within one screen from the current center, unless forced
+  		if (options.animate !== true && !this.getSize().contains(offset)) { return false; }
+
+  		requestAnimFrame(function () {
+  			this
+  			    ._moveStart(true, options.noMoveStart || false)
+  			    ._animateZoom(center, zoom, true);
+  		}, this);
+
+  		return true;
+  	},
+
+  	_animateZoom: function (center, zoom, startAnim, noUpdate) {
+  		if (!this._mapPane) { return; }
+
+  		if (startAnim) {
+  			this._animatingZoom = true;
+
+  			// remember what center/zoom to set after animation
+  			this._animateToCenter = center;
+  			this._animateToZoom = zoom;
+
+  			addClass(this._mapPane, 'leaflet-zoom-anim');
+  		}
+
+  		// @section Other Events
+  		// @event zoomanim: ZoomAnimEvent
+  		// Fired at least once per zoom animation. For continuous zoom, like pinch zooming, fired once per frame during zoom.
+  		this.fire('zoomanim', {
+  			center: center,
+  			zoom: zoom,
+  			noUpdate: noUpdate
+  		});
+
+  		if (!this._tempFireZoomEvent) {
+  			this._tempFireZoomEvent = this._zoom !== this._animateToZoom;
+  		}
+
+  		this._move(this._animateToCenter, this._animateToZoom, undefined, true);
+
+  		// Work around webkit not firing 'transitionend', see https://github.com/Leaflet/Leaflet/issues/3689, 2693
+  		setTimeout(bind(this._onZoomTransitionEnd, this), 250);
+  	},
+
+  	_onZoomTransitionEnd: function () {
+  		if (!this._animatingZoom) { return; }
+
+  		if (this._mapPane) {
+  			removeClass(this._mapPane, 'leaflet-zoom-anim');
+  		}
+
+  		this._animatingZoom = false;
+
+  		this._move(this._animateToCenter, this._animateToZoom, undefined, true);
+
+  		if (this._tempFireZoomEvent) {
+  			this.fire('zoom');
+  		}
+  		delete this._tempFireZoomEvent;
+
+  		this.fire('move');
+
+  		this._moveEnd(true);
+  	}
+  });
+
+  // @section
+
+  // @factory L.map(id: String, options?: Map options)
+  // Instantiates a map object given the DOM ID of a `<div>` element
+  // and optionally an object literal with `Map options`.
+  //
+  // @alternative
+  // @factory L.map(el: HTMLElement, options?: Map options)
+  // Instantiates a map object given an instance of a `<div>` HTML element
+  // and optionally an object literal with `Map options`.
+  function createMap(id, options) {
+  	return new Map(id, options);
+  }
+
+  /*
+   * @class Control
+   * @aka L.Control
+   * @inherits Class
+   *
+   * L.Control is a base class for implementing map controls. Handles positioning.
+   * All other controls extend from this class.
+   */
+
+  var Control = Class.extend({
+  	// @section
+  	// @aka Control Options
+  	options: {
+  		// @option position: String = 'topright'
+  		// The position of the control (one of the map corners). Possible values are `'topleft'`,
+  		// `'topright'`, `'bottomleft'` or `'bottomright'`
+  		position: 'topright'
+  	},
+
+  	initialize: function (options) {
+  		setOptions(this, options);
+  	},
+
+  	/* @section
+  	 * Classes extending L.Control will inherit the following methods:
+  	 *
+  	 * @method getPosition: string
+  	 * Returns the position of the control.
+  	 */
+  	getPosition: function () {
+  		return this.options.position;
+  	},
+
+  	// @method setPosition(position: string): this
+  	// Sets the position of the control.
+  	setPosition: function (position) {
+  		var map = this._map;
+
+  		if (map) {
+  			map.removeControl(this);
+  		}
+
+  		this.options.position = position;
+
+  		if (map) {
+  			map.addControl(this);
+  		}
+
+  		return this;
+  	},
+
+  	// @method getContainer: HTMLElement
+  	// Returns the HTMLElement that contains the control.
+  	getContainer: function () {
+  		return this._container;
+  	},
+
+  	// @method addTo(map: Map): this
+  	// Adds the control to the given map.
+  	addTo: function (map) {
+  		this.remove();
+  		this._map = map;
+
+  		var container = this._container = this.onAdd(map),
+  		    pos = this.getPosition(),
+  		    corner = map._controlCorners[pos];
+
+  		addClass(container, 'leaflet-control');
+
+  		if (pos.indexOf('bottom') !== -1) {
+  			corner.insertBefore(container, corner.firstChild);
+  		} else {
+  			corner.appendChild(container);
+  		}
+
+  		this._map.on('unload', this.remove, this);
+
+  		return this;
+  	},
+
+  	// @method remove: this
+  	// Removes the control from the map it is currently active on.
+  	remove: function () {
+  		if (!this._map) {
+  			return this;
+  		}
+
+  		remove(this._container);
+
+  		if (this.onRemove) {
+  			this.onRemove(this._map);
+  		}
+
+  		this._map.off('unload', this.remove, this);
+  		this._map = null;
+
+  		return this;
+  	},
+
+  	_refocusOnMap: function (e) {
+  		// if map exists and event is not a keyboard event
+  		if (this._map && e && e.screenX > 0 && e.screenY > 0) {
+  			this._map.getContainer().focus();
+  		}
+  	}
+  });
+
+  var control = function (options) {
+  	return new Control(options);
+  };
+
+  /* @section Extension methods
+   * @uninheritable
+   *
+   * Every control should extend from `L.Control` and (re-)implement the following methods.
+   *
+   * @method onAdd(map: Map): HTMLElement
+   * Should return the container DOM element for the control and add listeners on relevant map events. Called on [`control.addTo(map)`](#control-addTo).
+   *
+   * @method onRemove(map: Map)
+   * Optional method. Should contain all clean up code that removes the listeners previously added in [`onAdd`](#control-onadd). Called on [`control.remove()`](#control-remove).
+   */
+
+  /* @namespace Map
+   * @section Methods for Layers and Controls
+   */
+  Map.include({
+  	// @method addControl(control: Control): this
+  	// Adds the given control to the map
+  	addControl: function (control) {
+  		control.addTo(this);
+  		return this;
+  	},
+
+  	// @method removeControl(control: Control): this
+  	// Removes the given control from the map
+  	removeControl: function (control) {
+  		control.remove();
+  		return this;
+  	},
+
+  	_initControlPos: function () {
+  		var corners = this._controlCorners = {},
+  		    l = 'leaflet-',
+  		    container = this._controlContainer =
+  		            create$1('div', l + 'control-container', this._container);
+
+  		function createCorner(vSide, hSide) {
+  			var className = l + vSide + ' ' + l + hSide;
+
+  			corners[vSide + hSide] = create$1('div', className, container);
+  		}
+
+  		createCorner('top', 'left');
+  		createCorner('top', 'right');
+  		createCorner('bottom', 'left');
+  		createCorner('bottom', 'right');
+  	},
+
+  	_clearControlPos: function () {
+  		for (var i in this._controlCorners) {
+  			remove(this._controlCorners[i]);
+  		}
+  		remove(this._controlContainer);
+  		delete this._controlCorners;
+  		delete this._controlContainer;
+  	}
+  });
+
+  /*
+   * @class Control.Layers
+   * @aka L.Control.Layers
+   * @inherits Control
+   *
+   * The layers control gives users the ability to switch between different base layers and switch overlays on/off (check out the [detailed example](https://leafletjs.com/examples/layers-control/)). Extends `Control`.
+   *
+   * @example
+   *
+   * ```js
+   * var baseLayers = {
+   * 	"Mapbox": mapbox,
+   * 	"OpenStreetMap": osm
+   * };
+   *
+   * var overlays = {
+   * 	"Marker": marker,
+   * 	"Roads": roadsLayer
+   * };
+   *
+   * L.control.layers(baseLayers, overlays).addTo(map);
+   * ```
+   *
+   * The `baseLayers` and `overlays` parameters are object literals with layer names as keys and `Layer` objects as values:
+   *
+   * ```js
+   * {
+   *     "<someName1>": layer1,
+   *     "<someName2>": layer2
+   * }
+   * ```
+   *
+   * The layer names can contain HTML, which allows you to add additional styling to the items:
+   *
+   * ```js
+   * {"<img src='my-layer-icon' /> <span class='my-layer-item'>My Layer</span>": myLayer}
+   * ```
+   */
+
+  var Layers = Control.extend({
+  	// @section
+  	// @aka Control.Layers options
+  	options: {
+  		// @option collapsed: Boolean = true
+  		// If `true`, the control will be collapsed into an icon and expanded on mouse hover, touch, or keyboard activation.
+  		collapsed: true,
+  		position: 'topright',
+
+  		// @option autoZIndex: Boolean = true
+  		// If `true`, the control will assign zIndexes in increasing order to all of its layers so that the order is preserved when switching them on/off.
+  		autoZIndex: true,
+
+  		// @option hideSingleBase: Boolean = false
+  		// If `true`, the base layers in the control will be hidden when there is only one.
+  		hideSingleBase: false,
+
+  		// @option sortLayers: Boolean = false
+  		// Whether to sort the layers. When `false`, layers will keep the order
+  		// in which they were added to the control.
+  		sortLayers: false,
+
+  		// @option sortFunction: Function = *
+  		// A [compare function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/sort)
+  		// that will be used for sorting the layers, when `sortLayers` is `true`.
+  		// The function receives both the `L.Layer` instances and their names, as in
+  		// `sortFunction(layerA, layerB, nameA, nameB)`.
+  		// By default, it sorts layers alphabetically by their name.
+  		sortFunction: function (layerA, layerB, nameA, nameB) {
+  			return nameA < nameB ? -1 : (nameB < nameA ? 1 : 0);
+  		}
+  	},
+
+  	initialize: function (baseLayers, overlays, options) {
+  		setOptions(this, options);
+
+  		this._layerControlInputs = [];
+  		this._layers = [];
+  		this._lastZIndex = 0;
+  		this._handlingClick = false;
+  		this._preventClick = false;
+
+  		for (var i in baseLayers) {
+  			this._addLayer(baseLayers[i], i);
+  		}
+
+  		for (i in overlays) {
+  			this._addLayer(overlays[i], i, true);
+  		}
+  	},
+
+  	onAdd: function (map) {
+  		this._initLayout();
+  		this._update();
+
+  		this._map = map;
+  		map.on('zoomend', this._checkDisabledLayers, this);
+
+  		for (var i = 0; i < this._layers.length; i++) {
+  			this._layers[i].layer.on('add remove', this._onLayerChange, this);
+  		}
+
+  		return this._container;
+  	},
+
+  	addTo: function (map) {
+  		Control.prototype.addTo.call(this, map);
+  		// Trigger expand after Layers Control has been inserted into DOM so that is now has an actual height.
+  		return this._expandIfNotCollapsed();
+  	},
+
+  	onRemove: function () {
+  		this._map.off('zoomend', this._checkDisabledLayers, this);
+
+  		for (var i = 0; i < this._layers.length; i++) {
+  			this._layers[i].layer.off('add remove', this._onLayerChange, this);
+  		}
+  	},
+
+  	// @method addBaseLayer(layer: Layer, name: String): this
+  	// Adds a base layer (radio button entry) with the given name to the control.
+  	addBaseLayer: function (layer, name) {
+  		this._addLayer(layer, name);
+  		return (this._map) ? this._update() : this;
+  	},
+
+  	// @method addOverlay(layer: Layer, name: String): this
+  	// Adds an overlay (checkbox entry) with the given name to the control.
+  	addOverlay: function (layer, name) {
+  		this._addLayer(layer, name, true);
+  		return (this._map) ? this._update() : this;
+  	},
+
+  	// @method removeLayer(layer: Layer): this
+  	// Remove the given layer from the control.
+  	removeLayer: function (layer) {
+  		layer.off('add remove', this._onLayerChange, this);
+
+  		var obj = this._getLayer(stamp(layer));
+  		if (obj) {
+  			this._layers.splice(this._layers.indexOf(obj), 1);
+  		}
+  		return (this._map) ? this._update() : this;
+  	},
+
+  	// @method expand(): this
+  	// Expand the control container if collapsed.
+  	expand: function () {
+  		addClass(this._container, 'leaflet-control-layers-expanded');
+  		this._section.style.height = null;
+  		var acceptableHeight = this._map.getSize().y - (this._container.offsetTop + 50);
+  		if (acceptableHeight < this._section.clientHeight) {
+  			addClass(this._section, 'leaflet-control-layers-scrollbar');
+  			this._section.style.height = acceptableHeight + 'px';
+  		} else {
+  			removeClass(this._section, 'leaflet-control-layers-scrollbar');
+  		}
+  		this._checkDisabledLayers();
+  		return this;
+  	},
+
+  	// @method collapse(): this
+  	// Collapse the control container if expanded.
+  	collapse: function () {
+  		removeClass(this._container, 'leaflet-control-layers-expanded');
+  		return this;
+  	},
+
+  	_initLayout: function () {
+  		var className = 'leaflet-control-layers',
+  		    container = this._container = create$1('div', className),
+  		    collapsed = this.options.collapsed;
+
+  		// makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
+  		container.setAttribute('aria-haspopup', true);
+
+  		disableClickPropagation(container);
+  		disableScrollPropagation(container);
+
+  		var section = this._section = create$1('section', className + '-list');
+
+  		if (collapsed) {
+  			this._map.on('click', this.collapse, this);
+
+  			on(container, {
+  				mouseenter: this._expandSafely,
+  				mouseleave: this.collapse
+  			}, this);
+  		}
+
+  		var link = this._layersLink = create$1('a', className + '-toggle', container);
+  		link.href = '#';
+  		link.title = 'Layers';
+  		link.setAttribute('role', 'button');
+
+  		on(link, {
+  			keydown: function (e) {
+  				if (e.keyCode === 13) {
+  					this._expandSafely();
+  				}
+  			},
+  			// Certain screen readers intercept the key event and instead send a click event
+  			click: function (e) {
+  				preventDefault(e);
+  				this._expandSafely();
+  			}
+  		}, this);
+
+  		if (!collapsed) {
+  			this.expand();
+  		}
+
+  		this._baseLayersList = create$1('div', className + '-base', section);
+  		this._separator = create$1('div', className + '-separator', section);
+  		this._overlaysList = create$1('div', className + '-overlays', section);
+
+  		container.appendChild(section);
+  	},
+
+  	_getLayer: function (id) {
+  		for (var i = 0; i < this._layers.length; i++) {
+
+  			if (this._layers[i] && stamp(this._layers[i].layer) === id) {
+  				return this._layers[i];
+  			}
+  		}
+  	},
+
+  	_addLayer: function (layer, name, overlay) {
+  		if (this._map) {
+  			layer.on('add remove', this._onLayerChange, this);
+  		}
+
+  		this._layers.push({
+  			layer: layer,
+  			name: name,
+  			overlay: overlay
+  		});
+
+  		if (this.options.sortLayers) {
+  			this._layers.sort(bind(function (a, b) {
+  				return this.options.sortFunction(a.layer, b.layer, a.name, b.name);
+  			}, this));
+  		}
+
+  		if (this.options.autoZIndex && layer.setZIndex) {
+  			this._lastZIndex++;
+  			layer.setZIndex(this._lastZIndex);
+  		}
+
+  		this._expandIfNotCollapsed();
+  	},
+
+  	_update: function () {
+  		if (!this._container) { return this; }
+
+  		empty(this._baseLayersList);
+  		empty(this._overlaysList);
+
+  		this._layerControlInputs = [];
+  		var baseLayersPresent, overlaysPresent, i, obj, baseLayersCount = 0;
+
+  		for (i = 0; i < this._layers.length; i++) {
+  			obj = this._layers[i];
+  			this._addItem(obj);
+  			overlaysPresent = overlaysPresent || obj.overlay;
+  			baseLayersPresent = baseLayersPresent || !obj.overlay;
+  			baseLayersCount += !obj.overlay ? 1 : 0;
+  		}
+
+  		// Hide base layers section if there's only one layer.
+  		if (this.options.hideSingleBase) {
+  			baseLayersPresent = baseLayersPresent && baseLayersCount > 1;
+  			this._baseLayersList.style.display = baseLayersPresent ? '' : 'none';
+  		}
+
+  		this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
+
+  		return this;
+  	},
+
+  	_onLayerChange: function (e) {
+  		if (!this._handlingClick) {
+  			this._update();
+  		}
+
+  		var obj = this._getLayer(stamp(e.target));
+
+  		// @namespace Map
+  		// @section Layer events
+  		// @event baselayerchange: LayersControlEvent
+  		// Fired when the base layer is changed through the [layers control](#control-layers).
+  		// @event overlayadd: LayersControlEvent
+  		// Fired when an overlay is selected through the [layers control](#control-layers).
+  		// @event overlayremove: LayersControlEvent
+  		// Fired when an overlay is deselected through the [layers control](#control-layers).
+  		// @namespace Control.Layers
+  		var type = obj.overlay ?
+  			(e.type === 'add' ? 'overlayadd' : 'overlayremove') :
+  			(e.type === 'add' ? 'baselayerchange' : null);
+
+  		if (type) {
+  			this._map.fire(type, obj);
+  		}
+  	},
+
+  	// IE7 bugs out if you create a radio dynamically, so you have to do it this hacky way (see https://stackoverflow.com/a/119079)
+  	_createRadioElement: function (name, checked) {
+
+  		var radioHtml = '<input type="radio" class="leaflet-control-layers-selector" name="' +
+  				name + '"' + (checked ? ' checked="checked"' : '') + '/>';
+
+  		var radioFragment = document.createElement('div');
+  		radioFragment.innerHTML = radioHtml;
+
+  		return radioFragment.firstChild;
+  	},
+
+  	_addItem: function (obj) {
+  		var label = document.createElement('label'),
+  		    checked = this._map.hasLayer(obj.layer),
+  		    input;
+
+  		if (obj.overlay) {
+  			input = document.createElement('input');
+  			input.type = 'checkbox';
+  			input.className = 'leaflet-control-layers-selector';
+  			input.defaultChecked = checked;
+  		} else {
+  			input = this._createRadioElement('leaflet-base-layers_' + stamp(this), checked);
+  		}
+
+  		this._layerControlInputs.push(input);
+  		input.layerId = stamp(obj.layer);
+
+  		on(input, 'click', this._onInputClick, this);
+
+  		var name = document.createElement('span');
+  		name.innerHTML = ' ' + obj.name;
+
+  		// Helps from preventing layer control flicker when checkboxes are disabled
+  		// https://github.com/Leaflet/Leaflet/issues/2771
+  		var holder = document.createElement('span');
+
+  		label.appendChild(holder);
+  		holder.appendChild(input);
+  		holder.appendChild(name);
+
+  		var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+  		container.appendChild(label);
+
+  		this._checkDisabledLayers();
+  		return label;
+  	},
+
+  	_onInputClick: function () {
+  		// expanding the control on mobile with a click can cause adding a layer - we don't want this
+  		if (this._preventClick) {
+  			return;
+  		}
+
+  		var inputs = this._layerControlInputs,
+  		    input, layer;
+  		var addedLayers = [],
+  		    removedLayers = [];
+
+  		this._handlingClick = true;
+
+  		for (var i = inputs.length - 1; i >= 0; i--) {
+  			input = inputs[i];
+  			layer = this._getLayer(input.layerId).layer;
+
+  			if (input.checked) {
+  				addedLayers.push(layer);
+  			} else if (!input.checked) {
+  				removedLayers.push(layer);
+  			}
+  		}
+
+  		// Bugfix issue 2318: Should remove all old layers before readding new ones
+  		for (i = 0; i < removedLayers.length; i++) {
+  			if (this._map.hasLayer(removedLayers[i])) {
+  				this._map.removeLayer(removedLayers[i]);
+  			}
+  		}
+  		for (i = 0; i < addedLayers.length; i++) {
+  			if (!this._map.hasLayer(addedLayers[i])) {
+  				this._map.addLayer(addedLayers[i]);
+  			}
+  		}
+
+  		this._handlingClick = false;
+
+  		this._refocusOnMap();
+  	},
+
+  	_checkDisabledLayers: function () {
+  		var inputs = this._layerControlInputs,
+  		    input,
+  		    layer,
+  		    zoom = this._map.getZoom();
+
+  		for (var i = inputs.length - 1; i >= 0; i--) {
+  			input = inputs[i];
+  			layer = this._getLayer(input.layerId).layer;
+  			input.disabled = (layer.options.minZoom !== undefined && zoom < layer.options.minZoom) ||
+  			                 (layer.options.maxZoom !== undefined && zoom > layer.options.maxZoom);
+
+  		}
+  	},
+
+  	_expandIfNotCollapsed: function () {
+  		if (this._map && !this.options.collapsed) {
+  			this.expand();
+  		}
+  		return this;
+  	},
+
+  	_expandSafely: function () {
+  		var section = this._section;
+  		this._preventClick = true;
+  		on(section, 'click', preventDefault);
+  		this.expand();
+  		var that = this;
+  		setTimeout(function () {
+  			off(section, 'click', preventDefault);
+  			that._preventClick = false;
+  		});
+  	}
+
+  });
+
+
+  // @factory L.control.layers(baselayers?: Object, overlays?: Object, options?: Control.Layers options)
+  // Creates a layers control with the given layers. Base layers will be switched with radio buttons, while overlays will be switched with checkboxes. Note that all base layers should be passed in the base layers object, but only one should be added to the map during map instantiation.
+  var layers = function (baseLayers, overlays, options) {
+  	return new Layers(baseLayers, overlays, options);
+  };
+
+  /*
+   * @class Control.Zoom
+   * @aka L.Control.Zoom
+   * @inherits Control
+   *
+   * A basic zoom control with two buttons (zoom in and zoom out). It is put on the map by default unless you set its [`zoomControl` option](#map-zoomcontrol) to `false`. Extends `Control`.
+   */
+
+  var Zoom = Control.extend({
+  	// @section
+  	// @aka Control.Zoom options
+  	options: {
+  		position: 'topleft',
+
+  		// @option zoomInText: String = '<span aria-hidden="true">+</span>'
+  		// The text set on the 'zoom in' button.
+  		zoomInText: '<span aria-hidden="true">+</span>',
+
+  		// @option zoomInTitle: String = 'Zoom in'
+  		// The title set on the 'zoom in' button.
+  		zoomInTitle: 'Zoom in',
+
+  		// @option zoomOutText: String = '<span aria-hidden="true">&#x2212;</span>'
+  		// The text set on the 'zoom out' button.
+  		zoomOutText: '<span aria-hidden="true">&#x2212;</span>',
+
+  		// @option zoomOutTitle: String = 'Zoom out'
+  		// The title set on the 'zoom out' button.
+  		zoomOutTitle: 'Zoom out'
+  	},
+
+  	onAdd: function (map) {
+  		var zoomName = 'leaflet-control-zoom',
+  		    container = create$1('div', zoomName + ' leaflet-bar'),
+  		    options = this.options;
+
+  		this._zoomInButton  = this._createButton(options.zoomInText, options.zoomInTitle,
+  		        zoomName + '-in',  container, this._zoomIn);
+  		this._zoomOutButton = this._createButton(options.zoomOutText, options.zoomOutTitle,
+  		        zoomName + '-out', container, this._zoomOut);
+
+  		this._updateDisabled();
+  		map.on('zoomend zoomlevelschange', this._updateDisabled, this);
+
+  		return container;
+  	},
+
+  	onRemove: function (map) {
+  		map.off('zoomend zoomlevelschange', this._updateDisabled, this);
+  	},
+
+  	disable: function () {
+  		this._disabled = true;
+  		this._updateDisabled();
+  		return this;
+  	},
+
+  	enable: function () {
+  		this._disabled = false;
+  		this._updateDisabled();
+  		return this;
+  	},
+
+  	_zoomIn: function (e) {
+  		if (!this._disabled && this._map._zoom < this._map.getMaxZoom()) {
+  			this._map.zoomIn(this._map.options.zoomDelta * (e.shiftKey ? 3 : 1));
+  		}
+  	},
+
+  	_zoomOut: function (e) {
+  		if (!this._disabled && this._map._zoom > this._map.getMinZoom()) {
+  			this._map.zoomOut(this._map.options.zoomDelta * (e.shiftKey ? 3 : 1));
+  		}
+  	},
+
+  	_createButton: function (html, title, className, container, fn) {
+  		var link = create$1('a', className, container);
+  		link.innerHTML = html;
+  		link.href = '#';
+  		link.title = title;
+
+  		/*
+  		 * Will force screen readers like VoiceOver to read this as "Zoom in - button"
+  		 */
+  		link.setAttribute('role', 'button');
+  		link.setAttribute('aria-label', title);
+
+  		disableClickPropagation(link);
+  		on(link, 'click', stop);
+  		on(link, 'click', fn, this);
+  		on(link, 'click', this._refocusOnMap, this);
+
+  		return link;
+  	},
+
+  	_updateDisabled: function () {
+  		var map = this._map,
+  		    className = 'leaflet-disabled';
+
+  		removeClass(this._zoomInButton, className);
+  		removeClass(this._zoomOutButton, className);
+  		this._zoomInButton.setAttribute('aria-disabled', 'false');
+  		this._zoomOutButton.setAttribute('aria-disabled', 'false');
+
+  		if (this._disabled || map._zoom === map.getMinZoom()) {
+  			addClass(this._zoomOutButton, className);
+  			this._zoomOutButton.setAttribute('aria-disabled', 'true');
+  		}
+  		if (this._disabled || map._zoom === map.getMaxZoom()) {
+  			addClass(this._zoomInButton, className);
+  			this._zoomInButton.setAttribute('aria-disabled', 'true');
+  		}
+  	}
+  });
+
+  // @namespace Map
+  // @section Control options
+  // @option zoomControl: Boolean = true
+  // Whether a [zoom control](#control-zoom) is added to the map by default.
+  Map.mergeOptions({
+  	zoomControl: true
+  });
+
+  Map.addInitHook(function () {
+  	if (this.options.zoomControl) {
+  		// @section Controls
+  		// @property zoomControl: Control.Zoom
+  		// The default zoom control (only available if the
+  		// [`zoomControl` option](#map-zoomcontrol) was `true` when creating the map).
+  		this.zoomControl = new Zoom();
+  		this.addControl(this.zoomControl);
+  	}
+  });
+
+  // @namespace Control.Zoom
+  // @factory L.control.zoom(options: Control.Zoom options)
+  // Creates a zoom control
+  var zoom = function (options) {
+  	return new Zoom(options);
+  };
+
+  /*
+   * @class Control.Scale
+   * @aka L.Control.Scale
+   * @inherits Control
+   *
+   * A simple scale control that shows the scale of the current center of screen in metric (m/km) and imperial (mi/ft) systems. Extends `Control`.
+   *
+   * @example
+   *
+   * ```js
+   * L.control.scale().addTo(map);
+   * ```
+   */
+
+  var Scale = Control.extend({
+  	// @section
+  	// @aka Control.Scale options
+  	options: {
+  		position: 'bottomleft',
+
+  		// @option maxWidth: Number = 100
+  		// Maximum width of the control in pixels. The width is set dynamically to show round values (e.g. 100, 200, 500).
+  		maxWidth: 100,
+
+  		// @option metric: Boolean = True
+  		// Whether to show the metric scale line (m/km).
+  		metric: true,
+
+  		// @option imperial: Boolean = True
+  		// Whether to show the imperial scale line (mi/ft).
+  		imperial: true
+
+  		// @option updateWhenIdle: Boolean = false
+  		// If `true`, the control is updated on [`moveend`](#map-moveend), otherwise it's always up-to-date (updated on [`move`](#map-move)).
+  	},
+
+  	onAdd: function (map) {
+  		var className = 'leaflet-control-scale',
+  		    container = create$1('div', className),
+  		    options = this.options;
+
+  		this._addScales(options, className + '-line', container);
+
+  		map.on(options.updateWhenIdle ? 'moveend' : 'move', this._update, this);
+  		map.whenReady(this._update, this);
+
+  		return container;
+  	},
+
+  	onRemove: function (map) {
+  		map.off(this.options.updateWhenIdle ? 'moveend' : 'move', this._update, this);
+  	},
+
+  	_addScales: function (options, className, container) {
+  		if (options.metric) {
+  			this._mScale = create$1('div', className, container);
+  		}
+  		if (options.imperial) {
+  			this._iScale = create$1('div', className, container);
+  		}
+  	},
+
+  	_update: function () {
+  		var map = this._map,
+  		    y = map.getSize().y / 2;
+
+  		var maxMeters = map.distance(
+  			map.containerPointToLatLng([0, y]),
+  			map.containerPointToLatLng([this.options.maxWidth, y]));
+
+  		this._updateScales(maxMeters);
+  	},
+
+  	_updateScales: function (maxMeters) {
+  		if (this.options.metric && maxMeters) {
+  			this._updateMetric(maxMeters);
+  		}
+  		if (this.options.imperial && maxMeters) {
+  			this._updateImperial(maxMeters);
+  		}
+  	},
+
+  	_updateMetric: function (maxMeters) {
+  		var meters = this._getRoundNum(maxMeters),
+  		    label = meters < 1000 ? meters + ' m' : (meters / 1000) + ' km';
+
+  		this._updateScale(this._mScale, label, meters / maxMeters);
+  	},
+
+  	_updateImperial: function (maxMeters) {
+  		var maxFeet = maxMeters * 3.2808399,
+  		    maxMiles, miles, feet;
+
+  		if (maxFeet > 5280) {
+  			maxMiles = maxFeet / 5280;
+  			miles = this._getRoundNum(maxMiles);
+  			this._updateScale(this._iScale, miles + ' mi', miles / maxMiles);
+
+  		} else {
+  			feet = this._getRoundNum(maxFeet);
+  			this._updateScale(this._iScale, feet + ' ft', feet / maxFeet);
+  		}
+  	},
+
+  	_updateScale: function (scale, text, ratio) {
+  		scale.style.width = Math.round(this.options.maxWidth * ratio) + 'px';
+  		scale.innerHTML = text;
+  	},
+
+  	_getRoundNum: function (num) {
+  		var pow10 = Math.pow(10, (Math.floor(num) + '').length - 1),
+  		    d = num / pow10;
+
+  		d = d >= 10 ? 10 :
+  		    d >= 5 ? 5 :
+  		    d >= 3 ? 3 :
+  		    d >= 2 ? 2 : 1;
+
+  		return pow10 * d;
+  	}
+  });
+
+
+  // @factory L.control.scale(options?: Control.Scale options)
+  // Creates an scale control with the given options.
+  var scale = function (options) {
+  	return new Scale(options);
+  };
+
+  var ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"/><path fill="#FFD500" d="M0 4h12v3H0z"/><path fill="#E0BC00" d="M0 7h12v1H0z"/></svg>';
+
+
+  /*
+   * @class Control.Attribution
+   * @aka L.Control.Attribution
+   * @inherits Control
+   *
+   * The attribution control allows you to display attribution data in a small text box on a map. It is put on the map by default unless you set its [`attributionControl` option](#map-attributioncontrol) to `false`, and it fetches attribution texts from layers with the [`getAttribution` method](#layer-getattribution) automatically. Extends Control.
+   */
+
+  var Attribution = Control.extend({
+  	// @section
+  	// @aka Control.Attribution options
+  	options: {
+  		position: 'bottomright',
+
+  		// @option prefix: String|false = 'Leaflet'
+  		// The HTML text shown before the attributions. Pass `false` to disable.
+  		prefix: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">' + (Browser.inlineSvg ? ukrainianFlag + ' ' : '') + 'Leaflet</a>'
+  	},
+
+  	initialize: function (options) {
+  		setOptions(this, options);
+
+  		this._attributions = {};
+  	},
+
+  	onAdd: function (map) {
+  		map.attributionControl = this;
+  		this._container = create$1('div', 'leaflet-control-attribution');
+  		disableClickPropagation(this._container);
+
+  		// TODO ugly, refactor
+  		for (var i in map._layers) {
+  			if (map._layers[i].getAttribution) {
+  				this.addAttribution(map._layers[i].getAttribution());
+  			}
+  		}
+
+  		this._update();
+
+  		map.on('layeradd', this._addAttribution, this);
+
+  		return this._container;
+  	},
+
+  	onRemove: function (map) {
+  		map.off('layeradd', this._addAttribution, this);
+  	},
+
+  	_addAttribution: function (ev) {
+  		if (ev.layer.getAttribution) {
+  			this.addAttribution(ev.layer.getAttribution());
+  			ev.layer.once('remove', function () {
+  				this.removeAttribution(ev.layer.getAttribution());
+  			}, this);
+  		}
+  	},
+
+  	// @method setPrefix(prefix: String|false): this
+  	// The HTML text shown before the attributions. Pass `false` to disable.
+  	setPrefix: function (prefix) {
+  		this.options.prefix = prefix;
+  		this._update();
+  		return this;
+  	},
+
+  	// @method addAttribution(text: String): this
+  	// Adds an attribution text (e.g. `'&copy; OpenStreetMap contributors'`).
+  	addAttribution: function (text) {
+  		if (!text) { return this; }
+
+  		if (!this._attributions[text]) {
+  			this._attributions[text] = 0;
+  		}
+  		this._attributions[text]++;
+
+  		this._update();
+
+  		return this;
+  	},
+
+  	// @method removeAttribution(text: String): this
+  	// Removes an attribution text.
+  	removeAttribution: function (text) {
+  		if (!text) { return this; }
+
+  		if (this._attributions[text]) {
+  			this._attributions[text]--;
+  			this._update();
+  		}
+
+  		return this;
+  	},
+
+  	_update: function () {
+  		if (!this._map) { return; }
+
+  		var attribs = [];
+
+  		for (var i in this._attributions) {
+  			if (this._attributions[i]) {
+  				attribs.push(i);
+  			}
+  		}
+
+  		var prefixAndAttribs = [];
+
+  		if (this.options.prefix) {
+  			prefixAndAttribs.push(this.options.prefix);
+  		}
+  		if (attribs.length) {
+  			prefixAndAttribs.push(attribs.join(', '));
+  		}
+
+  		this._container.innerHTML = prefixAndAttribs.join(' <span aria-hidden="true">|</span> ');
+  	}
+  });
+
+  // @namespace Map
+  // @section Control options
+  // @option attributionControl: Boolean = true
+  // Whether a [attribution control](#control-attribution) is added to the map by default.
+  Map.mergeOptions({
+  	attributionControl: true
+  });
+
+  Map.addInitHook(function () {
+  	if (this.options.attributionControl) {
+  		new Attribution().addTo(this);
+  	}
+  });
+
+  // @namespace Control.Attribution
+  // @factory L.control.attribution(options: Control.Attribution options)
+  // Creates an attribution control.
+  var attribution = function (options) {
+  	return new Attribution(options);
+  };
+
+  Control.Layers = Layers;
+  Control.Zoom = Zoom;
+  Control.Scale = Scale;
+  Control.Attribution = Attribution;
+
+  control.layers = layers;
+  control.zoom = zoom;
+  control.scale = scale;
+  control.attribution = attribution;
+
+  /*
+  	L.Handler is a base class for handler classes that are used internally to inject
+  	interaction features like dragging to classes like Map and Marker.
+  */
+
+  // @class Handler
+  // @aka L.Handler
+  // Abstract class for map interaction handlers
+
+  var Handler = Class.extend({
+  	initialize: function (map) {
+  		this._map = map;
+  	},
+
+  	// @method enable(): this
+  	// Enables the handler
+  	enable: function () {
+  		if (this._enabled) { return this; }
+
+  		this._enabled = true;
+  		this.addHooks();
+  		return this;
+  	},
+
+  	// @method disable(): this
+  	// Disables the handler
+  	disable: function () {
+  		if (!this._enabled) { return this; }
+
+  		this._enabled = false;
+  		this.removeHooks();
+  		return this;
+  	},
+
+  	// @method enabled(): Boolean
+  	// Returns `true` if the handler is enabled
+  	enabled: function () {
+  		return !!this._enabled;
+  	}
+
+  	// @section Extension methods
+  	// Classes inheriting from `Handler` must implement the two following methods:
+  	// @method addHooks()
+  	// Called when the handler is enabled, should add event hooks.
+  	// @method removeHooks()
+  	// Called when the handler is disabled, should remove the event hooks added previously.
+  });
+
+  // @section There is static function which can be called without instantiating L.Handler:
+  // @function addTo(map: Map, name: String): this
+  // Adds a new Handler to the given map with the given name.
+  Handler.addTo = function (map, name) {
+  	map.addHandler(name, this);
+  	return this;
+  };
+
+  var Mixin = {Events: Events};
+
+  /*
+   * @class Draggable
+   * @aka L.Draggable
+   * @inherits Evented
+   *
+   * A class for making DOM elements draggable (including touch support).
+   * Used internally for map and marker dragging. Only works for elements
+   * that were positioned with [`L.DomUtil.setPosition`](#domutil-setposition).
+   *
+   * @example
+   * ```js
+   * var draggable = new L.Draggable(elementToDrag);
+   * draggable.enable();
+   * ```
+   */
+
+  var START = Browser.touch ? 'touchstart mousedown' : 'mousedown';
+
+  var Draggable = Evented.extend({
+
+  	options: {
+  		// @section
+  		// @aka Draggable options
+  		// @option clickTolerance: Number = 3
+  		// The max number of pixels a user can shift the mouse pointer during a click
+  		// for it to be considered a valid click (as opposed to a mouse drag).
+  		clickTolerance: 3
+  	},
+
+  	// @constructor L.Draggable(el: HTMLElement, dragHandle?: HTMLElement, preventOutline?: Boolean, options?: Draggable options)
+  	// Creates a `Draggable` object for moving `el` when you start dragging the `dragHandle` element (equals `el` itself by default).
+  	initialize: function (element, dragStartTarget, preventOutline, options) {
+  		setOptions(this, options);
+
+  		this._element = element;
+  		this._dragStartTarget = dragStartTarget || element;
+  		this._preventOutline = preventOutline;
+  	},
+
+  	// @method enable()
+  	// Enables the dragging ability
+  	enable: function () {
+  		if (this._enabled) { return; }
+
+  		on(this._dragStartTarget, START, this._onDown, this);
+
+  		this._enabled = true;
+  	},
+
+  	// @method disable()
+  	// Disables the dragging ability
+  	disable: function () {
+  		if (!this._enabled) { return; }
+
+  		// If we're currently dragging this draggable,
+  		// disabling it counts as first ending the drag.
+  		if (Draggable._dragging === this) {
+  			this.finishDrag(true);
+  		}
+
+  		off(this._dragStartTarget, START, this._onDown, this);
+
+  		this._enabled = false;
+  		this._moved = false;
+  	},
+
+  	_onDown: function (e) {
+  		// Ignore the event if disabled; this happens in IE11
+  		// under some circumstances, see #3666.
+  		if (!this._enabled) { return; }
+
+  		this._moved = false;
+
+  		if (hasClass(this._element, 'leaflet-zoom-anim')) { return; }
+
+  		if (e.touches && e.touches.length !== 1) {
+  			// Finish dragging to avoid conflict with touchZoom
+  			if (Draggable._dragging === this) {
+  				this.finishDrag();
+  			}
+  			return;
+  		}
+
+  		if (Draggable._dragging || e.shiftKey || ((e.which !== 1) && (e.button !== 1) && !e.touches)) { return; }
+  		Draggable._dragging = this;  // Prevent dragging multiple objects at once.
+
+  		if (this._preventOutline) {
+  			preventOutline(this._element);
+  		}
+
+  		disableImageDrag();
+  		disableTextSelection();
+
+  		if (this._moving) { return; }
+
+  		// @event down: Event
+  		// Fired when a drag is about to start.
+  		this.fire('down');
+
+  		var first = e.touches ? e.touches[0] : e,
+  		    sizedParent = getSizedParentNode(this._element);
+
+  		this._startPoint = new Point(first.clientX, first.clientY);
+  		this._startPos = getPosition(this._element);
+
+  		// Cache the scale, so that we can continuously compensate for it during drag (_onMove).
+  		this._parentScale = getScale(sizedParent);
+
+  		var mouseevent = e.type === 'mousedown';
+  		on(document, mouseevent ? 'mousemove' : 'touchmove', this._onMove, this);
+  		on(document, mouseevent ? 'mouseup' : 'touchend touchcancel', this._onUp, this);
+  	},
+
+  	_onMove: function (e) {
+  		// Ignore the event if disabled; this happens in IE11
+  		// under some circumstances, see #3666.
+  		if (!this._enabled) { return; }
+
+  		if (e.touches && e.touches.length > 1) {
+  			this._moved = true;
+  			return;
+  		}
+
+  		var first = (e.touches && e.touches.length === 1 ? e.touches[0] : e),
+  		    offset = new Point(first.clientX, first.clientY)._subtract(this._startPoint);
+
+  		if (!offset.x && !offset.y) { return; }
+  		if (Math.abs(offset.x) + Math.abs(offset.y) < this.options.clickTolerance) { return; }
+
+  		// We assume that the parent container's position, border and scale do not change for the duration of the drag.
+  		// Therefore there is no need to account for the position and border (they are eliminated by the subtraction)
+  		// and we can use the cached value for the scale.
+  		offset.x /= this._parentScale.x;
+  		offset.y /= this._parentScale.y;
+
+  		preventDefault(e);
+
+  		if (!this._moved) {
+  			// @event dragstart: Event
+  			// Fired when a drag starts
+  			this.fire('dragstart');
+
+  			this._moved = true;
+
+  			addClass(document.body, 'leaflet-dragging');
+
+  			this._lastTarget = e.target || e.srcElement;
+  			// IE and Edge do not give the <use> element, so fetch it
+  			// if necessary
+  			if (window.SVGElementInstance && this._lastTarget instanceof window.SVGElementInstance) {
+  				this._lastTarget = this._lastTarget.correspondingUseElement;
+  			}
+  			addClass(this._lastTarget, 'leaflet-drag-target');
+  		}
+
+  		this._newPos = this._startPos.add(offset);
+  		this._moving = true;
+
+  		this._lastEvent = e;
+  		this._updatePosition();
+  	},
+
+  	_updatePosition: function () {
+  		var e = {originalEvent: this._lastEvent};
+
+  		// @event predrag: Event
+  		// Fired continuously during dragging *before* each corresponding
+  		// update of the element's position.
+  		this.fire('predrag', e);
+  		setPosition(this._element, this._newPos);
+
+  		// @event drag: Event
+  		// Fired continuously during dragging.
+  		this.fire('drag', e);
+  	},
+
+  	_onUp: function () {
+  		// Ignore the event if disabled; this happens in IE11
+  		// under some circumstances, see #3666.
+  		if (!this._enabled) { return; }
+  		this.finishDrag();
+  	},
+
+  	finishDrag: function (noInertia) {
+  		removeClass(document.body, 'leaflet-dragging');
+
+  		if (this._lastTarget) {
+  			removeClass(this._lastTarget, 'leaflet-drag-target');
+  			this._lastTarget = null;
+  		}
+
+  		off(document, 'mousemove touchmove', this._onMove, this);
+  		off(document, 'mouseup touchend touchcancel', this._onUp, this);
+
+  		enableImageDrag();
+  		enableTextSelection();
+
+  		var fireDragend = this._moved && this._moving;
+
+  		this._moving = false;
+  		Draggable._dragging = false;
+
+  		if (fireDragend) {
+  			// @event dragend: DragEndEvent
+  			// Fired when the drag ends.
+  			this.fire('dragend', {
+  				noInertia: noInertia,
+  				distance: this._newPos.distanceTo(this._startPos)
+  			});
+  		}
+  	}
+
+  });
+
+  /*
+   * @namespace PolyUtil
+   * Various utility functions for polygon geometries.
+   */
+
+  /* @function clipPolygon(points: Point[], bounds: Bounds, round?: Boolean): Point[]
+   * Clips the polygon geometry defined by the given `points` by the given bounds (using the [Sutherland-Hodgman algorithm](https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm)).
+   * Used by Leaflet to only show polygon points that are on the screen or near, increasing
+   * performance. Note that polygon points needs different algorithm for clipping
+   * than polyline, so there's a separate method for it.
+   */
+  function clipPolygon(points, bounds, round) {
+  	var clippedPoints,
+  	    edges = [1, 4, 2, 8],
+  	    i, j, k,
+  	    a, b,
+  	    len, edge, p;
+
+  	for (i = 0, len = points.length; i < len; i++) {
+  		points[i]._code = _getBitCode(points[i], bounds);
+  	}
+
+  	// for each edge (left, bottom, right, top)
+  	for (k = 0; k < 4; k++) {
+  		edge = edges[k];
+  		clippedPoints = [];
+
+  		for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
+  			a = points[i];
+  			b = points[j];
+
+  			// if a is inside the clip window
+  			if (!(a._code & edge)) {
+  				// if b is outside the clip window (a->b goes out of screen)
+  				if (b._code & edge) {
+  					p = _getEdgeIntersection(b, a, edge, bounds, round);
+  					p._code = _getBitCode(p, bounds);
+  					clippedPoints.push(p);
+  				}
+  				clippedPoints.push(a);
+
+  			// else if b is inside the clip window (a->b enters the screen)
+  			} else if (!(b._code & edge)) {
+  				p = _getEdgeIntersection(b, a, edge, bounds, round);
+  				p._code = _getBitCode(p, bounds);
+  				clippedPoints.push(p);
+  			}
+  		}
+  		points = clippedPoints;
+  	}
+
+  	return points;
+  }
+
+  /* @function polygonCenter(latlngs: LatLng[], crs: CRS): LatLng
+   * Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the passed LatLngs (first ring) from a polygon.
+   */
+  function polygonCenter(latlngs, crs) {
+  	var i, j, p1, p2, f, area, x, y, center;
+
+  	if (!latlngs || latlngs.length === 0) {
+  		throw new Error('latlngs not passed');
+  	}
+
+  	if (!isFlat(latlngs)) {
+  		console.warn('latlngs are not flat! Only the first ring will be used');
+  		latlngs = latlngs[0];
+  	}
+
+  	var centroidLatLng = toLatLng([0, 0]);
+
+  	var bounds = toLatLngBounds(latlngs);
+  	var areaBounds = bounds.getNorthWest().distanceTo(bounds.getSouthWest()) * bounds.getNorthEast().distanceTo(bounds.getNorthWest());
+  	// tests showed that below 1700 rounding errors are happening
+  	if (areaBounds < 1700) {
+  		// getting a inexact center, to move the latlngs near to [0, 0] to prevent rounding errors
+  		centroidLatLng = centroid(latlngs);
+  	}
+
+  	var len = latlngs.length;
+  	var points = [];
+  	for (i = 0; i < len; i++) {
+  		var latlng = toLatLng(latlngs[i]);
+  		points.push(crs.project(toLatLng([latlng.lat - centroidLatLng.lat, latlng.lng - centroidLatLng.lng])));
+  	}
+
+  	area = x = y = 0;
+
+  	// polygon centroid algorithm;
+  	for (i = 0, j = len - 1; i < len; j = i++) {
+  		p1 = points[i];
+  		p2 = points[j];
+
+  		f = p1.y * p2.x - p2.y * p1.x;
+  		x += (p1.x + p2.x) * f;
+  		y += (p1.y + p2.y) * f;
+  		area += f * 3;
+  	}
+
+  	if (area === 0) {
+  		// Polygon is so small that all points are on same pixel.
+  		center = points[0];
+  	} else {
+  		center = [x / area, y / area];
+  	}
+
+  	var latlngCenter = crs.unproject(toPoint(center));
+  	return toLatLng([latlngCenter.lat + centroidLatLng.lat, latlngCenter.lng + centroidLatLng.lng]);
+  }
+
+  /* @function centroid(latlngs: LatLng[]): LatLng
+   * Returns the 'center of mass' of the passed LatLngs.
+   */
+  function centroid(coords) {
+  	var latSum = 0;
+  	var lngSum = 0;
+  	var len = 0;
+  	for (var i = 0; i < coords.length; i++) {
+  		var latlng = toLatLng(coords[i]);
+  		latSum += latlng.lat;
+  		lngSum += latlng.lng;
+  		len++;
+  	}
+  	return toLatLng([latSum / len, lngSum / len]);
+  }
+
+  var PolyUtil = {
+    __proto__: null,
+    clipPolygon: clipPolygon,
+    polygonCenter: polygonCenter,
+    centroid: centroid
+  };
+
+  /*
+   * @namespace LineUtil
+   *
+   * Various utility functions for polyline points processing, used by Leaflet internally to make polylines lightning-fast.
+   */
+
+  // Simplify polyline with vertex reduction and Douglas-Peucker simplification.
+  // Improves rendering performance dramatically by lessening the number of points to draw.
+
+  // @function simplify(points: Point[], tolerance: Number): Point[]
+  // Dramatically reduces the number of points in a polyline while retaining
+  // its shape and returns a new array of simplified points, using the
+  // [Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm).
+  // Used for a huge performance boost when processing/displaying Leaflet polylines for
+  // each zoom level and also reducing visual noise. tolerance affects the amount of
+  // simplification (lesser value means higher quality but slower and with more points).
+  // Also released as a separated micro-library [Simplify.js](https://mourner.github.io/simplify-js/).
+  function simplify(points, tolerance) {
+  	if (!tolerance || !points.length) {
+  		return points.slice();
+  	}
+
+  	var sqTolerance = tolerance * tolerance;
+
+  	    // stage 1: vertex reduction
+  	    points = _reducePoints(points, sqTolerance);
+
+  	    // stage 2: Douglas-Peucker simplification
+  	    points = _simplifyDP(points, sqTolerance);
+
+  	return points;
+  }
+
+  // @function pointToSegmentDistance(p: Point, p1: Point, p2: Point): Number
+  // Returns the distance between point `p` and segment `p1` to `p2`.
+  function pointToSegmentDistance(p, p1, p2) {
+  	return Math.sqrt(_sqClosestPointOnSegment(p, p1, p2, true));
+  }
+
+  // @function closestPointOnSegment(p: Point, p1: Point, p2: Point): Number
+  // Returns the closest point from a point `p` on a segment `p1` to `p2`.
+  function closestPointOnSegment(p, p1, p2) {
+  	return _sqClosestPointOnSegment(p, p1, p2);
+  }
+
+  // Ramer-Douglas-Peucker simplification, see https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
+  function _simplifyDP(points, sqTolerance) {
+
+  	var len = points.length,
+  	    ArrayConstructor = typeof Uint8Array !== undefined + '' ? Uint8Array : Array,
+  	    markers = new ArrayConstructor(len);
+
+  	    markers[0] = markers[len - 1] = 1;
+
+  	_simplifyDPStep(points, markers, sqTolerance, 0, len - 1);
+
+  	var i,
+  	    newPoints = [];
+
+  	for (i = 0; i < len; i++) {
+  		if (markers[i]) {
+  			newPoints.push(points[i]);
+  		}
+  	}
+
+  	return newPoints;
+  }
+
+  function _simplifyDPStep(points, markers, sqTolerance, first, last) {
+
+  	var maxSqDist = 0,
+  	index, i, sqDist;
+
+  	for (i = first + 1; i <= last - 1; i++) {
+  		sqDist = _sqClosestPointOnSegment(points[i], points[first], points[last], true);
+
+  		if (sqDist > maxSqDist) {
+  			index = i;
+  			maxSqDist = sqDist;
+  		}
+  	}
+
+  	if (maxSqDist > sqTolerance) {
+  		markers[index] = 1;
+
+  		_simplifyDPStep(points, markers, sqTolerance, first, index);
+  		_simplifyDPStep(points, markers, sqTolerance, index, last);
+  	}
+  }
+
+  // reduce points that are too close to each other to a single point
+  function _reducePoints(points, sqTolerance) {
+  	var reducedPoints = [points[0]];
+
+  	for (var i = 1, prev = 0, len = points.length; i < len; i++) {
+  		if (_sqDist(points[i], points[prev]) > sqTolerance) {
+  			reducedPoints.push(points[i]);
+  			prev = i;
+  		}
+  	}
+  	if (prev < len - 1) {
+  		reducedPoints.push(points[len - 1]);
+  	}
+  	return reducedPoints;
+  }
+
+  var _lastCode;
+
+  // @function clipSegment(a: Point, b: Point, bounds: Bounds, useLastCode?: Boolean, round?: Boolean): Point[]|Boolean
+  // Clips the segment a to b by rectangular bounds with the
+  // [Cohen-Sutherland algorithm](https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm)
+  // (modifying the segment points directly!). Used by Leaflet to only show polyline
+  // points that are on the screen or near, increasing performance.
+  function clipSegment(a, b, bounds, useLastCode, round) {
+  	var codeA = useLastCode ? _lastCode : _getBitCode(a, bounds),
+  	    codeB = _getBitCode(b, bounds),
+
+  	    codeOut, p, newCode;
+
+  	    // save 2nd code to avoid calculating it on the next segment
+  	    _lastCode = codeB;
+
+  	while (true) {
+  		// if a,b is inside the clip window (trivial accept)
+  		if (!(codeA | codeB)) {
+  			return [a, b];
+  		}
+
+  		// if a,b is outside the clip window (trivial reject)
+  		if (codeA & codeB) {
+  			return false;
+  		}
+
+  		// other cases
+  		codeOut = codeA || codeB;
+  		p = _getEdgeIntersection(a, b, codeOut, bounds, round);
+  		newCode = _getBitCode(p, bounds);
+
+  		if (codeOut === codeA) {
+  			a = p;
+  			codeA = newCode;
+  		} else {
+  			b = p;
+  			codeB = newCode;
+  		}
+  	}
+  }
+
+  function _getEdgeIntersection(a, b, code, bounds, round) {
+  	var dx = b.x - a.x,
+  	    dy = b.y - a.y,
+  	    min = bounds.min,
+  	    max = bounds.max,
+  	    x, y;
+
+  	if (code & 8) { // top
+  		x = a.x + dx * (max.y - a.y) / dy;
+  		y = max.y;
+
+  	} else if (code & 4) { // bottom
+  		x = a.x + dx * (min.y - a.y) / dy;
+  		y = min.y;
+
+  	} else if (code & 2) { // right
+  		x = max.x;
+  		y = a.y + dy * (max.x - a.x) / dx;
+
+  	} else if (code & 1) { // left
+  		x = min.x;
+  		y = a.y + dy * (min.x - a.x) / dx;
+  	}
+
+  	return new Point(x, y, round);
+  }
+
+  function _getBitCode(p, bounds) {
+  	var code = 0;
+
+  	if (p.x < bounds.min.x) { // left
+  		code |= 1;
+  	} else if (p.x > bounds.max.x) { // right
+  		code |= 2;
+  	}
+
+  	if (p.y < bounds.min.y) { // bottom
+  		code |= 4;
+  	} else if (p.y > bounds.max.y) { // top
+  		code |= 8;
+  	}
+
+  	return code;
+  }
+
+  // square distance (to avoid unnecessary Math.sqrt calls)
+  function _sqDist(p1, p2) {
+  	var dx = p2.x - p1.x,
+  	    dy = p2.y - p1.y;
+  	return dx * dx + dy * dy;
+  }
+
+  // return closest point on segment or distance to that point
+  function _sqClosestPointOnSegment(p, p1, p2, sqDist) {
+  	var x = p1.x,
+  	    y = p1.y,
+  	    dx = p2.x - x,
+  	    dy = p2.y - y,
+  	    dot = dx * dx + dy * dy,
+  	    t;
+
+  	if (dot > 0) {
+  		t = ((p.x - x) * dx + (p.y - y) * dy) / dot;
+
+  		if (t > 1) {
+  			x = p2.x;
+  			y = p2.y;
+  		} else if (t > 0) {
+  			x += dx * t;
+  			y += dy * t;
+  		}
+  	}
+
+  	dx = p.x - x;
+  	dy = p.y - y;
+
+  	return sqDist ? dx * dx + dy * dy : new Point(x, y);
+  }
+
+
+  // @function isFlat(latlngs: LatLng[]): Boolean
+  // Returns true if `latlngs` is a flat array, false is nested.
+  function isFlat(latlngs) {
+  	return !isArray(latlngs[0]) || (typeof latlngs[0][0] !== 'object' && typeof latlngs[0][0] !== 'undefined');
+  }
+
+  function _flat(latlngs) {
+  	console.warn('Deprecated use of _flat, please use L.LineUtil.isFlat instead.');
+  	return isFlat(latlngs);
+  }
+
+  /* @function polylineCenter(latlngs: LatLng[], crs: CRS): LatLng
+   * Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the passed LatLngs (first ring) from a polyline.
+   */
+  function polylineCenter(latlngs, crs) {
+  	var i, halfDist, segDist, dist, p1, p2, ratio, center;
+
+  	if (!latlngs || latlngs.length === 0) {
+  		throw new Error('latlngs not passed');
+  	}
+
+  	if (!isFlat(latlngs)) {
+  		console.warn('latlngs are not flat! Only the first ring will be used');
+  		latlngs = latlngs[0];
+  	}
+
+  	var centroidLatLng = toLatLng([0, 0]);
+
+  	var bounds = toLatLngBounds(latlngs);
+  	var areaBounds = bounds.getNorthWest().distanceTo(bounds.getSouthWest()) * bounds.getNorthEast().distanceTo(bounds.getNorthWest());
+  	// tests showed that below 1700 rounding errors are happening
+  	if (areaBounds < 1700) {
+  		// getting a inexact center, to move the latlngs near to [0, 0] to prevent rounding errors
+  		centroidLatLng = centroid(latlngs);
+  	}
+
+  	var len = latlngs.length;
+  	var points = [];
+  	for (i = 0; i < len; i++) {
+  		var latlng = toLatLng(latlngs[i]);
+  		points.push(crs.project(toLatLng([latlng.lat - centroidLatLng.lat, latlng.lng - centroidLatLng.lng])));
+  	}
+
+  	for (i = 0, halfDist = 0; i < len - 1; i++) {
+  		halfDist += points[i].distanceTo(points[i + 1]) / 2;
+  	}
+
+  	// The line is so small in the current view that all points are on the same pixel.
+  	if (halfDist === 0) {
+  		center = points[0];
+  	} else {
+  		for (i = 0, dist = 0; i < len - 1; i++) {
+  			p1 = points[i];
+  			p2 = points[i + 1];
+  			segDist = p1.distanceTo(p2);
+  			dist += segDist;
+
+  			if (dist > halfDist) {
+  				ratio = (dist - halfDist) / segDist;
+  				center = [
+  					p2.x - ratio * (p2.x - p1.x),
+  					p2.y - ratio * (p2.y - p1.y)
+  				];
+  				break;
+  			}
+  		}
+  	}
+
+  	var latlngCenter = crs.unproject(toPoint(center));
+  	return toLatLng([latlngCenter.lat + centroidLatLng.lat, latlngCenter.lng + centroidLatLng.lng]);
+  }
+
+  var LineUtil = {
+    __proto__: null,
+    simplify: simplify,
+    pointToSegmentDistance: pointToSegmentDistance,
+    closestPointOnSegment: closestPointOnSegment,
+    clipSegment: clipSegment,
+    _getEdgeIntersection: _getEdgeIntersection,
+    _getBitCode: _getBitCode,
+    _sqClosestPointOnSegment: _sqClosestPointOnSegment,
+    isFlat: isFlat,
+    _flat: _flat,
+    polylineCenter: polylineCenter
+  };
+
+  /*
+   * @namespace Projection
+   * @section
+   * Leaflet comes with a set of already defined Projections out of the box:
+   *
+   * @projection L.Projection.LonLat
+   *
+   * Equirectangular, or Plate Carree projection — the most simple projection,
+   * mostly used by GIS enthusiasts. Directly maps `x` as longitude, and `y` as
+   * latitude. Also suitable for flat worlds, e.g. game maps. Used by the
+   * `EPSG:4326` and `Simple` CRS.
+   */
+
+  var LonLat = {
+  	project: function (latlng) {
+  		return new Point(latlng.lng, latlng.lat);
+  	},
+
+  	unproject: function (point) {
+  		return new LatLng(point.y, point.x);
+  	},
+
+  	bounds: new Bounds([-180, -90], [180, 90])
+  };
+
+  /*
+   * @namespace Projection
+   * @projection L.Projection.Mercator
+   *
+   * Elliptical Mercator projection — more complex than Spherical Mercator. Assumes that Earth is an ellipsoid. Used by the EPSG:3395 CRS.
+   */
+
+  var Mercator = {
+  	R: 6378137,
+  	R_MINOR: 6356752.314245179,
+
+  	bounds: new Bounds([-20037508.34279, -15496570.73972], [20037508.34279, 18764656.23138]),
+
+  	project: function (latlng) {
+  		var d = Math.PI / 180,
+  		    r = this.R,
+  		    y = latlng.lat * d,
+  		    tmp = this.R_MINOR / r,
+  		    e = Math.sqrt(1 - tmp * tmp),
+  		    con = e * Math.sin(y);
+
+  		var ts = Math.tan(Math.PI / 4 - y / 2) / Math.pow((1 - con) / (1 + con), e / 2);
+  		y = -r * Math.log(Math.max(ts, 1E-10));
+
+  		return new Point(latlng.lng * d * r, y);
+  	},
+
+  	unproject: function (point) {
+  		var d = 180 / Math.PI,
+  		    r = this.R,
+  		    tmp = this.R_MINOR / r,
+  		    e = Math.sqrt(1 - tmp * tmp),
+  		    ts = Math.exp(-point.y / r),
+  		    phi = Math.PI / 2 - 2 * Math.atan(ts);
+
+  		for (var i = 0, dphi = 0.1, con; i < 15 && Math.abs(dphi) > 1e-7; i++) {
+  			con = e * Math.sin(phi);
+  			con = Math.pow((1 - con) / (1 + con), e / 2);
+  			dphi = Math.PI / 2 - 2 * Math.atan(ts * con) - phi;
+  			phi += dphi;
+  		}
+
+  		return new LatLng(phi * d, point.x * d / r);
+  	}
+  };
+
+  /*
+   * @class Projection
+
+   * An object with methods for projecting geographical coordinates of the world onto
+   * a flat surface (and back). See [Map projection](https://en.wikipedia.org/wiki/Map_projection).
+
+   * @property bounds: Bounds
+   * The bounds (specified in CRS units) where the projection is valid
+
+   * @method project(latlng: LatLng): Point
+   * Projects geographical coordinates into a 2D point.
+   * Only accepts actual `L.LatLng` instances, not arrays.
+
+   * @method unproject(point: Point): LatLng
+   * The inverse of `project`. Projects a 2D point into a geographical location.
+   * Only accepts actual `L.Point` instances, not arrays.
+
+   * Note that the projection instances do not inherit from Leaflet's `Class` object,
+   * and can't be instantiated. Also, new classes can't inherit from them,
+   * and methods can't be added to them with the `include` function.
+
+   */
+
+  var index = {
+    __proto__: null,
+    LonLat: LonLat,
+    Mercator: Mercator,
+    SphericalMercator: SphericalMercator
+  };
+
+  /*
+   * @namespace CRS
+   * @crs L.CRS.EPSG3395
+   *
+   * Rarely used by some commercial tile providers. Uses Elliptical Mercator projection.
+   */
+  var EPSG3395 = extend({}, Earth, {
+  	code: 'EPSG:3395',
+  	projection: Mercator,
+
+  	transformation: (function () {
+  		var scale = 0.5 / (Math.PI * Mercator.R);
+  		return toTransformation(scale, 0.5, -scale, 0.5);
+  	}())
+  });
+
+  /*
+   * @namespace CRS
+   * @crs L.CRS.EPSG4326
+   *
+   * A common CRS among GIS enthusiasts. Uses simple Equirectangular projection.
+   *
+   * Leaflet 1.0.x complies with the [TMS coordinate scheme for EPSG:4326](https://wiki.osgeo.org/wiki/Tile_Map_Service_Specification#global-geodetic),
+   * which is a breaking change from 0.7.x behaviour.  If you are using a `TileLayer`
+   * with this CRS, ensure that there are two 256x256 pixel tiles covering the
+   * whole earth at zoom level zero, and that the tile coordinate origin is (-180,+90),
+   * or (-180,-90) for `TileLayer`s with [the `tms` option](#tilelayer-tms) set.
+   */
+
+  var EPSG4326 = extend({}, Earth, {
+  	code: 'EPSG:4326',
+  	projection: LonLat,
+  	transformation: toTransformation(1 / 180, 1, -1 / 180, 0.5)
+  });
+
+  /*
+   * @namespace CRS
+   * @crs L.CRS.Simple
+   *
+   * A simple CRS that maps longitude and latitude into `x` and `y` directly.
+   * May be used for maps of flat surfaces (e.g. game maps). Note that the `y`
+   * axis should still be inverted (going from bottom to top). `distance()` returns
+   * simple euclidean distance.
+   */
+
+  var Simple = extend({}, CRS, {
+  	projection: LonLat,
+  	transformation: toTransformation(1, 0, -1, 0),
+
+  	scale: function (zoom) {
+  		return Math.pow(2, zoom);
+  	},
+
+  	zoom: function (scale) {
+  		return Math.log(scale) / Math.LN2;
+  	},
+
+  	distance: function (latlng1, latlng2) {
+  		var dx = latlng2.lng - latlng1.lng,
+  		    dy = latlng2.lat - latlng1.lat;
+
+  		return Math.sqrt(dx * dx + dy * dy);
+  	},
+
+  	infinite: true
+  });
+
+  CRS.Earth = Earth;
+  CRS.EPSG3395 = EPSG3395;
+  CRS.EPSG3857 = EPSG3857;
+  CRS.EPSG900913 = EPSG900913;
+  CRS.EPSG4326 = EPSG4326;
+  CRS.Simple = Simple;
+
+  /*
+   * @class Layer
+   * @inherits Evented
+   * @aka L.Layer
+   * @aka ILayer
+   *
+   * A set of methods from the Layer base class that all Leaflet layers use.
+   * Inherits all methods, options and events from `L.Evented`.
+   *
+   * @example
+   *
+   * ```js
+   * var layer = L.marker(latlng).addTo(map);
+   * layer.addTo(map);
+   * layer.remove();
+   * ```
+   *
+   * @event add: Event
+   * Fired after the layer is added to a map
+   *
+   * @event remove: Event
+   * Fired after the layer is removed from a map
+   */
+
+
+  var Layer = Evented.extend({
+
+  	// Classes extending `L.Layer` will inherit the following options:
+  	options: {
+  		// @option pane: String = 'overlayPane'
+  		// By default the layer will be added to the map's [overlay pane](#map-overlaypane). Overriding this option will cause the layer to be placed on another pane by default.
+  		pane: 'overlayPane',
+
+  		// @option attribution: String = null
+  		// String to be shown in the attribution control, e.g. "© OpenStreetMap contributors". It describes the layer data and is often a legal obligation towards copyright holders and tile providers.
+  		attribution: null,
+
+  		bubblingMouseEvents: true
+  	},
+
+  	/* @section
+  	 * Classes extending `L.Layer` will inherit the following methods:
+  	 *
+  	 * @method addTo(map: Map|LayerGroup): this
+  	 * Adds the layer to the given map or layer group.
+  	 */
+  	addTo: function (map) {
+  		map.addLayer(this);
+  		return this;
+  	},
+
+  	// @method remove: this
+  	// Removes the layer from the map it is currently active on.
+  	remove: function () {
+  		return this.removeFrom(this._map || this._mapToAdd);
+  	},
+
+  	// @method removeFrom(map: Map): this
+  	// Removes the layer from the given map
+  	//
+  	// @alternative
+  	// @method removeFrom(group: LayerGroup): this
+  	// Removes the layer from the given `LayerGroup`
+  	removeFrom: function (obj) {
+  		if (obj) {
+  			obj.removeLayer(this);
+  		}
+  		return this;
+  	},
+
+  	// @method getPane(name? : String): HTMLElement
+  	// Returns the `HTMLElement` representing the named pane on the map. If `name` is omitted, returns the pane for this layer.
+  	getPane: function (name) {
+  		return this._map.getPane(name ? (this.options[name] || name) : this.options.pane);
+  	},
+
+  	addInteractiveTarget: function (targetEl) {
+  		this._map._targets[stamp(targetEl)] = this;
+  		return this;
+  	},
+
+  	removeInteractiveTarget: function (targetEl) {
+  		delete this._map._targets[stamp(targetEl)];
+  		return this;
+  	},
+
+  	// @method getAttribution: String
+  	// Used by the `attribution control`, returns the [attribution option](#gridlayer-attribution).
+  	getAttribution: function () {
+  		return this.options.attribution;
+  	},
+
+  	_layerAdd: function (e) {
+  		var map = e.target;
+
+  		// check in case layer gets added and then removed before the map is ready
+  		if (!map.hasLayer(this)) { return; }
+
+  		this._map = map;
+  		this._zoomAnimated = map._zoomAnimated;
+
+  		if (this.getEvents) {
+  			var events = this.getEvents();
+  			map.on(events, this);
+  			this.once('remove', function () {
+  				map.off(events, this);
+  			}, this);
+  		}
+
+  		this.onAdd(map);
+
+  		this.fire('add');
+  		map.fire('layeradd', {layer: this});
+  	}
+  });
+
+  /* @section Extension methods
+   * @uninheritable
+   *
+   * Every layer should extend from `L.Layer` and (re-)implement the following methods.
+   *
+   * @method onAdd(map: Map): this
+   * Should contain code that creates DOM elements for the layer, adds them to `map panes` where they should belong and puts listeners on relevant map events. Called on [`map.addLayer(layer)`](#map-addlayer).
+   *
+   * @method onRemove(map: Map): this
+   * Should contain all clean up code that removes the layer's elements from the DOM and removes listeners previously added in [`onAdd`](#layer-onadd). Called on [`map.removeLayer(layer)`](#map-removelayer).
+   *
+   * @method getEvents(): Object
+   * This optional method should return an object like `{ viewreset: this._reset }` for [`addEventListener`](#evented-addeventlistener). The event handlers in this object will be automatically added and removed from the map with your layer.
+   *
+   * @method getAttribution(): String
+   * This optional method should return a string containing HTML to be shown on the `Attribution control` whenever the layer is visible.
+   *
+   * @method beforeAdd(map: Map): this
+   * Optional method. Called on [`map.addLayer(layer)`](#map-addlayer), before the layer is added to the map, before events are initialized, without waiting until the map is in a usable state. Use for early initialization only.
+   */
+
+
+  /* @namespace Map
+   * @section Layer events
+   *
+   * @event layeradd: LayerEvent
+   * Fired when a new layer is added to the map.
+   *
+   * @event layerremove: LayerEvent
+   * Fired when some layer is removed from the map
+   *
+   * @section Methods for Layers and Controls
+   */
+  Map.include({
+  	// @method addLayer(layer: Layer): this
+  	// Adds the given layer to the map
+  	addLayer: function (layer) {
+  		if (!layer._layerAdd) {
+  			throw new Error('The provided object is not a Layer.');
+  		}
+
+  		var id = stamp(layer);
+  		if (this._layers[id]) { return this; }
+  		this._layers[id] = layer;
+
+  		layer._mapToAdd = this;
+
+  		if (layer.beforeAdd) {
+  			layer.beforeAdd(this);
+  		}
+
+  		this.whenReady(layer._layerAdd, layer);
+
+  		return this;
+  	},
+
+  	// @method removeLayer(layer: Layer): this
+  	// Removes the given layer from the map.
+  	removeLayer: function (layer) {
+  		var id = stamp(layer);
+
+  		if (!this._layers[id]) { return this; }
+
+  		if (this._loaded) {
+  			layer.onRemove(this);
+  		}
+
+  		delete this._layers[id];
+
+  		if (this._loaded) {
+  			this.fire('layerremove', {layer: layer});
+  			layer.fire('remove');
+  		}
+
+  		layer._map = layer._mapToAdd = null;
+
+  		return this;
+  	},
+
+  	// @method hasLayer(layer: Layer): Boolean
+  	// Returns `true` if the given layer is currently added to the map
+  	hasLayer: function (layer) {
+  		return stamp(layer) in this._layers;
+  	},
+
+  	/* @method eachLayer(fn: Function, context?: Object): this
+  	 * Iterates over the layers of the map, optionally specifying context of the iterator function.
+  	 * ```
+  	 * map.eachLayer(function(layer){
+  	 *     layer.bindPopup('Hello');
+  	 * });
+  	 * ```
+  	 */
+  	eachLayer: function (method, context) {
+  		for (var i in this._layers) {
+  			method.call(context, this._layers[i]);
+  		}
+  		return this;
+  	},
+
+  	_addLayers: function (layers) {
+  		layers = layers ? (isArray(layers) ? layers : [layers]) : [];
+
+  		for (var i = 0, len = layers.length; i < len; i++) {
+  			this.addLayer(layers[i]);
+  		}
+  	},
+
+  	_addZoomLimit: function (layer) {
+  		if (!isNaN(layer.options.maxZoom) || !isNaN(layer.options.minZoom)) {
+  			this._zoomBoundLayers[stamp(layer)] = layer;
+  			this._updateZoomLevels();
+  		}
+  	},
+
+  	_removeZoomLimit: function (layer) {
+  		var id = stamp(layer);
+
+  		if (this._zoomBoundLayers[id]) {
+  			delete this._zoomBoundLayers[id];
+  			this._updateZoomLevels();
+  		}
+  	},
+
+  	_updateZoomLevels: function () {
+  		var minZoom = Infinity,
+  		    maxZoom = -Infinity,
+  		    oldZoomSpan = this._getZoomSpan();
+
+  		for (var i in this._zoomBoundLayers) {
+  			var options = this._zoomBoundLayers[i].options;
+
+  			minZoom = options.minZoom === undefined ? minZoom : Math.min(minZoom, options.minZoom);
+  			maxZoom = options.maxZoom === undefined ? maxZoom : Math.max(maxZoom, options.maxZoom);
+  		}
+
+  		this._layersMaxZoom = maxZoom === -Infinity ? undefined : maxZoom;
+  		this._layersMinZoom = minZoom === Infinity ? undefined : minZoom;
+
+  		// @section Map state change events
+  		// @event zoomlevelschange: Event
+  		// Fired when the number of zoomlevels on the map is changed due
+  		// to adding or removing a layer.
+  		if (oldZoomSpan !== this._getZoomSpan()) {
+  			this.fire('zoomlevelschange');
+  		}
+
+  		if (this.options.maxZoom === undefined && this._layersMaxZoom && this.getZoom() > this._layersMaxZoom) {
+  			this.setZoom(this._layersMaxZoom);
+  		}
+  		if (this.options.minZoom === undefined && this._layersMinZoom && this.getZoom() < this._layersMinZoom) {
+  			this.setZoom(this._layersMinZoom);
+  		}
+  	}
+  });
+
+  /*
+   * @class LayerGroup
+   * @aka L.LayerGroup
+   * @inherits Interactive layer
+   *
+   * Used to group several layers and handle them as one. If you add it to the map,
+   * any layers added or removed from the group will be added/removed on the map as
+   * well. Extends `Layer`.
+   *
+   * @example
+   *
+   * ```js
+   * L.layerGroup([marker1, marker2])
+   * 	.addLayer(polyline)
+   * 	.addTo(map);
+   * ```
+   */
+
+  var LayerGroup = Layer.extend({
+
+  	initialize: function (layers, options) {
+  		setOptions(this, options);
+
+  		this._layers = {};
+
+  		var i, len;
+
+  		if (layers) {
+  			for (i = 0, len = layers.length; i < len; i++) {
+  				this.addLayer(layers[i]);
+  			}
+  		}
+  	},
+
+  	// @method addLayer(layer: Layer): this
+  	// Adds the given layer to the group.
+  	addLayer: function (layer) {
+  		var id = this.getLayerId(layer);
+
+  		this._layers[id] = layer;
+
+  		if (this._map) {
+  			this._map.addLayer(layer);
+  		}
+
+  		return this;
+  	},
+
+  	// @method removeLayer(layer: Layer): this
+  	// Removes the given layer from the group.
+  	// @alternative
+  	// @method removeLayer(id: Number): this
+  	// Removes the layer with the given internal ID from the group.
+  	removeLayer: function (layer) {
+  		var id = layer in this._layers ? layer : this.getLayerId(layer);
+
+  		if (this._map && this._layers[id]) {
+  			this._map.removeLayer(this._layers[id]);
+  		}
+
+  		delete this._layers[id];
+
+  		return this;
+  	},
+
+  	// @method hasLayer(layer: Layer): Boolean
+  	// Returns `true` if the given layer is currently added to the group.
+  	// @alternative
+  	// @method hasLayer(id: Number): Boolean
+  	// Returns `true` if the given internal ID is currently added to the group.
+  	hasLayer: function (layer) {
+  		var layerId = typeof layer === 'number' ? layer : this.getLayerId(layer);
+  		return layerId in this._layers;
+  	},
+
+  	// @method clearLayers(): this
+  	// Removes all the layers from the group.
+  	clearLayers: function () {
+  		return this.eachLayer(this.removeLayer, this);
+  	},
+
+  	// @method invoke(methodName: String, …): this
+  	// Calls `methodName` on every layer contained in this group, passing any
+  	// additional parameters. Has no effect if the layers contained do not
+  	// implement `methodName`.
+  	invoke: function (methodName) {
+  		var args = Array.prototype.slice.call(arguments, 1),
+  		    i, layer;
+
+  		for (i in this._layers) {
+  			layer = this._layers[i];
+
+  			if (layer[methodName]) {
+  				layer[methodName].apply(layer, args);
+  			}
+  		}
+
+  		return this;
+  	},
+
+  	onAdd: function (map) {
+  		this.eachLayer(map.addLayer, map);
+  	},
+
+  	onRemove: function (map) {
+  		this.eachLayer(map.removeLayer, map);
+  	},
+
+  	// @method eachLayer(fn: Function, context?: Object): this
+  	// Iterates over the layers of the group, optionally specifying context of the iterator function.
+  	// ```js
+  	// group.eachLayer(function (layer) {
+  	// 	layer.bindPopup('Hello');
+  	// });
+  	// ```
+  	eachLayer: function (method, context) {
+  		for (var i in this._layers) {
+  			method.call(context, this._layers[i]);
+  		}
+  		return this;
+  	},
+
+  	// @method getLayer(id: Number): Layer
+  	// Returns the layer with the given internal ID.
+  	getLayer: function (id) {
+  		return this._layers[id];
+  	},
+
+  	// @method getLayers(): Layer[]
+  	// Returns an array of all the layers added to the group.
+  	getLayers: function () {
+  		var layers = [];
+  		this.eachLayer(layers.push, layers);
+  		return layers;
+  	},
+
+  	// @method setZIndex(zIndex: Number): this
+  	// Calls `setZIndex` on every layer contained in this group, passing the z-index.
+  	setZIndex: function (zIndex) {
+  		return this.invoke('setZIndex', zIndex);
+  	},
+
+  	// @method getLayerId(layer: Layer): Number
+  	// Returns the internal ID for a layer
+  	getLayerId: function (layer) {
+  		return stamp(layer);
+  	}
+  });
+
+
+  // @factory L.layerGroup(layers?: Layer[], options?: Object)
+  // Create a layer group, optionally given an initial set of layers and an `options` object.
+  var layerGroup = function (layers, options) {
+  	return new LayerGroup(layers, options);
+  };
+
+  /*
+   * @class FeatureGroup
+   * @aka L.FeatureGroup
+   * @inherits LayerGroup
+   *
+   * Extended `LayerGroup` that makes it easier to do the same thing to all its member layers:
+   *  * [`bindPopup`](#layer-bindpopup) binds a popup to all of the layers at once (likewise with [`bindTooltip`](#layer-bindtooltip))
+   *  * Events are propagated to the `FeatureGroup`, so if the group has an event
+   * handler, it will handle events from any of the layers. This includes mouse events
+   * and custom events.
+   *  * Has `layeradd` and `layerremove` events
+   *
+   * @example
+   *
+   * ```js
+   * L.featureGroup([marker1, marker2, polyline])
+   * 	.bindPopup('Hello world!')
+   * 	.on('click', function() { alert('Clicked on a member of the group!'); })
+   * 	.addTo(map);
+   * ```
+   */
+
+  var FeatureGroup = LayerGroup.extend({
+
+  	addLayer: function (layer) {
+  		if (this.hasLayer(layer)) {
+  			return this;
+  		}
+
+  		layer.addEventParent(this);
+
+  		LayerGroup.prototype.addLayer.call(this, layer);
+
+  		// @event layeradd: LayerEvent
+  		// Fired when a layer is added to this `FeatureGroup`
+  		return this.fire('layeradd', {layer: layer});
+  	},
+
+  	removeLayer: function (layer) {
+  		if (!this.hasLayer(layer)) {
+  			return this;
+  		}
+  		if (layer in this._layers) {
+  			layer = this._layers[layer];
+  		}
+
+  		layer.removeEventParent(this);
+
+  		LayerGroup.prototype.removeLayer.call(this, layer);
+
+  		// @event layerremove: LayerEvent
+  		// Fired when a layer is removed from this `FeatureGroup`
+  		return this.fire('layerremove', {layer: layer});
+  	},
+
+  	// @method setStyle(style: Path options): this
+  	// Sets the given path options to each layer of the group that has a `setStyle` method.
+  	setStyle: function (style) {
+  		return this.invoke('setStyle', style);
+  	},
+
+  	// @method bringToFront(): this
+  	// Brings the layer group to the top of all other layers
+  	bringToFront: function () {
+  		return this.invoke('bringToFront');
+  	},
+
+  	// @method bringToBack(): this
+  	// Brings the layer group to the back of all other layers
+  	bringToBack: function () {
+  		return this.invoke('bringToBack');
+  	},
+
+  	// @method getBounds(): LatLngBounds
+  	// Returns the LatLngBounds of the Feature Group (created from bounds and coordinates of its children).
+  	getBounds: function () {
+  		var bounds = new LatLngBounds();
+
+  		for (var id in this._layers) {
+  			var layer = this._layers[id];
+  			bounds.extend(layer.getBounds ? layer.getBounds() : layer.getLatLng());
+  		}
+  		return bounds;
+  	}
+  });
+
+  // @factory L.featureGroup(layers?: Layer[], options?: Object)
+  // Create a feature group, optionally given an initial set of layers and an `options` object.
+  var featureGroup = function (layers, options) {
+  	return new FeatureGroup(layers, options);
+  };
+
+  /*
+   * @class Icon
+   * @aka L.Icon
+   *
+   * Represents an icon to provide when creating a marker.
+   *
+   * @example
+   *
+   * ```js
+   * var myIcon = L.icon({
+   *     iconUrl: 'my-icon.png',
+   *     iconRetinaUrl: 'my-icon@2x.png',
+   *     iconSize: [38, 95],
+   *     iconAnchor: [22, 94],
+   *     popupAnchor: [-3, -76],
+   *     shadowUrl: 'my-icon-shadow.png',
+   *     shadowRetinaUrl: 'my-icon-shadow@2x.png',
+   *     shadowSize: [68, 95],
+   *     shadowAnchor: [22, 94]
+   * });
+   *
+   * L.marker([50.505, 30.57], {icon: myIcon}).addTo(map);
+   * ```
+   *
+   * `L.Icon.Default` extends `L.Icon` and is the blue icon Leaflet uses for markers by default.
+   *
+   */
+
+  var Icon = Class.extend({
+
+  	/* @section
+  	 * @aka Icon options
+  	 *
+  	 * @option iconUrl: String = null
+  	 * **(required)** The URL to the icon image (absolute or relative to your script path).
+  	 *
+  	 * @option iconRetinaUrl: String = null
+  	 * The URL to a retina sized version of the icon image (absolute or relative to your
+  	 * script path). Used for Retina screen devices.
+  	 *
+  	 * @option iconSize: Point = null
+  	 * Size of the icon image in pixels.
+  	 *
+  	 * @option iconAnchor: Point = null
+  	 * The coordinates of the "tip" of the icon (relative to its top left corner). The icon
+  	 * will be aligned so that this point is at the marker's geographical location. Centered
+  	 * by default if size is specified, also can be set in CSS with negative margins.
+  	 *
+  	 * @option popupAnchor: Point = [0, 0]
+  	 * The coordinates of the point from which popups will "open", relative to the icon anchor.
+  	 *
+  	 * @option tooltipAnchor: Point = [0, 0]
+  	 * The coordinates of the point from which tooltips will "open", relative to the icon anchor.
+  	 *
+  	 * @option shadowUrl: String = null
+  	 * The URL to the icon shadow image. If not specified, no shadow image will be created.
+  	 *
+  	 * @option shadowRetinaUrl: String = null
+  	 *
+  	 * @option shadowSize: Point = null
+  	 * Size of the shadow image in pixels.
+  	 *
+  	 * @option shadowAnchor: Point = null
+  	 * The coordinates of the "tip" of the shadow (relative to its top left corner) (the same
+  	 * as iconAnchor if not specified).
+  	 *
+  	 * @option className: String = ''
+  	 * A custom class name to assign to both icon and shadow images. Empty by default.
+  	 */
+
+  	options: {
+  		popupAnchor: [0, 0],
+  		tooltipAnchor: [0, 0],
+
+  		// @option crossOrigin: Boolean|String = false
+  		// Whether the crossOrigin attribute will be added to the tiles.
+  		// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
+  		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+  		crossOrigin: false
+  	},
+
+  	initialize: function (options) {
+  		setOptions(this, options);
+  	},
+
+  	// @method createIcon(oldIcon?: HTMLElement): HTMLElement
+  	// Called internally when the icon has to be shown, returns a `<img>` HTML element
+  	// styled according to the options.
+  	createIcon: function (oldIcon) {
+  		return this._createIcon('icon', oldIcon);
+  	},
+
+  	// @method createShadow(oldIcon?: HTMLElement): HTMLElement
+  	// As `createIcon`, but for the shadow beneath it.
+  	createShadow: function (oldIcon) {
+  		return this._createIcon('shadow', oldIcon);
+  	},
+
+  	_createIcon: function (name, oldIcon) {
+  		var src = this._getIconUrl(name);
+
+  		if (!src) {
+  			if (name === 'icon') {
+  				throw new Error('iconUrl not set in Icon options (see the docs).');
+  			}
+  			return null;
+  		}
+
+  		var img = this._createImg(src, oldIcon && oldIcon.tagName === 'IMG' ? oldIcon : null);
+  		this._setIconStyles(img, name);
+
+  		if (this.options.crossOrigin || this.options.crossOrigin === '') {
+  			img.crossOrigin = this.options.crossOrigin === true ? '' : this.options.crossOrigin;
+  		}
+
+  		return img;
+  	},
+
+  	_setIconStyles: function (img, name) {
+  		var options = this.options;
+  		var sizeOption = options[name + 'Size'];
+
+  		if (typeof sizeOption === 'number') {
+  			sizeOption = [sizeOption, sizeOption];
+  		}
+
+  		var size = toPoint(sizeOption),
+  		    anchor = toPoint(name === 'shadow' && options.shadowAnchor || options.iconAnchor ||
+  		            size && size.divideBy(2, true));
+
+  		img.className = 'leaflet-marker-' + name + ' ' + (options.className || '');
+
+  		if (anchor) {
+  			img.style.marginLeft = (-anchor.x) + 'px';
+  			img.style.marginTop  = (-anchor.y) + 'px';
+  		}
+
+  		if (size) {
+  			img.style.width  = size.x + 'px';
+  			img.style.height = size.y + 'px';
+  		}
+  	},
+
+  	_createImg: function (src, el) {
+  		el = el || document.createElement('img');
+  		el.src = src;
+  		return el;
+  	},
+
+  	_getIconUrl: function (name) {
+  		return Browser.retina && this.options[name + 'RetinaUrl'] || this.options[name + 'Url'];
+  	}
+  });
+
+
+  // @factory L.icon(options: Icon options)
+  // Creates an icon instance with the given options.
+  function icon(options) {
+  	return new Icon(options);
+  }
+
+  /*
+   * @miniclass Icon.Default (Icon)
+   * @aka L.Icon.Default
+   * @section
+   *
+   * A trivial subclass of `Icon`, represents the icon to use in `Marker`s when
+   * no icon is specified. Points to the blue marker image distributed with Leaflet
+   * releases.
+   *
+   * In order to customize the default icon, just change the properties of `L.Icon.Default.prototype.options`
+   * (which is a set of `Icon options`).
+   *
+   * If you want to _completely_ replace the default icon, override the
+   * `L.Marker.prototype.options.icon` with your own icon instead.
+   */
+
+  var IconDefault = Icon.extend({
+
+  	options: {
+  		iconUrl:       'marker-icon.png',
+  		iconRetinaUrl: 'marker-icon-2x.png',
+  		shadowUrl:     'marker-shadow.png',
+  		iconSize:    [25, 41],
+  		iconAnchor:  [12, 41],
+  		popupAnchor: [1, -34],
+  		tooltipAnchor: [16, -28],
+  		shadowSize:  [41, 41]
+  	},
+
+  	_getIconUrl: function (name) {
+  		if (typeof IconDefault.imagePath !== 'string') {	// Deprecated, backwards-compatibility only
+  			IconDefault.imagePath = this._detectIconPath();
+  		}
+
+  		// @option imagePath: String
+  		// `Icon.Default` will try to auto-detect the location of the
+  		// blue icon images. If you are placing these images in a non-standard
+  		// way, set this option to point to the right path.
+  		return (this.options.imagePath || IconDefault.imagePath) + Icon.prototype._getIconUrl.call(this, name);
+  	},
+
+  	_stripUrl: function (path) {	// separate function to use in tests
+  		var strip = function (str, re, idx) {
+  			var match = re.exec(str);
+  			return match && match[idx];
+  		};
+  		path = strip(path, /^url\((['"])?(.+)\1\)$/, 2);
+  		return path && strip(path, /^(.*)marker-icon\.png$/, 1);
+  	},
+
+  	_detectIconPath: function () {
+  		var el = create$1('div',  'leaflet-default-icon-path', document.body);
+  		var path = getStyle(el, 'background-image') ||
+  		           getStyle(el, 'backgroundImage');	// IE8
+
+  		document.body.removeChild(el);
+  		path = this._stripUrl(path);
+  		if (path) { return path; }
+  		var link = document.querySelector('link[href$="leaflet.css"]');
+  		if (!link) { return ''; }
+  		return link.href.substring(0, link.href.length - 'leaflet.css'.length - 1);
+  	}
+  });
+
+  /*
+   * L.Handler.MarkerDrag is used internally by L.Marker to make the markers draggable.
+   */
+
+
+  /* @namespace Marker
+   * @section Interaction handlers
+   *
+   * Interaction handlers are properties of a marker instance that allow you to control interaction behavior in runtime, enabling or disabling certain features such as dragging (see `Handler` methods). Example:
+   *
+   * ```js
+   * marker.dragging.disable();
+   * ```
+   *
+   * @property dragging: Handler
+   * Marker dragging handler (by both mouse and touch). Only valid when the marker is on the map (Otherwise set [`marker.options.draggable`](#marker-draggable)).
+   */
+
+  var MarkerDrag = Handler.extend({
+  	initialize: function (marker) {
+  		this._marker = marker;
+  	},
+
+  	addHooks: function () {
+  		var icon = this._marker._icon;
+
+  		if (!this._draggable) {
+  			this._draggable = new Draggable(icon, icon, true);
+  		}
+
+  		this._draggable.on({
+  			dragstart: this._onDragStart,
+  			predrag: this._onPreDrag,
+  			drag: this._onDrag,
+  			dragend: this._onDragEnd
+  		}, this).enable();
+
+  		addClass(icon, 'leaflet-marker-draggable');
+  	},
+
+  	removeHooks: function () {
+  		this._draggable.off({
+  			dragstart: this._onDragStart,
+  			predrag: this._onPreDrag,
+  			drag: this._onDrag,
+  			dragend: this._onDragEnd
+  		}, this).disable();
+
+  		if (this._marker._icon) {
+  			removeClass(this._marker._icon, 'leaflet-marker-draggable');
+  		}
+  	},
+
+  	moved: function () {
+  		return this._draggable && this._draggable._moved;
+  	},
+
+  	_adjustPan: function (e) {
+  		var marker = this._marker,
+  		    map = marker._map,
+  		    speed = this._marker.options.autoPanSpeed,
+  		    padding = this._marker.options.autoPanPadding,
+  		    iconPos = getPosition(marker._icon),
+  		    bounds = map.getPixelBounds(),
+  		    origin = map.getPixelOrigin();
+
+  		var panBounds = toBounds(
+  			bounds.min._subtract(origin).add(padding),
+  			bounds.max._subtract(origin).subtract(padding)
+  		);
+
+  		if (!panBounds.contains(iconPos)) {
+  			// Compute incremental movement
+  			var movement = toPoint(
+  				(Math.max(panBounds.max.x, iconPos.x) - panBounds.max.x) / (bounds.max.x - panBounds.max.x) -
+  				(Math.min(panBounds.min.x, iconPos.x) - panBounds.min.x) / (bounds.min.x - panBounds.min.x),
+
+  				(Math.max(panBounds.max.y, iconPos.y) - panBounds.max.y) / (bounds.max.y - panBounds.max.y) -
+  				(Math.min(panBounds.min.y, iconPos.y) - panBounds.min.y) / (bounds.min.y - panBounds.min.y)
+  			).multiplyBy(speed);
+
+  			map.panBy(movement, {animate: false});
+
+  			this._draggable._newPos._add(movement);
+  			this._draggable._startPos._add(movement);
+
+  			setPosition(marker._icon, this._draggable._newPos);
+  			this._onDrag(e);
+
+  			this._panRequest = requestAnimFrame(this._adjustPan.bind(this, e));
+  		}
+  	},
+
+  	_onDragStart: function () {
+  		// @section Dragging events
+  		// @event dragstart: Event
+  		// Fired when the user starts dragging the marker.
+
+  		// @event movestart: Event
+  		// Fired when the marker starts moving (because of dragging).
+
+  		this._oldLatLng = this._marker.getLatLng();
+
+  		// When using ES6 imports it could not be set when `Popup` was not imported as well
+  		this._marker.closePopup && this._marker.closePopup();
+
+  		this._marker
+  			.fire('movestart')
+  			.fire('dragstart');
+  	},
+
+  	_onPreDrag: function (e) {
+  		if (this._marker.options.autoPan) {
+  			cancelAnimFrame(this._panRequest);
+  			this._panRequest = requestAnimFrame(this._adjustPan.bind(this, e));
+  		}
+  	},
+
+  	_onDrag: function (e) {
+  		var marker = this._marker,
+  		    shadow = marker._shadow,
+  		    iconPos = getPosition(marker._icon),
+  		    latlng = marker._map.layerPointToLatLng(iconPos);
+
+  		// update shadow position
+  		if (shadow) {
+  			setPosition(shadow, iconPos);
+  		}
+
+  		marker._latlng = latlng;
+  		e.latlng = latlng;
+  		e.oldLatLng = this._oldLatLng;
+
+  		// @event drag: Event
+  		// Fired repeatedly while the user drags the marker.
+  		marker
+  		    .fire('move', e)
+  		    .fire('drag', e);
+  	},
+
+  	_onDragEnd: function (e) {
+  		// @event dragend: DragEndEvent
+  		// Fired when the user stops dragging the marker.
+
+  		 cancelAnimFrame(this._panRequest);
+
+  		// @event moveend: Event
+  		// Fired when the marker stops moving (because of dragging).
+  		delete this._oldLatLng;
+  		this._marker
+  		    .fire('moveend')
+  		    .fire('dragend', e);
+  	}
+  });
+
+  /*
+   * @class Marker
+   * @inherits Interactive layer
+   * @aka L.Marker
+   * L.Marker is used to display clickable/draggable icons on the map. Extends `Layer`.
+   *
+   * @example
+   *
+   * ```js
+   * L.marker([50.5, 30.5]).addTo(map);
+   * ```
+   */
+
+  var Marker = Layer.extend({
+
+  	// @section
+  	// @aka Marker options
+  	options: {
+  		// @option icon: Icon = *
+  		// Icon instance to use for rendering the marker.
+  		// See [Icon documentation](#L.Icon) for details on how to customize the marker icon.
+  		// If not specified, a common instance of `L.Icon.Default` is used.
+  		icon: new IconDefault(),
+
+  		// Option inherited from "Interactive layer" abstract class
+  		interactive: true,
+
+  		// @option keyboard: Boolean = true
+  		// Whether the marker can be tabbed to with a keyboard and clicked by pressing enter.
+  		keyboard: true,
+
+  		// @option title: String = ''
+  		// Text for the browser tooltip that appear on marker hover (no tooltip by default).
+  		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
+  		title: '',
+
+  		// @option alt: String = 'Marker'
+  		// Text for the `alt` attribute of the icon image.
+  		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
+  		alt: 'Marker',
+
+  		// @option zIndexOffset: Number = 0
+  		// By default, marker images zIndex is set automatically based on its latitude. Use this option if you want to put the marker on top of all others (or below), specifying a high value like `1000` (or high negative value, respectively).
+  		zIndexOffset: 0,
+
+  		// @option opacity: Number = 1.0
+  		// The opacity of the marker.
+  		opacity: 1,
+
+  		// @option riseOnHover: Boolean = false
+  		// If `true`, the marker will get on top of others when you hover the mouse over it.
+  		riseOnHover: false,
+
+  		// @option riseOffset: Number = 250
+  		// The z-index offset used for the `riseOnHover` feature.
+  		riseOffset: 250,
+
+  		// @option pane: String = 'markerPane'
+  		// `Map pane` where the markers icon will be added.
+  		pane: 'markerPane',
+
+  		// @option shadowPane: String = 'shadowPane'
+  		// `Map pane` where the markers shadow will be added.
+  		shadowPane: 'shadowPane',
+
+  		// @option bubblingMouseEvents: Boolean = false
+  		// When `true`, a mouse event on this marker will trigger the same event on the map
+  		// (unless [`L.DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
+  		bubblingMouseEvents: false,
+
+  		// @option autoPanOnFocus: Boolean = true
+  		// When `true`, the map will pan whenever the marker is focused (via
+  		// e.g. pressing `tab` on the keyboard) to ensure the marker is
+  		// visible within the map's bounds
+  		autoPanOnFocus: true,
+
+  		// @section Draggable marker options
+  		// @option draggable: Boolean = false
+  		// Whether the marker is draggable with mouse/touch or not.
+  		draggable: false,
+
+  		// @option autoPan: Boolean = false
+  		// Whether to pan the map when dragging this marker near its edge or not.
+  		autoPan: false,
+
+  		// @option autoPanPadding: Point = Point(50, 50)
+  		// Distance (in pixels to the left/right and to the top/bottom) of the
+  		// map edge to start panning the map.
+  		autoPanPadding: [50, 50],
+
+  		// @option autoPanSpeed: Number = 10
+  		// Number of pixels the map should pan by.
+  		autoPanSpeed: 10
+  	},
+
+  	/* @section
+  	 *
+  	 * In addition to [shared layer methods](#Layer) like `addTo()` and `remove()` and [popup methods](#Popup) like bindPopup() you can also use the following methods:
+  	 */
+
+  	initialize: function (latlng, options) {
+  		setOptions(this, options);
+  		this._latlng = toLatLng(latlng);
+  	},
+
+  	onAdd: function (map) {
+  		this._zoomAnimated = this._zoomAnimated && map.options.markerZoomAnimation;
+
+  		if (this._zoomAnimated) {
+  			map.on('zoomanim', this._animateZoom, this);
+  		}
+
+  		this._initIcon();
+  		this.update();
+  	},
+
+  	onRemove: function (map) {
+  		if (this.dragging && this.dragging.enabled()) {
+  			this.options.draggable = true;
+  			this.dragging.removeHooks();
+  		}
+  		delete this.dragging;
+
+  		if (this._zoomAnimated) {
+  			map.off('zoomanim', this._animateZoom, this);
+  		}
+
+  		this._removeIcon();
+  		this._removeShadow();
+  	},
+
+  	getEvents: function () {
+  		return {
+  			zoom: this.update,
+  			viewreset: this.update
+  		};
+  	},
+
+  	// @method getLatLng: LatLng
+  	// Returns the current geographical position of the marker.
+  	getLatLng: function () {
+  		return this._latlng;
+  	},
+
+  	// @method setLatLng(latlng: LatLng): this
+  	// Changes the marker position to the given point.
+  	setLatLng: function (latlng) {
+  		var oldLatLng = this._latlng;
+  		this._latlng = toLatLng(latlng);
+  		this.update();
+
+  		// @event move: Event
+  		// Fired when the marker is moved via [`setLatLng`](#marker-setlatlng) or by [dragging](#marker-dragging). Old and new coordinates are included in event arguments as `oldLatLng`, `latlng`.
+  		return this.fire('move', {oldLatLng: oldLatLng, latlng: this._latlng});
+  	},
+
+  	// @method setZIndexOffset(offset: Number): this
+  	// Changes the [zIndex offset](#marker-zindexoffset) of the marker.
+  	setZIndexOffset: function (offset) {
+  		this.options.zIndexOffset = offset;
+  		return this.update();
+  	},
+
+  	// @method getIcon: Icon
+  	// Returns the current icon used by the marker
+  	getIcon: function () {
+  		return this.options.icon;
+  	},
+
+  	// @method setIcon(icon: Icon): this
+  	// Changes the marker icon.
+  	setIcon: function (icon) {
+
+  		this.options.icon = icon;
+
+  		if (this._map) {
+  			this._initIcon();
+  			this.update();
+  		}
+
+  		if (this._popup) {
+  			this.bindPopup(this._popup, this._popup.options);
+  		}
+
+  		return this;
+  	},
+
+  	getElement: function () {
+  		return this._icon;
+  	},
+
+  	update: function () {
+
+  		if (this._icon && this._map) {
+  			var pos = this._map.latLngToLayerPoint(this._latlng).round();
+  			this._setPos(pos);
+  		}
+
+  		return this;
+  	},
+
+  	_initIcon: function () {
+  		var options = this.options,
+  		    classToAdd = 'leaflet-zoom-' + (this._zoomAnimated ? 'animated' : 'hide');
+
+  		var icon = options.icon.createIcon(this._icon),
+  		    addIcon = false;
+
+  		// if we're not reusing the icon, remove the old one and init new one
+  		if (icon !== this._icon) {
+  			if (this._icon) {
+  				this._removeIcon();
+  			}
+  			addIcon = true;
+
+  			if (options.title) {
+  				icon.title = options.title;
+  			}
+
+  			if (icon.tagName === 'IMG') {
+  				icon.alt = options.alt || '';
+  			}
+  		}
+
+  		addClass(icon, classToAdd);
+
+  		if (options.keyboard) {
+  			icon.tabIndex = '0';
+  			icon.setAttribute('role', 'button');
+  		}
+
+  		this._icon = icon;
+
+  		if (options.riseOnHover) {
+  			this.on({
+  				mouseover: this._bringToFront,
+  				mouseout: this._resetZIndex
+  			});
+  		}
+
+  		if (this.options.autoPanOnFocus) {
+  			on(icon, 'focus', this._panOnFocus, this);
+  		}
+
+  		var newShadow = options.icon.createShadow(this._shadow),
+  		    addShadow = false;
+
+  		if (newShadow !== this._shadow) {
+  			this._removeShadow();
+  			addShadow = true;
+  		}
+
+  		if (newShadow) {
+  			addClass(newShadow, classToAdd);
+  			newShadow.alt = '';
+  		}
+  		this._shadow = newShadow;
+
+
+  		if (options.opacity < 1) {
+  			this._updateOpacity();
+  		}
+
+
+  		if (addIcon) {
+  			this.getPane().appendChild(this._icon);
+  		}
+  		this._initInteraction();
+  		if (newShadow && addShadow) {
+  			this.getPane(options.shadowPane).appendChild(this._shadow);
+  		}
+  	},
+
+  	_removeIcon: function () {
+  		if (this.options.riseOnHover) {
+  			this.off({
+  				mouseover: this._bringToFront,
+  				mouseout: this._resetZIndex
+  			});
+  		}
+
+  		if (this.options.autoPanOnFocus) {
+  			off(this._icon, 'focus', this._panOnFocus, this);
+  		}
+
+  		remove(this._icon);
+  		this.removeInteractiveTarget(this._icon);
+
+  		this._icon = null;
+  	},
+
+  	_removeShadow: function () {
+  		if (this._shadow) {
+  			remove(this._shadow);
+  		}
+  		this._shadow = null;
+  	},
+
+  	_setPos: function (pos) {
+
+  		if (this._icon) {
+  			setPosition(this._icon, pos);
+  		}
+
+  		if (this._shadow) {
+  			setPosition(this._shadow, pos);
+  		}
+
+  		this._zIndex = pos.y + this.options.zIndexOffset;
+
+  		this._resetZIndex();
+  	},
+
+  	_updateZIndex: function (offset) {
+  		if (this._icon) {
+  			this._icon.style.zIndex = this._zIndex + offset;
+  		}
+  	},
+
+  	_animateZoom: function (opt) {
+  		var pos = this._map._latLngToNewLayerPoint(this._latlng, opt.zoom, opt.center).round();
+
+  		this._setPos(pos);
+  	},
+
+  	_initInteraction: function () {
+
+  		if (!this.options.interactive) { return; }
+
+  		addClass(this._icon, 'leaflet-interactive');
+
+  		this.addInteractiveTarget(this._icon);
+
+  		if (MarkerDrag) {
+  			var draggable = this.options.draggable;
+  			if (this.dragging) {
+  				draggable = this.dragging.enabled();
+  				this.dragging.disable();
+  			}
+
+  			this.dragging = new MarkerDrag(this);
+
+  			if (draggable) {
+  				this.dragging.enable();
+  			}
+  		}
+  	},
+
+  	// @method setOpacity(opacity: Number): this
+  	// Changes the opacity of the marker.
+  	setOpacity: function (opacity) {
+  		this.options.opacity = opacity;
+  		if (this._map) {
+  			this._updateOpacity();
+  		}
+
+  		return this;
+  	},
+
+  	_updateOpacity: function () {
+  		var opacity = this.options.opacity;
+
+  		if (this._icon) {
+  			setOpacity(this._icon, opacity);
+  		}
+
+  		if (this._shadow) {
+  			setOpacity(this._shadow, opacity);
+  		}
+  	},
+
+  	_bringToFront: function () {
+  		this._updateZIndex(this.options.riseOffset);
+  	},
+
+  	_resetZIndex: function () {
+  		this._updateZIndex(0);
+  	},
+
+  	_panOnFocus: function () {
+  		var map = this._map;
+  		if (!map) { return; }
+
+  		var iconOpts = this.options.icon.options;
+  		var size = iconOpts.iconSize ? toPoint(iconOpts.iconSize) : toPoint(0, 0);
+  		var anchor = iconOpts.iconAnchor ? toPoint(iconOpts.iconAnchor) : toPoint(0, 0);
+
+  		map.panInside(this._latlng, {
+  			paddingTopLeft: anchor,
+  			paddingBottomRight: size.subtract(anchor)
+  		});
+  	},
+
+  	_getPopupAnchor: function () {
+  		return this.options.icon.options.popupAnchor;
+  	},
+
+  	_getTooltipAnchor: function () {
+  		return this.options.icon.options.tooltipAnchor;
+  	}
+  });
+
+
+  // factory L.marker(latlng: LatLng, options? : Marker options)
+
+  // @factory L.marker(latlng: LatLng, options? : Marker options)
+  // Instantiates a Marker object given a geographical point and optionally an options object.
+  function marker(latlng, options) {
+  	return new Marker(latlng, options);
+  }
+
+  /*
+   * @class Path
+   * @aka L.Path
+   * @inherits Interactive layer
+   *
+   * An abstract class that contains options and constants shared between vector
+   * overlays (Polygon, Polyline, Circle). Do not use it directly. Extends `Layer`.
+   */
+
+  var Path = Layer.extend({
+
+  	// @section
+  	// @aka Path options
+  	options: {
+  		// @option stroke: Boolean = true
+  		// Whether to draw stroke along the path. Set it to `false` to disable borders on polygons or circles.
+  		stroke: true,
+
+  		// @option color: String = '#3388ff'
+  		// Stroke color
+  		color: '#3388ff',
+
+  		// @option weight: Number = 3
+  		// Stroke width in pixels
+  		weight: 3,
+
+  		// @option opacity: Number = 1.0
+  		// Stroke opacity
+  		opacity: 1,
+
+  		// @option lineCap: String= 'round'
+  		// A string that defines [shape to be used at the end](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-linecap) of the stroke.
+  		lineCap: 'round',
+
+  		// @option lineJoin: String = 'round'
+  		// A string that defines [shape to be used at the corners](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-linejoin) of the stroke.
+  		lineJoin: 'round',
+
+  		// @option dashArray: String = null
+  		// A string that defines the stroke [dash pattern](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-dasharray). Doesn't work on `Canvas`-powered layers in [some old browsers](https://developer.mozilla.org/docs/Web/API/CanvasRenderingContext2D/setLineDash#Browser_compatibility).
+  		dashArray: null,
+
+  		// @option dashOffset: String = null
+  		// A string that defines the [distance into the dash pattern to start the dash](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-dashoffset). Doesn't work on `Canvas`-powered layers in [some old browsers](https://developer.mozilla.org/docs/Web/API/CanvasRenderingContext2D/setLineDash#Browser_compatibility).
+  		dashOffset: null,
+
+  		// @option fill: Boolean = depends
+  		// Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles.
+  		fill: false,
+
+  		// @option fillColor: String = *
+  		// Fill color. Defaults to the value of the [`color`](#path-color) option
+  		fillColor: null,
+
+  		// @option fillOpacity: Number = 0.2
+  		// Fill opacity.
+  		fillOpacity: 0.2,
+
+  		// @option fillRule: String = 'evenodd'
+  		// A string that defines [how the inside of a shape](https://developer.mozilla.org/docs/Web/SVG/Attribute/fill-rule) is determined.
+  		fillRule: 'evenodd',
+
+  		// className: '',
+
+  		// Option inherited from "Interactive layer" abstract class
+  		interactive: true,
+
+  		// @option bubblingMouseEvents: Boolean = true
+  		// When `true`, a mouse event on this path will trigger the same event on the map
+  		// (unless [`L.DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
+  		bubblingMouseEvents: true
+  	},
+
+  	beforeAdd: function (map) {
+  		// Renderer is set here because we need to call renderer.getEvents
+  		// before this.getEvents.
+  		this._renderer = map.getRenderer(this);
+  	},
+
+  	onAdd: function () {
+  		this._renderer._initPath(this);
+  		this._reset();
+  		this._renderer._addPath(this);
+  	},
+
+  	onRemove: function () {
+  		this._renderer._removePath(this);
+  	},
+
+  	// @method redraw(): this
+  	// Redraws the layer. Sometimes useful after you changed the coordinates that the path uses.
+  	redraw: function () {
+  		if (this._map) {
+  			this._renderer._updatePath(this);
+  		}
+  		return this;
+  	},
+
+  	// @method setStyle(style: Path options): this
+  	// Changes the appearance of a Path based on the options in the `Path options` object.
+  	setStyle: function (style) {
+  		setOptions(this, style);
+  		if (this._renderer) {
+  			this._renderer._updateStyle(this);
+  			if (this.options.stroke && style && Object.prototype.hasOwnProperty.call(style, 'weight')) {
+  				this._updateBounds();
+  			}
+  		}
+  		return this;
+  	},
+
+  	// @method bringToFront(): this
+  	// Brings the layer to the top of all path layers.
+  	bringToFront: function () {
+  		if (this._renderer) {
+  			this._renderer._bringToFront(this);
+  		}
+  		return this;
+  	},
+
+  	// @method bringToBack(): this
+  	// Brings the layer to the bottom of all path layers.
+  	bringToBack: function () {
+  		if (this._renderer) {
+  			this._renderer._bringToBack(this);
+  		}
+  		return this;
+  	},
+
+  	getElement: function () {
+  		return this._path;
+  	},
+
+  	_reset: function () {
+  		// defined in child classes
+  		this._project();
+  		this._update();
+  	},
+
+  	_clickTolerance: function () {
+  		// used when doing hit detection for Canvas layers
+  		return (this.options.stroke ? this.options.weight / 2 : 0) +
+  		  (this._renderer.options.tolerance || 0);
+  	}
+  });
+
+  /*
+   * @class CircleMarker
+   * @aka L.CircleMarker
+   * @inherits Path
+   *
+   * A circle of a fixed size with radius specified in pixels. Extends `Path`.
+   */
+
+  var CircleMarker = Path.extend({
+
+  	// @section
+  	// @aka CircleMarker options
+  	options: {
+  		fill: true,
+
+  		// @option radius: Number = 10
+  		// Radius of the circle marker, in pixels
+  		radius: 10
+  	},
+
+  	initialize: function (latlng, options) {
+  		setOptions(this, options);
+  		this._latlng = toLatLng(latlng);
+  		this._radius = this.options.radius;
+  	},
+
+  	// @method setLatLng(latLng: LatLng): this
+  	// Sets the position of a circle marker to a new location.
+  	setLatLng: function (latlng) {
+  		var oldLatLng = this._latlng;
+  		this._latlng = toLatLng(latlng);
+  		this.redraw();
+
+  		// @event move: Event
+  		// Fired when the marker is moved via [`setLatLng`](#circlemarker-setlatlng). Old and new coordinates are included in event arguments as `oldLatLng`, `latlng`.
+  		return this.fire('move', {oldLatLng: oldLatLng, latlng: this._latlng});
+  	},
+
+  	// @method getLatLng(): LatLng
+  	// Returns the current geographical position of the circle marker
+  	getLatLng: function () {
+  		return this._latlng;
+  	},
+
+  	// @method setRadius(radius: Number): this
+  	// Sets the radius of a circle marker. Units are in pixels.
+  	setRadius: function (radius) {
+  		this.options.radius = this._radius = radius;
+  		return this.redraw();
+  	},
+
+  	// @method getRadius(): Number
+  	// Returns the current radius of the circle
+  	getRadius: function () {
+  		return this._radius;
+  	},
+
+  	setStyle : function (options) {
+  		var radius = options && options.radius || this._radius;
+  		Path.prototype.setStyle.call(this, options);
+  		this.setRadius(radius);
+  		return this;
+  	},
+
+  	_project: function () {
+  		this._point = this._map.latLngToLayerPoint(this._latlng);
+  		this._updateBounds();
+  	},
+
+  	_updateBounds: function () {
+  		var r = this._radius,
+  		    r2 = this._radiusY || r,
+  		    w = this._clickTolerance(),
+  		    p = [r + w, r2 + w];
+  		this._pxBounds = new Bounds(this._point.subtract(p), this._point.add(p));
+  	},
+
+  	_update: function () {
+  		if (this._map) {
+  			this._updatePath();
+  		}
+  	},
+
+  	_updatePath: function () {
+  		this._renderer._updateCircle(this);
+  	},
+
+  	_empty: function () {
+  		return this._radius && !this._renderer._bounds.intersects(this._pxBounds);
+  	},
+
+  	// Needed by the `Canvas` renderer for interactivity
+  	_containsPoint: function (p) {
+  		return p.distanceTo(this._point) <= this._radius + this._clickTolerance();
+  	}
+  });
+
+
+  // @factory L.circleMarker(latlng: LatLng, options?: CircleMarker options)
+  // Instantiates a circle marker object given a geographical point, and an optional options object.
+  function circleMarker(latlng, options) {
+  	return new CircleMarker(latlng, options);
+  }
+
+  /*
+   * @class Circle
+   * @aka L.Circle
+   * @inherits CircleMarker
+   *
+   * A class for drawing circle overlays on a map. Extends `CircleMarker`.
+   *
+   * It's an approximation and starts to diverge from a real circle closer to poles (due to projection distortion).
+   *
+   * @example
+   *
+   * ```js
+   * L.circle([50.5, 30.5], {radius: 200}).addTo(map);
+   * ```
+   */
+
+  var Circle = CircleMarker.extend({
+
+  	initialize: function (latlng, options, legacyOptions) {
+  		if (typeof options === 'number') {
+  			// Backwards compatibility with 0.7.x factory (latlng, radius, options?)
+  			options = extend({}, legacyOptions, {radius: options});
+  		}
+  		setOptions(this, options);
+  		this._latlng = toLatLng(latlng);
+
+  		if (isNaN(this.options.radius)) { throw new Error('Circle radius cannot be NaN'); }
+
+  		// @section
+  		// @aka Circle options
+  		// @option radius: Number; Radius of the circle, in meters.
+  		this._mRadius = this.options.radius;
+  	},
+
+  	// @method setRadius(radius: Number): this
+  	// Sets the radius of a circle. Units are in meters.
+  	setRadius: function (radius) {
+  		this._mRadius = radius;
+  		return this.redraw();
+  	},
+
+  	// @method getRadius(): Number
+  	// Returns the current radius of a circle. Units are in meters.
+  	getRadius: function () {
+  		return this._mRadius;
+  	},
+
+  	// @method getBounds(): LatLngBounds
+  	// Returns the `LatLngBounds` of the path.
+  	getBounds: function () {
+  		var half = [this._radius, this._radiusY || this._radius];
+
+  		return new LatLngBounds(
+  			this._map.layerPointToLatLng(this._point.subtract(half)),
+  			this._map.layerPointToLatLng(this._point.add(half)));
+  	},
+
+  	setStyle: Path.prototype.setStyle,
+
+  	_project: function () {
+
+  		var lng = this._latlng.lng,
+  		    lat = this._latlng.lat,
+  		    map = this._map,
+  		    crs = map.options.crs;
+
+  		if (crs.distance === Earth.distance) {
+  			var d = Math.PI / 180,
+  			    latR = (this._mRadius / Earth.R) / d,
+  			    top = map.project([lat + latR, lng]),
+  			    bottom = map.project([lat - latR, lng]),
+  			    p = top.add(bottom).divideBy(2),
+  			    lat2 = map.unproject(p).lat,
+  			    lngR = Math.acos((Math.cos(latR * d) - Math.sin(lat * d) * Math.sin(lat2 * d)) /
+  			            (Math.cos(lat * d) * Math.cos(lat2 * d))) / d;
+
+  			if (isNaN(lngR) || lngR === 0) {
+  				lngR = latR / Math.cos(Math.PI / 180 * lat); // Fallback for edge case, #2425
+  			}
+
+  			this._point = p.subtract(map.getPixelOrigin());
+  			this._radius = isNaN(lngR) ? 0 : p.x - map.project([lat2, lng - lngR]).x;
+  			this._radiusY = p.y - top.y;
+
+  		} else {
+  			var latlng2 = crs.unproject(crs.project(this._latlng).subtract([this._mRadius, 0]));
+
+  			this._point = map.latLngToLayerPoint(this._latlng);
+  			this._radius = this._point.x - map.latLngToLayerPoint(latlng2).x;
+  		}
+
+  		this._updateBounds();
+  	}
+  });
+
+  // @factory L.circle(latlng: LatLng, options?: Circle options)
+  // Instantiates a circle object given a geographical point, and an options object
+  // which contains the circle radius.
+  // @alternative
+  // @factory L.circle(latlng: LatLng, radius: Number, options?: Circle options)
+  // Obsolete way of instantiating a circle, for compatibility with 0.7.x code.
+  // Do not use in new applications or plugins.
+  function circle(latlng, options, legacyOptions) {
+  	return new Circle(latlng, options, legacyOptions);
+  }
+
+  /*
+   * @class Polyline
+   * @aka L.Polyline
+   * @inherits Path
+   *
+   * A class for drawing polyline overlays on a map. Extends `Path`.
+   *
+   * @example
+   *
+   * ```js
+   * // create a red polyline from an array of LatLng points
+   * var latlngs = [
+   * 	[45.51, -122.68],
+   * 	[37.77, -122.43],
+   * 	[34.04, -118.2]
+   * ];
+   *
+   * var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+   *
+   * // zoom the map to the polyline
+   * map.fitBounds(polyline.getBounds());
+   * ```
+   *
+   * You can also pass a multi-dimensional array to represent a `MultiPolyline` shape:
+   *
+   * ```js
+   * // create a red polyline from an array of arrays of LatLng points
+   * var latlngs = [
+   * 	[[45.51, -122.68],
+   * 	 [37.77, -122.43],
+   * 	 [34.04, -118.2]],
+   * 	[[40.78, -73.91],
+   * 	 [41.83, -87.62],
+   * 	 [32.76, -96.72]]
+   * ];
+   * ```
+   */
+
+
+  var Polyline = Path.extend({
+
+  	// @section
+  	// @aka Polyline options
+  	options: {
+  		// @option smoothFactor: Number = 1.0
+  		// How much to simplify the polyline on each zoom level. More means
+  		// better performance and smoother look, and less means more accurate representation.
+  		smoothFactor: 1.0,
+
+  		// @option noClip: Boolean = false
+  		// Disable polyline clipping.
+  		noClip: false
+  	},
+
+  	initialize: function (latlngs, options) {
+  		setOptions(this, options);
+  		this._setLatLngs(latlngs);
+  	},
+
+  	// @method getLatLngs(): LatLng[]
+  	// Returns an array of the points in the path, or nested arrays of points in case of multi-polyline.
+  	getLatLngs: function () {
+  		return this._latlngs;
+  	},
+
+  	// @method setLatLngs(latlngs: LatLng[]): this
+  	// Replaces all the points in the polyline with the given array of geographical points.
+  	setLatLngs: function (latlngs) {
+  		this._setLatLngs(latlngs);
+  		return this.redraw();
+  	},
+
+  	// @method isEmpty(): Boolean
+  	// Returns `true` if the Polyline has no LatLngs.
+  	isEmpty: function () {
+  		return !this._latlngs.length;
+  	},
+
+  	// @method closestLayerPoint(p: Point): Point
+  	// Returns the point closest to `p` on the Polyline.
+  	closestLayerPoint: function (p) {
+  		var minDistance = Infinity,
+  		    minPoint = null,
+  		    closest = _sqClosestPointOnSegment,
+  		    p1, p2;
+
+  		for (var j = 0, jLen = this._parts.length; j < jLen; j++) {
+  			var points = this._parts[j];
+
+  			for (var i = 1, len = points.length; i < len; i++) {
+  				p1 = points[i - 1];
+  				p2 = points[i];
+
+  				var sqDist = closest(p, p1, p2, true);
+
+  				if (sqDist < minDistance) {
+  					minDistance = sqDist;
+  					minPoint = closest(p, p1, p2);
+  				}
+  			}
+  		}
+  		if (minPoint) {
+  			minPoint.distance = Math.sqrt(minDistance);
+  		}
+  		return minPoint;
+  	},
+
+  	// @method getCenter(): LatLng
+  	// Returns the center ([centroid](https://en.wikipedia.org/wiki/Centroid)) of the polyline.
+  	getCenter: function () {
+  		// throws error when not yet added to map as this center calculation requires projected coordinates
+  		if (!this._map) {
+  			throw new Error('Must add layer to map before using getCenter()');
+  		}
+  		return polylineCenter(this._defaultShape(), this._map.options.crs);
+  	},
+
+  	// @method getBounds(): LatLngBounds
+  	// Returns the `LatLngBounds` of the path.
+  	getBounds: function () {
+  		return this._bounds;
+  	},
+
+  	// @method addLatLng(latlng: LatLng, latlngs?: LatLng[]): this
+  	// Adds a given point to the polyline. By default, adds to the first ring of
+  	// the polyline in case of a multi-polyline, but can be overridden by passing
+  	// a specific ring as a LatLng array (that you can earlier access with [`getLatLngs`](#polyline-getlatlngs)).
+  	addLatLng: function (latlng, latlngs) {
+  		latlngs = latlngs || this._defaultShape();
+  		latlng = toLatLng(latlng);
+  		latlngs.push(latlng);
+  		this._bounds.extend(latlng);
+  		return this.redraw();
+  	},
+
+  	_setLatLngs: function (latlngs) {
+  		this._bounds = new LatLngBounds();
+  		this._latlngs = this._convertLatLngs(latlngs);
+  	},
+
+  	_defaultShape: function () {
+  		return isFlat(this._latlngs) ? this._latlngs : this._latlngs[0];
+  	},
+
+  	// recursively convert latlngs input into actual LatLng instances; calculate bounds along the way
+  	_convertLatLngs: function (latlngs) {
+  		var result = [],
+  		    flat = isFlat(latlngs);
+
+  		for (var i = 0, len = latlngs.length; i < len; i++) {
+  			if (flat) {
+  				result[i] = toLatLng(latlngs[i]);
+  				this._bounds.extend(result[i]);
+  			} else {
+  				result[i] = this._convertLatLngs(latlngs[i]);
+  			}
+  		}
+
+  		return result;
+  	},
+
+  	_project: function () {
+  		var pxBounds = new Bounds();
+  		this._rings = [];
+  		this._projectLatlngs(this._latlngs, this._rings, pxBounds);
+
+  		if (this._bounds.isValid() && pxBounds.isValid()) {
+  			this._rawPxBounds = pxBounds;
+  			this._updateBounds();
+  		}
+  	},
+
+  	_updateBounds: function () {
+  		var w = this._clickTolerance(),
+  		    p = new Point(w, w);
+
+  		if (!this._rawPxBounds) {
+  			return;
+  		}
+
+  		this._pxBounds = new Bounds([
+  			this._rawPxBounds.min.subtract(p),
+  			this._rawPxBounds.max.add(p)
+  		]);
+  	},
+
+  	// recursively turns latlngs into a set of rings with projected coordinates
+  	_projectLatlngs: function (latlngs, result, projectedBounds) {
+  		var flat = latlngs[0] instanceof LatLng,
+  		    len = latlngs.length,
+  		    i, ring;
+
+  		if (flat) {
+  			ring = [];
+  			for (i = 0; i < len; i++) {
+  				ring[i] = this._map.latLngToLayerPoint(latlngs[i]);
+  				projectedBounds.extend(ring[i]);
+  			}
+  			result.push(ring);
+  		} else {
+  			for (i = 0; i < len; i++) {
+  				this._projectLatlngs(latlngs[i], result, projectedBounds);
+  			}
+  		}
+  	},
+
+  	// clip polyline by renderer bounds so that we have less to render for performance
+  	_clipPoints: function () {
+  		var bounds = this._renderer._bounds;
+
+  		this._parts = [];
+  		if (!this._pxBounds || !this._pxBounds.intersects(bounds)) {
+  			return;
+  		}
+
+  		if (this.options.noClip) {
+  			this._parts = this._rings;
+  			return;
+  		}
+
+  		var parts = this._parts,
+  		    i, j, k, len, len2, segment, points;
+
+  		for (i = 0, k = 0, len = this._rings.length; i < len; i++) {
+  			points = this._rings[i];
+
+  			for (j = 0, len2 = points.length; j < len2 - 1; j++) {
+  				segment = clipSegment(points[j], points[j + 1], bounds, j, true);
+
+  				if (!segment) { continue; }
+
+  				parts[k] = parts[k] || [];
+  				parts[k].push(segment[0]);
+
+  				// if segment goes out of screen, or it's the last one, it's the end of the line part
+  				if ((segment[1] !== points[j + 1]) || (j === len2 - 2)) {
+  					parts[k].push(segment[1]);
+  					k++;
+  				}
+  			}
+  		}
+  	},
+
+  	// simplify each clipped part of the polyline for performance
+  	_simplifyPoints: function () {
+  		var parts = this._parts,
+  		    tolerance = this.options.smoothFactor;
+
+  		for (var i = 0, len = parts.length; i < len; i++) {
+  			parts[i] = simplify(parts[i], tolerance);
+  		}
+  	},
+
+  	_update: function () {
+  		if (!this._map) { return; }
+
+  		this._clipPoints();
+  		this._simplifyPoints();
+  		this._updatePath();
+  	},
+
+  	_updatePath: function () {
+  		this._renderer._updatePoly(this);
+  	},
+
+  	// Needed by the `Canvas` renderer for interactivity
+  	_containsPoint: function (p, closed) {
+  		var i, j, k, len, len2, part,
+  		    w = this._clickTolerance();
+
+  		if (!this._pxBounds || !this._pxBounds.contains(p)) { return false; }
+
+  		// hit detection for polylines
+  		for (i = 0, len = this._parts.length; i < len; i++) {
+  			part = this._parts[i];
+
+  			for (j = 0, len2 = part.length, k = len2 - 1; j < len2; k = j++) {
+  				if (!closed && (j === 0)) { continue; }
+
+  				if (pointToSegmentDistance(p, part[k], part[j]) <= w) {
+  					return true;
+  				}
+  			}
+  		}
+  		return false;
+  	}
+  });
+
+  // @factory L.polyline(latlngs: LatLng[], options?: Polyline options)
+  // Instantiates a polyline object given an array of geographical points and
+  // optionally an options object. You can create a `Polyline` object with
+  // multiple separate lines (`MultiPolyline`) by passing an array of arrays
+  // of geographic points.
+  function polyline(latlngs, options) {
+  	return new Polyline(latlngs, options);
+  }
+
+  // Retrocompat. Allow plugins to support Leaflet versions before and after 1.1.
+  Polyline._flat = _flat;
+
+  /*
+   * @class Polygon
+   * @aka L.Polygon
+   * @inherits Polyline
+   *
+   * A class for drawing polygon overlays on a map. Extends `Polyline`.
+   *
+   * Note that points you pass when creating a polygon shouldn't have an additional last point equal to the first one — it's better to filter out such points.
+   *
+   *
+   * @example
+   *
+   * ```js
+   * // create a red polygon from an array of LatLng points
+   * var latlngs = [[37, -109.05],[41, -109.03],[41, -102.05],[37, -102.04]];
+   *
+   * var polygon = L.polygon(latlngs, {color: 'red'}).addTo(map);
+   *
+   * // zoom the map to the polygon
+   * map.fitBounds(polygon.getBounds());
+   * ```
+   *
+   * You can also pass an array of arrays of latlngs, with the first array representing the outer shape and the other arrays representing holes in the outer shape:
+   *
+   * ```js
+   * var latlngs = [
+   *   [[37, -109.05],[41, -109.03],[41, -102.05],[37, -102.04]], // outer ring
+   *   [[37.29, -108.58],[40.71, -108.58],[40.71, -102.50],[37.29, -102.50]] // hole
+   * ];
+   * ```
+   *
+   * Additionally, you can pass a multi-dimensional array to represent a MultiPolygon shape.
+   *
+   * ```js
+   * var latlngs = [
+   *   [ // first polygon
+   *     [[37, -109.05],[41, -109.03],[41, -102.05],[37, -102.04]], // outer ring
+   *     [[37.29, -108.58],[40.71, -108.58],[40.71, -102.50],[37.29, -102.50]] // hole
+   *   ],
+   *   [ // second polygon
+   *     [[41, -111.03],[45, -111.04],[45, -104.05],[41, -104.05]]
+   *   ]
+   * ];
+   * ```
+   */
+
+  var Polygon = Polyline.extend({
+
+  	options: {
+  		fill: true
+  	},
+
+  	isEmpty: function () {
+  		return !this._latlngs.length || !this._latlngs[0].length;
+  	},
+
+  	// @method getCenter(): LatLng
+  	// Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the Polygon.
+  	getCenter: function () {
+  		// throws error when not yet added to map as this center calculation requires projected coordinates
+  		if (!this._map) {
+  			throw new Error('Must add layer to map before using getCenter()');
+  		}
+  		return polygonCenter(this._defaultShape(), this._map.options.crs);
+  	},
+
+  	_convertLatLngs: function (latlngs) {
+  		var result = Polyline.prototype._convertLatLngs.call(this, latlngs),
+  		    len = result.length;
+
+  		// remove last point if it equals first one
+  		if (len >= 2 && result[0] instanceof LatLng && result[0].equals(result[len - 1])) {
+  			result.pop();
+  		}
+  		return result;
+  	},
+
+  	_setLatLngs: function (latlngs) {
+  		Polyline.prototype._setLatLngs.call(this, latlngs);
+  		if (isFlat(this._latlngs)) {
+  			this._latlngs = [this._latlngs];
+  		}
+  	},
+
+  	_defaultShape: function () {
+  		return isFlat(this._latlngs[0]) ? this._latlngs[0] : this._latlngs[0][0];
+  	},
+
+  	_clipPoints: function () {
+  		// polygons need a different clipping algorithm so we redefine that
+
+  		var bounds = this._renderer._bounds,
+  		    w = this.options.weight,
+  		    p = new Point(w, w);
+
+  		// increase clip padding by stroke width to avoid stroke on clip edges
+  		bounds = new Bounds(bounds.min.subtract(p), bounds.max.add(p));
+
+  		this._parts = [];
+  		if (!this._pxBounds || !this._pxBounds.intersects(bounds)) {
+  			return;
+  		}
+
+  		if (this.options.noClip) {
+  			this._parts = this._rings;
+  			return;
+  		}
+
+  		for (var i = 0, len = this._rings.length, clipped; i < len; i++) {
+  			clipped = clipPolygon(this._rings[i], bounds, true);
+  			if (clipped.length) {
+  				this._parts.push(clipped);
+  			}
+  		}
+  	},
+
+  	_updatePath: function () {
+  		this._renderer._updatePoly(this, true);
+  	},
+
+  	// Needed by the `Canvas` renderer for interactivity
+  	_containsPoint: function (p) {
+  		var inside = false,
+  		    part, p1, p2, i, j, k, len, len2;
+
+  		if (!this._pxBounds || !this._pxBounds.contains(p)) { return false; }
+
+  		// ray casting algorithm for detecting if point is in polygon
+  		for (i = 0, len = this._parts.length; i < len; i++) {
+  			part = this._parts[i];
+
+  			for (j = 0, len2 = part.length, k = len2 - 1; j < len2; k = j++) {
+  				p1 = part[j];
+  				p2 = part[k];
+
+  				if (((p1.y > p.y) !== (p2.y > p.y)) && (p.x < (p2.x - p1.x) * (p.y - p1.y) / (p2.y - p1.y) + p1.x)) {
+  					inside = !inside;
+  				}
+  			}
+  		}
+
+  		// also check if it's on polygon stroke
+  		return inside || Polyline.prototype._containsPoint.call(this, p, true);
+  	}
+
+  });
+
+
+  // @factory L.polygon(latlngs: LatLng[], options?: Polyline options)
+  function polygon(latlngs, options) {
+  	return new Polygon(latlngs, options);
+  }
+
+  /*
+   * @class GeoJSON
+   * @aka L.GeoJSON
+   * @inherits FeatureGroup
+   *
+   * Represents a GeoJSON object or an array of GeoJSON objects. Allows you to parse
+   * GeoJSON data and display it on the map. Extends `FeatureGroup`.
+   *
+   * @example
+   *
+   * ```js
+   * L.geoJSON(data, {
+   * 	style: function (feature) {
+   * 		return {color: feature.properties.color};
+   * 	}
+   * }).bindPopup(function (layer) {
+   * 	return layer.feature.properties.description;
+   * }).addTo(map);
+   * ```
+   */
+
+  var GeoJSON = FeatureGroup.extend({
+
+  	/* @section
+  	 * @aka GeoJSON options
+  	 *
+  	 * @option pointToLayer: Function = *
+  	 * A `Function` defining how GeoJSON points spawn Leaflet layers. It is internally
+  	 * called when data is added, passing the GeoJSON point feature and its `LatLng`.
+  	 * The default is to spawn a default `Marker`:
+  	 * ```js
+  	 * function(geoJsonPoint, latlng) {
+  	 * 	return L.marker(latlng);
+  	 * }
+  	 * ```
+  	 *
+  	 * @option style: Function = *
+  	 * A `Function` defining the `Path options` for styling GeoJSON lines and polygons,
+  	 * called internally when data is added.
+  	 * The default value is to not override any defaults:
+  	 * ```js
+  	 * function (geoJsonFeature) {
+  	 * 	return {}
+  	 * }
+  	 * ```
+  	 *
+  	 * @option onEachFeature: Function = *
+  	 * A `Function` that will be called once for each created `Feature`, after it has
+  	 * been created and styled. Useful for attaching events and popups to features.
+  	 * The default is to do nothing with the newly created layers:
+  	 * ```js
+  	 * function (feature, layer) {}
+  	 * ```
+  	 *
+  	 * @option filter: Function = *
+  	 * A `Function` that will be used to decide whether to include a feature or not.
+  	 * The default is to include all features:
+  	 * ```js
+  	 * function (geoJsonFeature) {
+  	 * 	return true;
+  	 * }
+  	 * ```
+  	 * Note: dynamically changing the `filter` option will have effect only on newly
+  	 * added data. It will _not_ re-evaluate already included features.
+  	 *
+  	 * @option coordsToLatLng: Function = *
+  	 * A `Function` that will be used for converting GeoJSON coordinates to `LatLng`s.
+  	 * The default is the `coordsToLatLng` static method.
+  	 *
+  	 * @option markersInheritOptions: Boolean = false
+  	 * Whether default Markers for "Point" type Features inherit from group options.
+  	 */
+
+  	initialize: function (geojson, options) {
+  		setOptions(this, options);
+
+  		this._layers = {};
+
+  		if (geojson) {
+  			this.addData(geojson);
+  		}
+  	},
+
+  	// @method addData( <GeoJSON> data ): this
+  	// Adds a GeoJSON object to the layer.
+  	addData: function (geojson) {
+  		var features = isArray(geojson) ? geojson : geojson.features,
+  		    i, len, feature;
+
+  		if (features) {
+  			for (i = 0, len = features.length; i < len; i++) {
+  				// only add this if geometry or geometries are set and not null
+  				feature = features[i];
+  				if (feature.geometries || feature.geometry || feature.features || feature.coordinates) {
+  					this.addData(feature);
+  				}
+  			}
+  			return this;
+  		}
+
+  		var options = this.options;
+
+  		if (options.filter && !options.filter(geojson)) { return this; }
+
+  		var layer = geometryToLayer(geojson, options);
+  		if (!layer) {
+  			return this;
+  		}
+  		layer.feature = asFeature(geojson);
+
+  		layer.defaultOptions = layer.options;
+  		this.resetStyle(layer);
+
+  		if (options.onEachFeature) {
+  			options.onEachFeature(geojson, layer);
+  		}
+
+  		return this.addLayer(layer);
+  	},
+
+  	// @method resetStyle( <Path> layer? ): this
+  	// Resets the given vector layer's style to the original GeoJSON style, useful for resetting style after hover events.
+  	// If `layer` is omitted, the style of all features in the current layer is reset.
+  	resetStyle: function (layer) {
+  		if (layer === undefined) {
+  			return this.eachLayer(this.resetStyle, this);
+  		}
+  		// reset any custom styles
+  		layer.options = extend({}, layer.defaultOptions);
+  		this._setLayerStyle(layer, this.options.style);
+  		return this;
+  	},
+
+  	// @method setStyle( <Function> style ): this
+  	// Changes styles of GeoJSON vector layers with the given style function.
+  	setStyle: function (style) {
+  		return this.eachLayer(function (layer) {
+  			this._setLayerStyle(layer, style);
+  		}, this);
+  	},
+
+  	_setLayerStyle: function (layer, style) {
+  		if (layer.setStyle) {
+  			if (typeof style === 'function') {
+  				style = style(layer.feature);
+  			}
+  			layer.setStyle(style);
+  		}
+  	}
+  });
+
+  // @section
+  // There are several static functions which can be called without instantiating L.GeoJSON:
+
+  // @function geometryToLayer(featureData: Object, options?: GeoJSON options): Layer
+  // Creates a `Layer` from a given GeoJSON feature. Can use a custom
+  // [`pointToLayer`](#geojson-pointtolayer) and/or [`coordsToLatLng`](#geojson-coordstolatlng)
+  // functions if provided as options.
+  function geometryToLayer(geojson, options) {
+
+  	var geometry = geojson.type === 'Feature' ? geojson.geometry : geojson,
+  	    coords = geometry ? geometry.coordinates : null,
+  	    layers = [],
+  	    pointToLayer = options && options.pointToLayer,
+  	    _coordsToLatLng = options && options.coordsToLatLng || coordsToLatLng,
+  	    latlng, latlngs, i, len;
+
+  	if (!coords && !geometry) {
+  		return null;
+  	}
+
+  	switch (geometry.type) {
+  	case 'Point':
+  		latlng = _coordsToLatLng(coords);
+  		return _pointToLayer(pointToLayer, geojson, latlng, options);
+
+  	case 'MultiPoint':
+  		for (i = 0, len = coords.length; i < len; i++) {
+  			latlng = _coordsToLatLng(coords[i]);
+  			layers.push(_pointToLayer(pointToLayer, geojson, latlng, options));
+  		}
+  		return new FeatureGroup(layers);
+
+  	case 'LineString':
+  	case 'MultiLineString':
+  		latlngs = coordsToLatLngs(coords, geometry.type === 'LineString' ? 0 : 1, _coordsToLatLng);
+  		return new Polyline(latlngs, options);
+
+  	case 'Polygon':
+  	case 'MultiPolygon':
+  		latlngs = coordsToLatLngs(coords, geometry.type === 'Polygon' ? 1 : 2, _coordsToLatLng);
+  		return new Polygon(latlngs, options);
+
+  	case 'GeometryCollection':
+  		for (i = 0, len = geometry.geometries.length; i < len; i++) {
+  			var geoLayer = geometryToLayer({
+  				geometry: geometry.geometries[i],
+  				type: 'Feature',
+  				properties: geojson.properties
+  			}, options);
+
+  			if (geoLayer) {
+  				layers.push(geoLayer);
+  			}
+  		}
+  		return new FeatureGroup(layers);
+
+  	case 'FeatureCollection':
+  		for (i = 0, len = geometry.features.length; i < len; i++) {
+  			var featureLayer = geometryToLayer(geometry.features[i], options);
+
+  			if (featureLayer) {
+  				layers.push(featureLayer);
+  			}
+  		}
+  		return new FeatureGroup(layers);
+
+  	default:
+  		throw new Error('Invalid GeoJSON object.');
+  	}
+  }
+
+  function _pointToLayer(pointToLayerFn, geojson, latlng, options) {
+  	return pointToLayerFn ?
+  		pointToLayerFn(geojson, latlng) :
+  		new Marker(latlng, options && options.markersInheritOptions && options);
+  }
+
+  // @function coordsToLatLng(coords: Array): LatLng
+  // Creates a `LatLng` object from an array of 2 numbers (longitude, latitude)
+  // or 3 numbers (longitude, latitude, altitude) used in GeoJSON for points.
+  function coordsToLatLng(coords) {
+  	return new LatLng(coords[1], coords[0], coords[2]);
+  }
+
+  // @function coordsToLatLngs(coords: Array, levelsDeep?: Number, coordsToLatLng?: Function): Array
+  // Creates a multidimensional array of `LatLng`s from a GeoJSON coordinates array.
+  // `levelsDeep` specifies the nesting level (0 is for an array of points, 1 for an array of arrays of points, etc., 0 by default).
+  // Can use a custom [`coordsToLatLng`](#geojson-coordstolatlng) function.
+  function coordsToLatLngs(coords, levelsDeep, _coordsToLatLng) {
+  	var latlngs = [];
+
+  	for (var i = 0, len = coords.length, latlng; i < len; i++) {
+  		latlng = levelsDeep ?
+  			coordsToLatLngs(coords[i], levelsDeep - 1, _coordsToLatLng) :
+  			(_coordsToLatLng || coordsToLatLng)(coords[i]);
+
+  		latlngs.push(latlng);
+  	}
+
+  	return latlngs;
+  }
+
+  // @function latLngToCoords(latlng: LatLng, precision?: Number|false): Array
+  // Reverse of [`coordsToLatLng`](#geojson-coordstolatlng)
+  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
+  function latLngToCoords(latlng, precision) {
+  	latlng = toLatLng(latlng);
+  	return latlng.alt !== undefined ?
+  		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision), formatNum(latlng.alt, precision)] :
+  		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision)];
+  }
+
+  // @function latLngsToCoords(latlngs: Array, levelsDeep?: Number, closed?: Boolean, precision?: Number|false): Array
+  // Reverse of [`coordsToLatLngs`](#geojson-coordstolatlngs)
+  // `closed` determines whether the first point should be appended to the end of the array to close the feature, only used when `levelsDeep` is 0. False by default.
+  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
+  function latLngsToCoords(latlngs, levelsDeep, closed, precision) {
+  	var coords = [];
+
+  	for (var i = 0, len = latlngs.length; i < len; i++) {
+  		// Check for flat arrays required to ensure unbalanced arrays are correctly converted in recursion
+  		coords.push(levelsDeep ?
+  			latLngsToCoords(latlngs[i], isFlat(latlngs[i]) ? 0 : levelsDeep - 1, closed, precision) :
+  			latLngToCoords(latlngs[i], precision));
+  	}
+
+  	if (!levelsDeep && closed && coords.length > 0) {
+  		coords.push(coords[0].slice());
+  	}
+
+  	return coords;
+  }
+
+  function getFeature(layer, newGeometry) {
+  	return layer.feature ?
+  		extend({}, layer.feature, {geometry: newGeometry}) :
+  		asFeature(newGeometry);
+  }
+
+  // @function asFeature(geojson: Object): Object
+  // Normalize GeoJSON geometries/features into GeoJSON features.
+  function asFeature(geojson) {
+  	if (geojson.type === 'Feature' || geojson.type === 'FeatureCollection') {
+  		return geojson;
+  	}
+
+  	return {
+  		type: 'Feature',
+  		properties: {},
+  		geometry: geojson
+  	};
+  }
+
+  var PointToGeoJSON = {
+  	toGeoJSON: function (precision) {
+  		return getFeature(this, {
+  			type: 'Point',
+  			coordinates: latLngToCoords(this.getLatLng(), precision)
+  		});
+  	}
+  };
+
+  // @namespace Marker
+  // @section Other methods
+  // @method toGeoJSON(precision?: Number|false): Object
+  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the marker (as a GeoJSON `Point` Feature).
+  Marker.include(PointToGeoJSON);
+
+  // @namespace CircleMarker
+  // @method toGeoJSON(precision?: Number|false): Object
+  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the circle marker (as a GeoJSON `Point` Feature).
+  Circle.include(PointToGeoJSON);
+  CircleMarker.include(PointToGeoJSON);
+
+
+  // @namespace Polyline
+  // @method toGeoJSON(precision?: Number|false): Object
+  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the polyline (as a GeoJSON `LineString` or `MultiLineString` Feature).
+  Polyline.include({
+  	toGeoJSON: function (precision) {
+  		var multi = !isFlat(this._latlngs);
+
+  		var coords = latLngsToCoords(this._latlngs, multi ? 1 : 0, false, precision);
+
+  		return getFeature(this, {
+  			type: (multi ? 'Multi' : '') + 'LineString',
+  			coordinates: coords
+  		});
+  	}
+  });
+
+  // @namespace Polygon
+  // @method toGeoJSON(precision?: Number|false): Object
+  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the polygon (as a GeoJSON `Polygon` or `MultiPolygon` Feature).
+  Polygon.include({
+  	toGeoJSON: function (precision) {
+  		var holes = !isFlat(this._latlngs),
+  		    multi = holes && !isFlat(this._latlngs[0]);
+
+  		var coords = latLngsToCoords(this._latlngs, multi ? 2 : holes ? 1 : 0, true, precision);
+
+  		if (!holes) {
+  			coords = [coords];
+  		}
+
+  		return getFeature(this, {
+  			type: (multi ? 'Multi' : '') + 'Polygon',
+  			coordinates: coords
+  		});
+  	}
+  });
+
+
+  // @namespace LayerGroup
+  LayerGroup.include({
+  	toMultiPoint: function (precision) {
+  		var coords = [];
+
+  		this.eachLayer(function (layer) {
+  			coords.push(layer.toGeoJSON(precision).geometry.coordinates);
+  		});
+
+  		return getFeature(this, {
+  			type: 'MultiPoint',
+  			coordinates: coords
+  		});
+  	},
+
+  	// @method toGeoJSON(precision?: Number|false): Object
+  	// Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+  	// Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the layer group (as a GeoJSON `FeatureCollection`, `GeometryCollection`, or `MultiPoint`).
+  	toGeoJSON: function (precision) {
+
+  		var type = this.feature && this.feature.geometry && this.feature.geometry.type;
+
+  		if (type === 'MultiPoint') {
+  			return this.toMultiPoint(precision);
+  		}
+
+  		var isGeometryCollection = type === 'GeometryCollection',
+  		    jsons = [];
+
+  		this.eachLayer(function (layer) {
+  			if (layer.toGeoJSON) {
+  				var json = layer.toGeoJSON(precision);
+  				if (isGeometryCollection) {
+  					jsons.push(json.geometry);
+  				} else {
+  					var feature = asFeature(json);
+  					// Squash nested feature collections
+  					if (feature.type === 'FeatureCollection') {
+  						jsons.push.apply(jsons, feature.features);
+  					} else {
+  						jsons.push(feature);
+  					}
+  				}
+  			}
+  		});
+
+  		if (isGeometryCollection) {
+  			return getFeature(this, {
+  				geometries: jsons,
+  				type: 'GeometryCollection'
+  			});
+  		}
+
+  		return {
+  			type: 'FeatureCollection',
+  			features: jsons
+  		};
+  	}
+  });
+
+  // @namespace GeoJSON
+  // @factory L.geoJSON(geojson?: Object, options?: GeoJSON options)
+  // Creates a GeoJSON layer. Optionally accepts an object in
+  // [GeoJSON format](https://tools.ietf.org/html/rfc7946) to display on the map
+  // (you can alternatively add it later with `addData` method) and an `options` object.
+  function geoJSON(geojson, options) {
+  	return new GeoJSON(geojson, options);
+  }
+
+  // Backward compatibility.
+  var geoJson = geoJSON;
+
+  /*
+   * @class ImageOverlay
+   * @aka L.ImageOverlay
+   * @inherits Interactive layer
+   *
+   * Used to load and display a single image over specific bounds of the map. Extends `Layer`.
+   *
+   * @example
+   *
+   * ```js
+   * var imageUrl = 'https://maps.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
+   * 	imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
+   * L.imageOverlay(imageUrl, imageBounds).addTo(map);
+   * ```
+   */
+
+  var ImageOverlay = Layer.extend({
+
+  	// @section
+  	// @aka ImageOverlay options
+  	options: {
+  		// @option opacity: Number = 1.0
+  		// The opacity of the image overlay.
+  		opacity: 1,
+
+  		// @option alt: String = ''
+  		// Text for the `alt` attribute of the image (useful for accessibility).
+  		alt: '',
+
+  		// @option interactive: Boolean = false
+  		// If `true`, the image overlay will emit [mouse events](#interactive-layer) when clicked or hovered.
+  		interactive: false,
+
+  		// @option crossOrigin: Boolean|String = false
+  		// Whether the crossOrigin attribute will be added to the image.
+  		// If a String is provided, the image will have its crossOrigin attribute set to the String provided. This is needed if you want to access image pixel data.
+  		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+  		crossOrigin: false,
+
+  		// @option errorOverlayUrl: String = ''
+  		// URL to the overlay image to show in place of the overlay that failed to load.
+  		errorOverlayUrl: '',
+
+  		// @option zIndex: Number = 1
+  		// The explicit [zIndex](https://developer.mozilla.org/docs/Web/CSS/CSS_Positioning/Understanding_z_index) of the overlay layer.
+  		zIndex: 1,
+
+  		// @option className: String = ''
+  		// A custom class name to assign to the image. Empty by default.
+  		className: ''
+  	},
+
+  	initialize: function (url, bounds, options) { // (String, LatLngBounds, Object)
+  		this._url = url;
+  		this._bounds = toLatLngBounds(bounds);
+
+  		setOptions(this, options);
+  	},
+
+  	onAdd: function () {
+  		if (!this._image) {
+  			this._initImage();
+
+  			if (this.options.opacity < 1) {
+  				this._updateOpacity();
+  			}
+  		}
+
+  		if (this.options.interactive) {
+  			addClass(this._image, 'leaflet-interactive');
+  			this.addInteractiveTarget(this._image);
+  		}
+
+  		this.getPane().appendChild(this._image);
+  		this._reset();
+  	},
+
+  	onRemove: function () {
+  		remove(this._image);
+  		if (this.options.interactive) {
+  			this.removeInteractiveTarget(this._image);
+  		}
+  	},
+
+  	// @method setOpacity(opacity: Number): this
+  	// Sets the opacity of the overlay.
+  	setOpacity: function (opacity) {
+  		this.options.opacity = opacity;
+
+  		if (this._image) {
+  			this._updateOpacity();
+  		}
+  		return this;
+  	},
+
+  	setStyle: function (styleOpts) {
+  		if (styleOpts.opacity) {
+  			this.setOpacity(styleOpts.opacity);
+  		}
+  		return this;
+  	},
+
+  	// @method bringToFront(): this
+  	// Brings the layer to the top of all overlays.
+  	bringToFront: function () {
+  		if (this._map) {
+  			toFront(this._image);
+  		}
+  		return this;
+  	},
+
+  	// @method bringToBack(): this
+  	// Brings the layer to the bottom of all overlays.
+  	bringToBack: function () {
+  		if (this._map) {
+  			toBack(this._image);
+  		}
+  		return this;
+  	},
+
+  	// @method setUrl(url: String): this
+  	// Changes the URL of the image.
+  	setUrl: function (url) {
+  		this._url = url;
+
+  		if (this._image) {
+  			this._image.src = url;
+  		}
+  		return this;
+  	},
+
+  	// @method setBounds(bounds: LatLngBounds): this
+  	// Update the bounds that this ImageOverlay covers
+  	setBounds: function (bounds) {
+  		this._bounds = toLatLngBounds(bounds);
+
+  		if (this._map) {
+  			this._reset();
+  		}
+  		return this;
+  	},
+
+  	getEvents: function () {
+  		var events = {
+  			zoom: this._reset,
+  			viewreset: this._reset
+  		};
+
+  		if (this._zoomAnimated) {
+  			events.zoomanim = this._animateZoom;
+  		}
+
+  		return events;
+  	},
+
+  	// @method setZIndex(value: Number): this
+  	// Changes the [zIndex](#imageoverlay-zindex) of the image overlay.
+  	setZIndex: function (value) {
+  		this.options.zIndex = value;
+  		this._updateZIndex();
+  		return this;
+  	},
+
+  	// @method getBounds(): LatLngBounds
+  	// Get the bounds that this ImageOverlay covers
+  	getBounds: function () {
+  		return this._bounds;
+  	},
+
+  	// @method getElement(): HTMLElement
+  	// Returns the instance of [`HTMLImageElement`](https://developer.mozilla.org/docs/Web/API/HTMLImageElement)
+  	// used by this overlay.
+  	getElement: function () {
+  		return this._image;
+  	},
+
+  	_initImage: function () {
+  		var wasElementSupplied = this._url.tagName === 'IMG';
+  		var img = this._image = wasElementSupplied ? this._url : create$1('img');
+
+  		addClass(img, 'leaflet-image-layer');
+  		if (this._zoomAnimated) { addClass(img, 'leaflet-zoom-animated'); }
+  		if (this.options.className) { addClass(img, this.options.className); }
+
+  		img.onselectstart = falseFn;
+  		img.onmousemove = falseFn;
+
+  		// @event load: Event
+  		// Fired when the ImageOverlay layer has loaded its image
+  		img.onload = bind(this.fire, this, 'load');
+  		img.onerror = bind(this._overlayOnError, this, 'error');
+
+  		if (this.options.crossOrigin || this.options.crossOrigin === '') {
+  			img.crossOrigin = this.options.crossOrigin === true ? '' : this.options.crossOrigin;
+  		}
+
+  		if (this.options.zIndex) {
+  			this._updateZIndex();
+  		}
+
+  		if (wasElementSupplied) {
+  			this._url = img.src;
+  			return;
+  		}
+
+  		img.src = this._url;
+  		img.alt = this.options.alt;
+  	},
+
+  	_animateZoom: function (e) {
+  		var scale = this._map.getZoomScale(e.zoom),
+  		    offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+
+  		setTransform(this._image, offset, scale);
+  	},
+
+  	_reset: function () {
+  		var image = this._image,
+  		    bounds = new Bounds(
+  		        this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
+  		        this._map.latLngToLayerPoint(this._bounds.getSouthEast())),
+  		    size = bounds.getSize();
+
+  		setPosition(image, bounds.min);
+
+  		image.style.width  = size.x + 'px';
+  		image.style.height = size.y + 'px';
+  	},
+
+  	_updateOpacity: function () {
+  		setOpacity(this._image, this.options.opacity);
+  	},
+
+  	_updateZIndex: function () {
+  		if (this._image && this.options.zIndex !== undefined && this.options.zIndex !== null) {
+  			this._image.style.zIndex = this.options.zIndex;
+  		}
+  	},
+
+  	_overlayOnError: function () {
+  		// @event error: Event
+  		// Fired when the ImageOverlay layer fails to load its image
+  		this.fire('error');
+
+  		var errorUrl = this.options.errorOverlayUrl;
+  		if (errorUrl && this._url !== errorUrl) {
+  			this._url = errorUrl;
+  			this._image.src = errorUrl;
+  		}
+  	},
+
+  	// @method getCenter(): LatLng
+  	// Returns the center of the ImageOverlay.
+  	getCenter: function () {
+  		return this._bounds.getCenter();
+  	}
+  });
+
+  // @factory L.imageOverlay(imageUrl: String, bounds: LatLngBounds, options?: ImageOverlay options)
+  // Instantiates an image overlay object given the URL of the image and the
+  // geographical bounds it is tied to.
+  var imageOverlay = function (url, bounds, options) {
+  	return new ImageOverlay(url, bounds, options);
+  };
+
+  /*
+   * @class VideoOverlay
+   * @aka L.VideoOverlay
+   * @inherits ImageOverlay
+   *
+   * Used to load and display a video player over specific bounds of the map. Extends `ImageOverlay`.
+   *
+   * A video overlay uses the [`<video>`](https://developer.mozilla.org/docs/Web/HTML/Element/video)
+   * HTML5 element.
+   *
+   * @example
+   *
+   * ```js
+   * var videoUrl = 'https://www.mapbox.com/bites/00188/patricia_nasa.webm',
+   * 	videoBounds = [[ 32, -130], [ 13, -100]];
+   * L.videoOverlay(videoUrl, videoBounds ).addTo(map);
+   * ```
+   */
+
+  var VideoOverlay = ImageOverlay.extend({
+
+  	// @section
+  	// @aka VideoOverlay options
+  	options: {
+  		// @option autoplay: Boolean = true
+  		// Whether the video starts playing automatically when loaded.
+  		// On some browsers autoplay will only work with `muted: true`
+  		autoplay: true,
+
+  		// @option loop: Boolean = true
+  		// Whether the video will loop back to the beginning when played.
+  		loop: true,
+
+  		// @option keepAspectRatio: Boolean = true
+  		// Whether the video will save aspect ratio after the projection.
+  		// Relevant for supported browsers. See [browser compatibility](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit)
+  		keepAspectRatio: true,
+
+  		// @option muted: Boolean = false
+  		// Whether the video starts on mute when loaded.
+  		muted: false,
+
+  		// @option playsInline: Boolean = true
+  		// Mobile browsers will play the video right where it is instead of open it up in fullscreen mode.
+  		playsInline: true
+  	},
+
+  	_initImage: function () {
+  		var wasElementSupplied = this._url.tagName === 'VIDEO';
+  		var vid = this._image = wasElementSupplied ? this._url : create$1('video');
+
+  		addClass(vid, 'leaflet-image-layer');
+  		if (this._zoomAnimated) { addClass(vid, 'leaflet-zoom-animated'); }
+  		if (this.options.className) { addClass(vid, this.options.className); }
+
+  		vid.onselectstart = falseFn;
+  		vid.onmousemove = falseFn;
+
+  		// @event load: Event
+  		// Fired when the video has finished loading the first frame
+  		vid.onloadeddata = bind(this.fire, this, 'load');
+
+  		if (wasElementSupplied) {
+  			var sourceElements = vid.getElementsByTagName('source');
+  			var sources = [];
+  			for (var j = 0; j < sourceElements.length; j++) {
+  				sources.push(sourceElements[j].src);
+  			}
+
+  			this._url = (sourceElements.length > 0) ? sources : [vid.src];
+  			return;
+  		}
+
+  		if (!isArray(this._url)) { this._url = [this._url]; }
+
+  		if (!this.options.keepAspectRatio && Object.prototype.hasOwnProperty.call(vid.style, 'objectFit')) {
+  			vid.style['objectFit'] = 'fill';
+  		}
+  		vid.autoplay = !!this.options.autoplay;
+  		vid.loop = !!this.options.loop;
+  		vid.muted = !!this.options.muted;
+  		vid.playsInline = !!this.options.playsInline;
+  		for (var i = 0; i < this._url.length; i++) {
+  			var source = create$1('source');
+  			source.src = this._url[i];
+  			vid.appendChild(source);
+  		}
+  	}
+
+  	// @method getElement(): HTMLVideoElement
+  	// Returns the instance of [`HTMLVideoElement`](https://developer.mozilla.org/docs/Web/API/HTMLVideoElement)
+  	// used by this overlay.
+  });
+
+
+  // @factory L.videoOverlay(video: String|Array|HTMLVideoElement, bounds: LatLngBounds, options?: VideoOverlay options)
+  // Instantiates an image overlay object given the URL of the video (or array of URLs, or even a video element) and the
+  // geographical bounds it is tied to.
+
+  function videoOverlay(video, bounds, options) {
+  	return new VideoOverlay(video, bounds, options);
+  }
+
+  /*
+   * @class SVGOverlay
+   * @aka L.SVGOverlay
+   * @inherits ImageOverlay
+   *
+   * Used to load, display and provide DOM access to an SVG file over specific bounds of the map. Extends `ImageOverlay`.
+   *
+   * An SVG overlay uses the [`<svg>`](https://developer.mozilla.org/docs/Web/SVG/Element/svg) element.
+   *
+   * @example
+   *
+   * ```js
+   * var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+   * svgElement.setAttribute('xmlns', "http://www.w3.org/2000/svg");
+   * svgElement.setAttribute('viewBox', "0 0 200 200");
+   * svgElement.innerHTML = '<rect width="200" height="200"/><rect x="75" y="23" width="50" height="50" style="fill:red"/><rect x="75" y="123" width="50" height="50" style="fill:#0013ff"/>';
+   * var svgElementBounds = [ [ 32, -130 ], [ 13, -100 ] ];
+   * L.svgOverlay(svgElement, svgElementBounds).addTo(map);
+   * ```
+   */
+
+  var SVGOverlay = ImageOverlay.extend({
+  	_initImage: function () {
+  		var el = this._image = this._url;
+
+  		addClass(el, 'leaflet-image-layer');
+  		if (this._zoomAnimated) { addClass(el, 'leaflet-zoom-animated'); }
+  		if (this.options.className) { addClass(el, this.options.className); }
+
+  		el.onselectstart = falseFn;
+  		el.onmousemove = falseFn;
+  	}
+
+  	// @method getElement(): SVGElement
+  	// Returns the instance of [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+  	// used by this overlay.
+  });
+
+
+  // @factory L.svgOverlay(svg: String|SVGElement, bounds: LatLngBounds, options?: SVGOverlay options)
+  // Instantiates an image overlay object given an SVG element and the geographical bounds it is tied to.
+  // A viewBox attribute is required on the SVG element to zoom in and out properly.
+
+  function svgOverlay(el, bounds, options) {
+  	return new SVGOverlay(el, bounds, options);
+  }
+
+  /*
+   * @class DivOverlay
+   * @inherits Interactive layer
+   * @aka L.DivOverlay
+   * Base model for L.Popup and L.Tooltip. Inherit from it for custom overlays like plugins.
+   */
+
+  // @namespace DivOverlay
+  var DivOverlay = Layer.extend({
+
+  	// @section
+  	// @aka DivOverlay options
+  	options: {
+  		// @option interactive: Boolean = false
+  		// If true, the popup/tooltip will listen to the mouse events.
+  		interactive: false,
+
+  		// @option offset: Point = Point(0, 0)
+  		// The offset of the overlay position.
+  		offset: [0, 0],
+
+  		// @option className: String = ''
+  		// A custom CSS class name to assign to the overlay.
+  		className: '',
+
+  		// @option pane: String = undefined
+  		// `Map pane` where the overlay will be added.
+  		pane: undefined,
+
+  		// @option content: String|HTMLElement|Function = ''
+  		// Sets the HTML content of the overlay while initializing. If a function is passed the source layer will be
+  		// passed to the function. The function should return a `String` or `HTMLElement` to be used in the overlay.
+  		content: ''
+  	},
+
+  	initialize: function (options, source) {
+  		if (options && (options instanceof LatLng || isArray(options))) {
+  			this._latlng = toLatLng(options);
+  			setOptions(this, source);
+  		} else {
+  			setOptions(this, options);
+  			this._source = source;
+  		}
+  		if (this.options.content) {
+  			this._content = this.options.content;
+  		}
+  	},
+
+  	// @method openOn(map: Map): this
+  	// Adds the overlay to the map.
+  	// Alternative to `map.openPopup(popup)`/`.openTooltip(tooltip)`.
+  	openOn: function (map) {
+  		map = arguments.length ? map : this._source._map; // experimental, not the part of public api
+  		if (!map.hasLayer(this)) {
+  			map.addLayer(this);
+  		}
+  		return this;
+  	},
+
+  	// @method close(): this
+  	// Closes the overlay.
+  	// Alternative to `map.closePopup(popup)`/`.closeTooltip(tooltip)`
+  	// and `layer.closePopup()`/`.closeTooltip()`.
+  	close: function () {
+  		if (this._map) {
+  			this._map.removeLayer(this);
+  		}
+  		return this;
+  	},
+
+  	// @method toggle(layer?: Layer): this
+  	// Opens or closes the overlay bound to layer depending on its current state.
+  	// Argument may be omitted only for overlay bound to layer.
+  	// Alternative to `layer.togglePopup()`/`.toggleTooltip()`.
+  	toggle: function (layer) {
+  		if (this._map) {
+  			this.close();
+  		} else {
+  			if (arguments.length) {
+  				this._source = layer;
+  			} else {
+  				layer = this._source;
+  			}
+  			this._prepareOpen();
+
+  			// open the overlay on the map
+  			this.openOn(layer._map);
+  		}
+  		return this;
+  	},
+
+  	onAdd: function (map) {
+  		this._zoomAnimated = map._zoomAnimated;
+
+  		if (!this._container) {
+  			this._initLayout();
+  		}
+
+  		if (map._fadeAnimated) {
+  			setOpacity(this._container, 0);
+  		}
+
+  		clearTimeout(this._removeTimeout);
+  		this.getPane().appendChild(this._container);
+  		this.update();
+
+  		if (map._fadeAnimated) {
+  			setOpacity(this._container, 1);
+  		}
+
+  		this.bringToFront();
+
+  		if (this.options.interactive) {
+  			addClass(this._container, 'leaflet-interactive');
+  			this.addInteractiveTarget(this._container);
+  		}
+  	},
+
+  	onRemove: function (map) {
+  		if (map._fadeAnimated) {
+  			setOpacity(this._container, 0);
+  			this._removeTimeout = setTimeout(bind(remove, undefined, this._container), 200);
+  		} else {
+  			remove(this._container);
+  		}
+
+  		if (this.options.interactive) {
+  			removeClass(this._container, 'leaflet-interactive');
+  			this.removeInteractiveTarget(this._container);
+  		}
+  	},
+
+  	// @namespace DivOverlay
+  	// @method getLatLng: LatLng
+  	// Returns the geographical point of the overlay.
+  	getLatLng: function () {
+  		return this._latlng;
+  	},
+
+  	// @method setLatLng(latlng: LatLng): this
+  	// Sets the geographical point where the overlay will open.
+  	setLatLng: function (latlng) {
+  		this._latlng = toLatLng(latlng);
+  		if (this._map) {
+  			this._updatePosition();
+  			this._adjustPan();
+  		}
+  		return this;
+  	},
+
+  	// @method getContent: String|HTMLElement
+  	// Returns the content of the overlay.
+  	getContent: function () {
+  		return this._content;
+  	},
+
+  	// @method setContent(htmlContent: String|HTMLElement|Function): this
+  	// Sets the HTML content of the overlay. If a function is passed the source layer will be passed to the function.
+  	// The function should return a `String` or `HTMLElement` to be used in the overlay.
+  	setContent: function (content) {
+  		this._content = content;
+  		this.update();
+  		return this;
+  	},
+
+  	// @method getElement: String|HTMLElement
+  	// Returns the HTML container of the overlay.
+  	getElement: function () {
+  		return this._container;
+  	},
+
+  	// @method update: null
+  	// Updates the overlay content, layout and position. Useful for updating the overlay after something inside changed, e.g. image loaded.
+  	update: function () {
+  		if (!this._map) { return; }
+
+  		this._container.style.visibility = 'hidden';
+
+  		this._updateContent();
+  		this._updateLayout();
+  		this._updatePosition();
+
+  		this._container.style.visibility = '';
+
+  		this._adjustPan();
+  	},
+
+  	getEvents: function () {
+  		var events = {
+  			zoom: this._updatePosition,
+  			viewreset: this._updatePosition
+  		};
+
+  		if (this._zoomAnimated) {
+  			events.zoomanim = this._animateZoom;
+  		}
+  		return events;
+  	},
+
+  	// @method isOpen: Boolean
+  	// Returns `true` when the overlay is visible on the map.
+  	isOpen: function () {
+  		return !!this._map && this._map.hasLayer(this);
+  	},
+
+  	// @method bringToFront: this
+  	// Brings this overlay in front of other overlays (in the same map pane).
+  	bringToFront: function () {
+  		if (this._map) {
+  			toFront(this._container);
+  		}
+  		return this;
+  	},
+
+  	// @method bringToBack: this
+  	// Brings this overlay to the back of other overlays (in the same map pane).
+  	bringToBack: function () {
+  		if (this._map) {
+  			toBack(this._container);
+  		}
+  		return this;
+  	},
+
+  	// prepare bound overlay to open: update latlng pos / content source (for FeatureGroup)
+  	_prepareOpen: function (latlng) {
+  		var source = this._source;
+  		if (!source._map) { return false; }
+
+  		if (source instanceof FeatureGroup) {
+  			source = null;
+  			var layers = this._source._layers;
+  			for (var id in layers) {
+  				if (layers[id]._map) {
+  					source = layers[id];
+  					break;
+  				}
+  			}
+  			if (!source) { return false; } // Unable to get source layer.
+
+  			// set overlay source to this layer
+  			this._source = source;
+  		}
+
+  		if (!latlng) {
+  			if (source.getCenter) {
+  				latlng = source.getCenter();
+  			} else if (source.getLatLng) {
+  				latlng = source.getLatLng();
+  			} else if (source.getBounds) {
+  				latlng = source.getBounds().getCenter();
+  			} else {
+  				throw new Error('Unable to get source layer LatLng.');
+  			}
+  		}
+  		this.setLatLng(latlng);
+
+  		if (this._map) {
+  			// update the overlay (content, layout, etc...)
+  			this.update();
+  		}
+
+  		return true;
+  	},
+
+  	_updateContent: function () {
+  		if (!this._content) { return; }
+
+  		var node = this._contentNode;
+  		var content = (typeof this._content === 'function') ? this._content(this._source || this) : this._content;
+
+  		if (typeof content === 'string') {
+  			node.innerHTML = content;
+  		} else {
+  			while (node.hasChildNodes()) {
+  				node.removeChild(node.firstChild);
+  			}
+  			node.appendChild(content);
+  		}
+
+  		// @namespace DivOverlay
+  		// @section DivOverlay events
+  		// @event contentupdate: Event
+  		// Fired when the content of the overlay is updated
+  		this.fire('contentupdate');
+  	},
+
+  	_updatePosition: function () {
+  		if (!this._map) { return; }
+
+  		var pos = this._map.latLngToLayerPoint(this._latlng),
+  		    offset = toPoint(this.options.offset),
+  		    anchor = this._getAnchor();
+
+  		if (this._zoomAnimated) {
+  			setPosition(this._container, pos.add(anchor));
+  		} else {
+  			offset = offset.add(pos).add(anchor);
+  		}
+
+  		var bottom = this._containerBottom = -offset.y,
+  		    left = this._containerLeft = -Math.round(this._containerWidth / 2) + offset.x;
+
+  		// bottom position the overlay in case the height of the overlay changes (images loading etc)
+  		this._container.style.bottom = bottom + 'px';
+  		this._container.style.left = left + 'px';
+  	},
+
+  	_getAnchor: function () {
+  		return [0, 0];
+  	}
+
+  });
+
+  Map.include({
+  	_initOverlay: function (OverlayClass, content, latlng, options) {
+  		var overlay = content;
+  		if (!(overlay instanceof OverlayClass)) {
+  			overlay = new OverlayClass(options).setContent(content);
+  		}
+  		if (latlng) {
+  			overlay.setLatLng(latlng);
+  		}
+  		return overlay;
+  	}
+  });
+
+
+  Layer.include({
+  	_initOverlay: function (OverlayClass, old, content, options) {
+  		var overlay = content;
+  		if (overlay instanceof OverlayClass) {
+  			setOptions(overlay, options);
+  			overlay._source = this;
+  		} else {
+  			overlay = (old && !options) ? old : new OverlayClass(options, this);
+  			overlay.setContent(content);
+  		}
+  		return overlay;
+  	}
+  });
+
+  /*
+   * @class Popup
+   * @inherits DivOverlay
+   * @aka L.Popup
+   * Used to open popups in certain places of the map. Use [Map.openPopup](#map-openpopup) to
+   * open popups while making sure that only one popup is open at one time
+   * (recommended for usability), or use [Map.addLayer](#map-addlayer) to open as many as you want.
+   *
+   * @example
+   *
+   * If you want to just bind a popup to marker click and then open it, it's really easy:
+   *
+   * ```js
+   * marker.bindPopup(popupContent).openPopup();
+   * ```
+   * Path overlays like polylines also have a `bindPopup` method.
+   *
+   * A popup can be also standalone:
+   *
+   * ```js
+   * var popup = L.popup()
+   * 	.setLatLng(latlng)
+   * 	.setContent('<p>Hello world!<br />This is a nice popup.</p>')
+   * 	.openOn(map);
+   * ```
+   * or
+   * ```js
+   * var popup = L.popup(latlng, {content: '<p>Hello world!<br />This is a nice popup.</p>')
+   * 	.openOn(map);
+   * ```
+   */
+
+
+  // @namespace Popup
+  var Popup = DivOverlay.extend({
+
+  	// @section
+  	// @aka Popup options
+  	options: {
+  		// @option pane: String = 'popupPane'
+  		// `Map pane` where the popup will be added.
+  		pane: 'popupPane',
+
+  		// @option offset: Point = Point(0, 7)
+  		// The offset of the popup position.
+  		offset: [0, 7],
+
+  		// @option maxWidth: Number = 300
+  		// Max width of the popup, in pixels.
+  		maxWidth: 300,
+
+  		// @option minWidth: Number = 50
+  		// Min width of the popup, in pixels.
+  		minWidth: 50,
+
+  		// @option maxHeight: Number = null
+  		// If set, creates a scrollable container of the given height
+  		// inside a popup if its content exceeds it.
+  		// The scrollable container can be styled using the
+  		// `leaflet-popup-scrolled` CSS class selector.
+  		maxHeight: null,
+
+  		// @option autoPan: Boolean = true
+  		// Set it to `false` if you don't want the map to do panning animation
+  		// to fit the opened popup.
+  		autoPan: true,
+
+  		// @option autoPanPaddingTopLeft: Point = null
+  		// The margin between the popup and the top left corner of the map
+  		// view after autopanning was performed.
+  		autoPanPaddingTopLeft: null,
+
+  		// @option autoPanPaddingBottomRight: Point = null
+  		// The margin between the popup and the bottom right corner of the map
+  		// view after autopanning was performed.
+  		autoPanPaddingBottomRight: null,
+
+  		// @option autoPanPadding: Point = Point(5, 5)
+  		// Equivalent of setting both top left and bottom right autopan padding to the same value.
+  		autoPanPadding: [5, 5],
+
+  		// @option keepInView: Boolean = false
+  		// Set it to `true` if you want to prevent users from panning the popup
+  		// off of the screen while it is open.
+  		keepInView: false,
+
+  		// @option closeButton: Boolean = true
+  		// Controls the presence of a close button in the popup.
+  		closeButton: true,
+
+  		// @option autoClose: Boolean = true
+  		// Set it to `false` if you want to override the default behavior of
+  		// the popup closing when another popup is opened.
+  		autoClose: true,
+
+  		// @option closeOnEscapeKey: Boolean = true
+  		// Set it to `false` if you want to override the default behavior of
+  		// the ESC key for closing of the popup.
+  		closeOnEscapeKey: true,
+
+  		// @option closeOnClick: Boolean = *
+  		// Set it if you want to override the default behavior of the popup closing when user clicks
+  		// on the map. Defaults to the map's [`closePopupOnClick`](#map-closepopuponclick) option.
+
+  		// @option className: String = ''
+  		// A custom CSS class name to assign to the popup.
+  		className: ''
+  	},
+
+  	// @namespace Popup
+  	// @method openOn(map: Map): this
+  	// Alternative to `map.openPopup(popup)`.
+  	// Adds the popup to the map and closes the previous one.
+  	openOn: function (map) {
+  		map = arguments.length ? map : this._source._map; // experimental, not the part of public api
+
+  		if (!map.hasLayer(this) && map._popup && map._popup.options.autoClose) {
+  			map.removeLayer(map._popup);
+  		}
+  		map._popup = this;
+
+  		return DivOverlay.prototype.openOn.call(this, map);
+  	},
+
+  	onAdd: function (map) {
+  		DivOverlay.prototype.onAdd.call(this, map);
+
+  		// @namespace Map
+  		// @section Popup events
+  		// @event popupopen: PopupEvent
+  		// Fired when a popup is opened in the map
+  		map.fire('popupopen', {popup: this});
+
+  		if (this._source) {
+  			// @namespace Layer
+  			// @section Popup events
+  			// @event popupopen: PopupEvent
+  			// Fired when a popup bound to this layer is opened
+  			this._source.fire('popupopen', {popup: this}, true);
+  			// For non-path layers, we toggle the popup when clicking
+  			// again the layer, so prevent the map to reopen it.
+  			if (!(this._source instanceof Path)) {
+  				this._source.on('preclick', stopPropagation);
+  			}
+  		}
+  	},
+
+  	onRemove: function (map) {
+  		DivOverlay.prototype.onRemove.call(this, map);
+
+  		// @namespace Map
+  		// @section Popup events
+  		// @event popupclose: PopupEvent
+  		// Fired when a popup in the map is closed
+  		map.fire('popupclose', {popup: this});
+
+  		if (this._source) {
+  			// @namespace Layer
+  			// @section Popup events
+  			// @event popupclose: PopupEvent
+  			// Fired when a popup bound to this layer is closed
+  			this._source.fire('popupclose', {popup: this}, true);
+  			if (!(this._source instanceof Path)) {
+  				this._source.off('preclick', stopPropagation);
+  			}
+  		}
+  	},
+
+  	getEvents: function () {
+  		var events = DivOverlay.prototype.getEvents.call(this);
+
+  		if (this.options.closeOnClick !== undefined ? this.options.closeOnClick : this._map.options.closePopupOnClick) {
+  			events.preclick = this.close;
+  		}
+
+  		if (this.options.keepInView) {
+  			events.moveend = this._adjustPan;
+  		}
+
+  		return events;
+  	},
+
+  	_initLayout: function () {
+  		var prefix = 'leaflet-popup',
+  		    container = this._container = create$1('div',
+  			prefix + ' ' + (this.options.className || '') +
+  			' leaflet-zoom-animated');
+
+  		var wrapper = this._wrapper = create$1('div', prefix + '-content-wrapper', container);
+  		this._contentNode = create$1('div', prefix + '-content', wrapper);
+
+  		disableClickPropagation(container);
+  		disableScrollPropagation(this._contentNode);
+  		on(container, 'contextmenu', stopPropagation);
+
+  		this._tipContainer = create$1('div', prefix + '-tip-container', container);
+  		this._tip = create$1('div', prefix + '-tip', this._tipContainer);
+
+  		if (this.options.closeButton) {
+  			var closeButton = this._closeButton = create$1('a', prefix + '-close-button', container);
+  			closeButton.setAttribute('role', 'button'); // overrides the implicit role=link of <a> elements #7399
+  			closeButton.setAttribute('aria-label', 'Close popup');
+  			closeButton.href = '#close';
+  			closeButton.innerHTML = '<span aria-hidden="true">&#215;</span>';
+
+  			on(closeButton, 'click', function (ev) {
+  				preventDefault(ev);
+  				this.close();
+  			}, this);
+  		}
+  	},
+
+  	_updateLayout: function () {
+  		var container = this._contentNode,
+  		    style = container.style;
+
+  		style.width = '';
+  		style.whiteSpace = 'nowrap';
+
+  		var width = container.offsetWidth;
+  		width = Math.min(width, this.options.maxWidth);
+  		width = Math.max(width, this.options.minWidth);
+
+  		style.width = (width + 1) + 'px';
+  		style.whiteSpace = '';
+
+  		style.height = '';
+
+  		var height = container.offsetHeight,
+  		    maxHeight = this.options.maxHeight,
+  		    scrolledClass = 'leaflet-popup-scrolled';
+
+  		if (maxHeight && height > maxHeight) {
+  			style.height = maxHeight + 'px';
+  			addClass(container, scrolledClass);
+  		} else {
+  			removeClass(container, scrolledClass);
+  		}
+
+  		this._containerWidth = this._container.offsetWidth;
+  	},
+
+  	_animateZoom: function (e) {
+  		var pos = this._map._latLngToNewLayerPoint(this._latlng, e.zoom, e.center),
+  		    anchor = this._getAnchor();
+  		setPosition(this._container, pos.add(anchor));
+  	},
+
+  	_adjustPan: function () {
+  		if (!this.options.autoPan) { return; }
+  		if (this._map._panAnim) { this._map._panAnim.stop(); }
+
+  		// We can endlessly recurse if keepInView is set and the view resets.
+  		// Let's guard against that by exiting early if we're responding to our own autopan.
+  		if (this._autopanning) {
+  			this._autopanning = false;
+  			return;
+  		}
+
+  		var map = this._map,
+  		    marginBottom = parseInt(getStyle(this._container, 'marginBottom'), 10) || 0,
+  		    containerHeight = this._container.offsetHeight + marginBottom,
+  		    containerWidth = this._containerWidth,
+  		    layerPos = new Point(this._containerLeft, -containerHeight - this._containerBottom);
+
+  		layerPos._add(getPosition(this._container));
+
+  		var containerPos = map.layerPointToContainerPoint(layerPos),
+  		    padding = toPoint(this.options.autoPanPadding),
+  		    paddingTL = toPoint(this.options.autoPanPaddingTopLeft || padding),
+  		    paddingBR = toPoint(this.options.autoPanPaddingBottomRight || padding),
+  		    size = map.getSize(),
+  		    dx = 0,
+  		    dy = 0;
+
+  		if (containerPos.x + containerWidth + paddingBR.x > size.x) { // right
+  			dx = containerPos.x + containerWidth - size.x + paddingBR.x;
+  		}
+  		if (containerPos.x - dx - paddingTL.x < 0) { // left
+  			dx = containerPos.x - paddingTL.x;
+  		}
+  		if (containerPos.y + containerHeight + paddingBR.y > size.y) { // bottom
+  			dy = containerPos.y + containerHeight - size.y + paddingBR.y;
+  		}
+  		if (containerPos.y - dy - paddingTL.y < 0) { // top
+  			dy = containerPos.y - paddingTL.y;
+  		}
+
+  		// @namespace Map
+  		// @section Popup events
+  		// @event autopanstart: Event
+  		// Fired when the map starts autopanning when opening a popup.
+  		if (dx || dy) {
+  			// Track that we're autopanning, as this function will be re-ran on moveend
+  			if (this.options.keepInView) {
+  				this._autopanning = true;
+  			}
+
+  			map
+  			    .fire('autopanstart')
+  			    .panBy([dx, dy]);
+  		}
+  	},
+
+  	_getAnchor: function () {
+  		// Where should we anchor the popup on the source layer?
+  		return toPoint(this._source && this._source._getPopupAnchor ? this._source._getPopupAnchor() : [0, 0]);
+  	}
+
+  });
+
+  // @namespace Popup
+  // @factory L.popup(options?: Popup options, source?: Layer)
+  // Instantiates a `Popup` object given an optional `options` object that describes its appearance and location and an optional `source` object that is used to tag the popup with a reference to the Layer to which it refers.
+  // @alternative
+  // @factory L.popup(latlng: LatLng, options?: Popup options)
+  // Instantiates a `Popup` object given `latlng` where the popup will open and an optional `options` object that describes its appearance and location.
+  var popup = function (options, source) {
+  	return new Popup(options, source);
+  };
+
+
+  /* @namespace Map
+   * @section Interaction Options
+   * @option closePopupOnClick: Boolean = true
+   * Set it to `false` if you don't want popups to close when user clicks the map.
+   */
+  Map.mergeOptions({
+  	closePopupOnClick: true
+  });
+
+
+  // @namespace Map
+  // @section Methods for Layers and Controls
+  Map.include({
+  	// @method openPopup(popup: Popup): this
+  	// Opens the specified popup while closing the previously opened (to make sure only one is opened at one time for usability).
+  	// @alternative
+  	// @method openPopup(content: String|HTMLElement, latlng: LatLng, options?: Popup options): this
+  	// Creates a popup with the specified content and options and opens it in the given point on a map.
+  	openPopup: function (popup, latlng, options) {
+  		this._initOverlay(Popup, popup, latlng, options)
+  		  .openOn(this);
+
+  		return this;
+  	},
+
+  	// @method closePopup(popup?: Popup): this
+  	// Closes the popup previously opened with [openPopup](#map-openpopup) (or the given one).
+  	closePopup: function (popup) {
+  		popup = arguments.length ? popup : this._popup;
+  		if (popup) {
+  			popup.close();
+  		}
+  		return this;
+  	}
+  });
+
+  /*
+   * @namespace Layer
+   * @section Popup methods example
+   *
+   * All layers share a set of methods convenient for binding popups to it.
+   *
+   * ```js
+   * var layer = L.Polygon(latlngs).bindPopup('Hi There!').addTo(map);
+   * layer.openPopup();
+   * layer.closePopup();
+   * ```
+   *
+   * Popups will also be automatically opened when the layer is clicked on and closed when the layer is removed from the map or another popup is opened.
+   */
+
+  // @section Popup methods
+  Layer.include({
+
+  	// @method bindPopup(content: String|HTMLElement|Function|Popup, options?: Popup options): this
+  	// Binds a popup to the layer with the passed `content` and sets up the
+  	// necessary event listeners. If a `Function` is passed it will receive
+  	// the layer as the first argument and should return a `String` or `HTMLElement`.
+  	bindPopup: function (content, options) {
+  		this._popup = this._initOverlay(Popup, this._popup, content, options);
+  		if (!this._popupHandlersAdded) {
+  			this.on({
+  				click: this._openPopup,
+  				keypress: this._onKeyPress,
+  				remove: this.closePopup,
+  				move: this._movePopup
+  			});
+  			this._popupHandlersAdded = true;
+  		}
+
+  		return this;
+  	},
+
+  	// @method unbindPopup(): this
+  	// Removes the popup previously bound with `bindPopup`.
+  	unbindPopup: function () {
+  		if (this._popup) {
+  			this.off({
+  				click: this._openPopup,
+  				keypress: this._onKeyPress,
+  				remove: this.closePopup,
+  				move: this._movePopup
+  			});
+  			this._popupHandlersAdded = false;
+  			this._popup = null;
+  		}
+  		return this;
+  	},
+
+  	// @method openPopup(latlng?: LatLng): this
+  	// Opens the bound popup at the specified `latlng` or at the default popup anchor if no `latlng` is passed.
+  	openPopup: function (latlng) {
+  		if (this._popup) {
+  			if (!(this instanceof FeatureGroup)) {
+  				this._popup._source = this;
+  			}
+  			if (this._popup._prepareOpen(latlng || this._latlng)) {
+  				// open the popup on the map
+  				this._popup.openOn(this._map);
+  			}
+  		}
+  		return this;
+  	},
+
+  	// @method closePopup(): this
+  	// Closes the popup bound to this layer if it is open.
+  	closePopup: function () {
+  		if (this._popup) {
+  			this._popup.close();
+  		}
+  		return this;
+  	},
+
+  	// @method togglePopup(): this
+  	// Opens or closes the popup bound to this layer depending on its current state.
+  	togglePopup: function () {
+  		if (this._popup) {
+  			this._popup.toggle(this);
+  		}
+  		return this;
+  	},
+
+  	// @method isPopupOpen(): boolean
+  	// Returns `true` if the popup bound to this layer is currently open.
+  	isPopupOpen: function () {
+  		return (this._popup ? this._popup.isOpen() : false);
+  	},
+
+  	// @method setPopupContent(content: String|HTMLElement|Popup): this
+  	// Sets the content of the popup bound to this layer.
+  	setPopupContent: function (content) {
+  		if (this._popup) {
+  			this._popup.setContent(content);
+  		}
+  		return this;
+  	},
+
+  	// @method getPopup(): Popup
+  	// Returns the popup bound to this layer.
+  	getPopup: function () {
+  		return this._popup;
+  	},
+
+  	_openPopup: function (e) {
+  		if (!this._popup || !this._map) {
+  			return;
+  		}
+  		// prevent map click
+  		stop(e);
+
+  		var target = e.layer || e.target;
+  		if (this._popup._source === target && !(target instanceof Path)) {
+  			// treat it like a marker and figure out
+  			// if we should toggle it open/closed
+  			if (this._map.hasLayer(this._popup)) {
+  				this.closePopup();
+  			} else {
+  				this.openPopup(e.latlng);
+  			}
+  			return;
+  		}
+  		this._popup._source = target;
+  		this.openPopup(e.latlng);
+  	},
+
+  	_movePopup: function (e) {
+  		this._popup.setLatLng(e.latlng);
+  	},
+
+  	_onKeyPress: function (e) {
+  		if (e.originalEvent.keyCode === 13) {
+  			this._openPopup(e);
+  		}
+  	}
+  });
+
+  /*
+   * @class Tooltip
+   * @inherits DivOverlay
+   * @aka L.Tooltip
+   * Used to display small texts on top of map layers.
+   *
+   * @example
+   * If you want to just bind a tooltip to marker:
+   *
+   * ```js
+   * marker.bindTooltip("my tooltip text").openTooltip();
+   * ```
+   * Path overlays like polylines also have a `bindTooltip` method.
+   *
+   * A tooltip can be also standalone:
+   *
+   * ```js
+   * var tooltip = L.tooltip()
+   * 	.setLatLng(latlng)
+   * 	.setContent('Hello world!<br />This is a nice tooltip.')
+   * 	.addTo(map);
+   * ```
+   * or
+   * ```js
+   * var tooltip = L.tooltip(latlng, {content: 'Hello world!<br />This is a nice tooltip.'})
+   * 	.addTo(map);
+   * ```
+   *
+   *
+   * Note about tooltip offset. Leaflet takes two options in consideration
+   * for computing tooltip offsetting:
+   * - the `offset` Tooltip option: it defaults to [0, 0], and it's specific to one tooltip.
+   *   Add a positive x offset to move the tooltip to the right, and a positive y offset to
+   *   move it to the bottom. Negatives will move to the left and top.
+   * - the `tooltipAnchor` Icon option: this will only be considered for Marker. You
+   *   should adapt this value if you use a custom icon.
+   */
+
+
+  // @namespace Tooltip
+  var Tooltip = DivOverlay.extend({
+
+  	// @section
+  	// @aka Tooltip options
+  	options: {
+  		// @option pane: String = 'tooltipPane'
+  		// `Map pane` where the tooltip will be added.
+  		pane: 'tooltipPane',
+
+  		// @option offset: Point = Point(0, 0)
+  		// Optional offset of the tooltip position.
+  		offset: [0, 0],
+
+  		// @option direction: String = 'auto'
+  		// Direction where to open the tooltip. Possible values are: `right`, `left`,
+  		// `top`, `bottom`, `center`, `auto`.
+  		// `auto` will dynamically switch between `right` and `left` according to the tooltip
+  		// position on the map.
+  		direction: 'auto',
+
+  		// @option permanent: Boolean = false
+  		// Whether to open the tooltip permanently or only on mouseover.
+  		permanent: false,
+
+  		// @option sticky: Boolean = false
+  		// If true, the tooltip will follow the mouse instead of being fixed at the feature center.
+  		sticky: false,
+
+  		// @option opacity: Number = 0.9
+  		// Tooltip container opacity.
+  		opacity: 0.9
+  	},
+
+  	onAdd: function (map) {
+  		DivOverlay.prototype.onAdd.call(this, map);
+  		this.setOpacity(this.options.opacity);
+
+  		// @namespace Map
+  		// @section Tooltip events
+  		// @event tooltipopen: TooltipEvent
+  		// Fired when a tooltip is opened in the map.
+  		map.fire('tooltipopen', {tooltip: this});
+
+  		if (this._source) {
+  			this.addEventParent(this._source);
+
+  			// @namespace Layer
+  			// @section Tooltip events
+  			// @event tooltipopen: TooltipEvent
+  			// Fired when a tooltip bound to this layer is opened.
+  			this._source.fire('tooltipopen', {tooltip: this}, true);
+  		}
+  	},
+
+  	onRemove: function (map) {
+  		DivOverlay.prototype.onRemove.call(this, map);
+
+  		// @namespace Map
+  		// @section Tooltip events
+  		// @event tooltipclose: TooltipEvent
+  		// Fired when a tooltip in the map is closed.
+  		map.fire('tooltipclose', {tooltip: this});
+
+  		if (this._source) {
+  			this.removeEventParent(this._source);
+
+  			// @namespace Layer
+  			// @section Tooltip events
+  			// @event tooltipclose: TooltipEvent
+  			// Fired when a tooltip bound to this layer is closed.
+  			this._source.fire('tooltipclose', {tooltip: this}, true);
+  		}
+  	},
+
+  	getEvents: function () {
+  		var events = DivOverlay.prototype.getEvents.call(this);
+
+  		if (!this.options.permanent) {
+  			events.preclick = this.close;
+  		}
+
+  		return events;
+  	},
+
+  	_initLayout: function () {
+  		var prefix = 'leaflet-tooltip',
+  		    className = prefix + ' ' + (this.options.className || '') + ' leaflet-zoom-' + (this._zoomAnimated ? 'animated' : 'hide');
+
+  		this._contentNode = this._container = create$1('div', className);
+
+  		this._container.setAttribute('role', 'tooltip');
+  		this._container.setAttribute('id', 'leaflet-tooltip-' + stamp(this));
+  	},
+
+  	_updateLayout: function () {},
+
+  	_adjustPan: function () {},
+
+  	_setPosition: function (pos) {
+  		var subX, subY,
+  		    map = this._map,
+  		    container = this._container,
+  		    centerPoint = map.latLngToContainerPoint(map.getCenter()),
+  		    tooltipPoint = map.layerPointToContainerPoint(pos),
+  		    direction = this.options.direction,
+  		    tooltipWidth = container.offsetWidth,
+  		    tooltipHeight = container.offsetHeight,
+  		    offset = toPoint(this.options.offset),
+  		    anchor = this._getAnchor();
+
+  		if (direction === 'top') {
+  			subX = tooltipWidth / 2;
+  			subY = tooltipHeight;
+  		} else if (direction === 'bottom') {
+  			subX = tooltipWidth / 2;
+  			subY = 0;
+  		} else if (direction === 'center') {
+  			subX = tooltipWidth / 2;
+  			subY = tooltipHeight / 2;
+  		} else if (direction === 'right') {
+  			subX = 0;
+  			subY = tooltipHeight / 2;
+  		} else if (direction === 'left') {
+  			subX = tooltipWidth;
+  			subY = tooltipHeight / 2;
+  		} else if (tooltipPoint.x < centerPoint.x) {
+  			direction = 'right';
+  			subX = 0;
+  			subY = tooltipHeight / 2;
+  		} else {
+  			direction = 'left';
+  			subX = tooltipWidth + (offset.x + anchor.x) * 2;
+  			subY = tooltipHeight / 2;
+  		}
+
+  		pos = pos.subtract(toPoint(subX, subY, true)).add(offset).add(anchor);
+
+  		removeClass(container, 'leaflet-tooltip-right');
+  		removeClass(container, 'leaflet-tooltip-left');
+  		removeClass(container, 'leaflet-tooltip-top');
+  		removeClass(container, 'leaflet-tooltip-bottom');
+  		addClass(container, 'leaflet-tooltip-' + direction);
+  		setPosition(container, pos);
+  	},
+
+  	_updatePosition: function () {
+  		var pos = this._map.latLngToLayerPoint(this._latlng);
+  		this._setPosition(pos);
+  	},
+
+  	setOpacity: function (opacity) {
+  		this.options.opacity = opacity;
+
+  		if (this._container) {
+  			setOpacity(this._container, opacity);
+  		}
+  	},
+
+  	_animateZoom: function (e) {
+  		var pos = this._map._latLngToNewLayerPoint(this._latlng, e.zoom, e.center);
+  		this._setPosition(pos);
+  	},
+
+  	_getAnchor: function () {
+  		// Where should we anchor the tooltip on the source layer?
+  		return toPoint(this._source && this._source._getTooltipAnchor && !this.options.sticky ? this._source._getTooltipAnchor() : [0, 0]);
+  	}
+
+  });
+
+  // @namespace Tooltip
+  // @factory L.tooltip(options?: Tooltip options, source?: Layer)
+  // Instantiates a `Tooltip` object given an optional `options` object that describes its appearance and location and an optional `source` object that is used to tag the tooltip with a reference to the Layer to which it refers.
+  // @alternative
+  // @factory L.tooltip(latlng: LatLng, options?: Tooltip options)
+  // Instantiates a `Tooltip` object given `latlng` where the tooltip will open and an optional `options` object that describes its appearance and location.
+  var tooltip = function (options, source) {
+  	return new Tooltip(options, source);
+  };
+
+  // @namespace Map
+  // @section Methods for Layers and Controls
+  Map.include({
+
+  	// @method openTooltip(tooltip: Tooltip): this
+  	// Opens the specified tooltip.
+  	// @alternative
+  	// @method openTooltip(content: String|HTMLElement, latlng: LatLng, options?: Tooltip options): this
+  	// Creates a tooltip with the specified content and options and open it.
+  	openTooltip: function (tooltip, latlng, options) {
+  		this._initOverlay(Tooltip, tooltip, latlng, options)
+  		  .openOn(this);
+
+  		return this;
+  	},
+
+  	// @method closeTooltip(tooltip: Tooltip): this
+  	// Closes the tooltip given as parameter.
+  	closeTooltip: function (tooltip) {
+  		tooltip.close();
+  		return this;
+  	}
+
+  });
+
+  /*
+   * @namespace Layer
+   * @section Tooltip methods example
+   *
+   * All layers share a set of methods convenient for binding tooltips to it.
+   *
+   * ```js
+   * var layer = L.Polygon(latlngs).bindTooltip('Hi There!').addTo(map);
+   * layer.openTooltip();
+   * layer.closeTooltip();
+   * ```
+   */
+
+  // @section Tooltip methods
+  Layer.include({
+
+  	// @method bindTooltip(content: String|HTMLElement|Function|Tooltip, options?: Tooltip options): this
+  	// Binds a tooltip to the layer with the passed `content` and sets up the
+  	// necessary event listeners. If a `Function` is passed it will receive
+  	// the layer as the first argument and should return a `String` or `HTMLElement`.
+  	bindTooltip: function (content, options) {
+
+  		if (this._tooltip && this.isTooltipOpen()) {
+  			this.unbindTooltip();
+  		}
+
+  		this._tooltip = this._initOverlay(Tooltip, this._tooltip, content, options);
+  		this._initTooltipInteractions();
+
+  		if (this._tooltip.options.permanent && this._map && this._map.hasLayer(this)) {
+  			this.openTooltip();
+  		}
+
+  		return this;
+  	},
+
+  	// @method unbindTooltip(): this
+  	// Removes the tooltip previously bound with `bindTooltip`.
+  	unbindTooltip: function () {
+  		if (this._tooltip) {
+  			this._initTooltipInteractions(true);
+  			this.closeTooltip();
+  			this._tooltip = null;
+  		}
+  		return this;
+  	},
+
+  	_initTooltipInteractions: function (remove) {
+  		if (!remove && this._tooltipHandlersAdded) { return; }
+  		var onOff = remove ? 'off' : 'on',
+  		    events = {
+  			remove: this.closeTooltip,
+  			move: this._moveTooltip
+  		    };
+  		if (!this._tooltip.options.permanent) {
+  			events.mouseover = this._openTooltip;
+  			events.mouseout = this.closeTooltip;
+  			events.click = this._openTooltip;
+  			if (this._map) {
+  				this._addFocusListeners();
+  			} else {
+  				events.add = this._addFocusListeners;
+  			}
+  		} else {
+  			events.add = this._openTooltip;
+  		}
+  		if (this._tooltip.options.sticky) {
+  			events.mousemove = this._moveTooltip;
+  		}
+  		this[onOff](events);
+  		this._tooltipHandlersAdded = !remove;
+  	},
+
+  	// @method openTooltip(latlng?: LatLng): this
+  	// Opens the bound tooltip at the specified `latlng` or at the default tooltip anchor if no `latlng` is passed.
+  	openTooltip: function (latlng) {
+  		if (this._tooltip) {
+  			if (!(this instanceof FeatureGroup)) {
+  				this._tooltip._source = this;
+  			}
+  			if (this._tooltip._prepareOpen(latlng)) {
+  				// open the tooltip on the map
+  				this._tooltip.openOn(this._map);
+
+  				if (this.getElement) {
+  					this._setAriaDescribedByOnLayer(this);
+  				} else if (this.eachLayer) {
+  					this.eachLayer(this._setAriaDescribedByOnLayer, this);
+  				}
+  			}
+  		}
+  		return this;
+  	},
+
+  	// @method closeTooltip(): this
+  	// Closes the tooltip bound to this layer if it is open.
+  	closeTooltip: function () {
+  		if (this._tooltip) {
+  			return this._tooltip.close();
+  		}
+  	},
+
+  	// @method toggleTooltip(): this
+  	// Opens or closes the tooltip bound to this layer depending on its current state.
+  	toggleTooltip: function () {
+  		if (this._tooltip) {
+  			this._tooltip.toggle(this);
+  		}
+  		return this;
+  	},
+
+  	// @method isTooltipOpen(): boolean
+  	// Returns `true` if the tooltip bound to this layer is currently open.
+  	isTooltipOpen: function () {
+  		return this._tooltip.isOpen();
+  	},
+
+  	// @method setTooltipContent(content: String|HTMLElement|Tooltip): this
+  	// Sets the content of the tooltip bound to this layer.
+  	setTooltipContent: function (content) {
+  		if (this._tooltip) {
+  			this._tooltip.setContent(content);
+  		}
+  		return this;
+  	},
+
+  	// @method getTooltip(): Tooltip
+  	// Returns the tooltip bound to this layer.
+  	getTooltip: function () {
+  		return this._tooltip;
+  	},
+
+  	_addFocusListeners: function () {
+  		if (this.getElement) {
+  			this._addFocusListenersOnLayer(this);
+  		} else if (this.eachLayer) {
+  			this.eachLayer(this._addFocusListenersOnLayer, this);
+  		}
+  	},
+
+  	_addFocusListenersOnLayer: function (layer) {
+  		var el = typeof layer.getElement === 'function' && layer.getElement();
+  		if (el) {
+  			on(el, 'focus', function () {
+  				this._tooltip._source = layer;
+  				this.openTooltip();
+  			}, this);
+  			on(el, 'blur', this.closeTooltip, this);
+  		}
+  	},
+
+  	_setAriaDescribedByOnLayer: function (layer) {
+  		var el = typeof layer.getElement === 'function' && layer.getElement();
+  		if (el) {
+  			el.setAttribute('aria-describedby', this._tooltip._container.id);
+  		}
+  	},
+
+
+  	_openTooltip: function (e) {
+  		if (!this._tooltip || !this._map) {
+  			return;
+  		}
+
+  		// If the map is moving, we will show the tooltip after it's done.
+  		if (this._map.dragging && this._map.dragging.moving() && !this._openOnceFlag) {
+  			this._openOnceFlag = true;
+  			var that = this;
+  			this._map.once('moveend', function () {
+  				that._openOnceFlag = false;
+  				that._openTooltip(e);
+  			});
+  			return;
+  		}
+
+  		this._tooltip._source = e.layer || e.target;
+
+  		this.openTooltip(this._tooltip.options.sticky ? e.latlng : undefined);
+  	},
+
+  	_moveTooltip: function (e) {
+  		var latlng = e.latlng, containerPoint, layerPoint;
+  		if (this._tooltip.options.sticky && e.originalEvent) {
+  			containerPoint = this._map.mouseEventToContainerPoint(e.originalEvent);
+  			layerPoint = this._map.containerPointToLayerPoint(containerPoint);
+  			latlng = this._map.layerPointToLatLng(layerPoint);
+  		}
+  		this._tooltip.setLatLng(latlng);
+  	}
+  });
+
+  /*
+   * @class DivIcon
+   * @aka L.DivIcon
+   * @inherits Icon
+   *
+   * Represents a lightweight icon for markers that uses a simple `<div>`
+   * element instead of an image. Inherits from `Icon` but ignores the `iconUrl` and shadow options.
+   *
+   * @example
+   * ```js
+   * var myIcon = L.divIcon({className: 'my-div-icon'});
+   * // you can set .my-div-icon styles in CSS
+   *
+   * L.marker([50.505, 30.57], {icon: myIcon}).addTo(map);
+   * ```
+   *
+   * By default, it has a 'leaflet-div-icon' CSS class and is styled as a little white square with a shadow.
+   */
+
+  var DivIcon = Icon.extend({
+  	options: {
+  		// @section
+  		// @aka DivIcon options
+  		iconSize: [12, 12], // also can be set through CSS
+
+  		// iconAnchor: (Point),
+  		// popupAnchor: (Point),
+
+  		// @option html: String|HTMLElement = ''
+  		// Custom HTML code to put inside the div element, empty by default. Alternatively,
+  		// an instance of `HTMLElement`.
+  		html: false,
+
+  		// @option bgPos: Point = [0, 0]
+  		// Optional relative position of the background, in pixels
+  		bgPos: null,
+
+  		className: 'leaflet-div-icon'
+  	},
+
+  	createIcon: function (oldIcon) {
+  		var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
+  		    options = this.options;
+
+  		if (options.html instanceof Element) {
+  			empty(div);
+  			div.appendChild(options.html);
+  		} else {
+  			div.innerHTML = options.html !== false ? options.html : '';
+  		}
+
+  		if (options.bgPos) {
+  			var bgPos = toPoint(options.bgPos);
+  			div.style.backgroundPosition = (-bgPos.x) + 'px ' + (-bgPos.y) + 'px';
+  		}
+  		this._setIconStyles(div, 'icon');
+
+  		return div;
+  	},
+
+  	createShadow: function () {
+  		return null;
+  	}
+  });
+
+  // @factory L.divIcon(options: DivIcon options)
+  // Creates a `DivIcon` instance with the given options.
+  function divIcon(options) {
+  	return new DivIcon(options);
+  }
+
+  Icon.Default = IconDefault;
+
+  /*
+   * @class GridLayer
+   * @inherits Layer
+   * @aka L.GridLayer
+   *
+   * Generic class for handling a tiled grid of HTML elements. This is the base class for all tile layers and replaces `TileLayer.Canvas`.
+   * GridLayer can be extended to create a tiled grid of HTML elements like `<canvas>`, `<img>` or `<div>`. GridLayer will handle creating and animating these DOM elements for you.
+   *
+   *
+   * @section Synchronous usage
+   * @example
+   *
+   * To create a custom layer, extend GridLayer and implement the `createTile()` method, which will be passed a `Point` object with the `x`, `y`, and `z` (zoom level) coordinates to draw your tile.
+   *
+   * ```js
+   * var CanvasLayer = L.GridLayer.extend({
+   *     createTile: function(coords){
+   *         // create a <canvas> element for drawing
+   *         var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+   *
+   *         // setup tile width and height according to the options
+   *         var size = this.getTileSize();
+   *         tile.width = size.x;
+   *         tile.height = size.y;
+   *
+   *         // get a canvas context and draw something on it using coords.x, coords.y and coords.z
+   *         var ctx = tile.getContext('2d');
+   *
+   *         // return the tile so it can be rendered on screen
+   *         return tile;
+   *     }
+   * });
+   * ```
+   *
+   * @section Asynchronous usage
+   * @example
+   *
+   * Tile creation can also be asynchronous, this is useful when using a third-party drawing library. Once the tile is finished drawing it can be passed to the `done()` callback.
+   *
+   * ```js
+   * var CanvasLayer = L.GridLayer.extend({
+   *     createTile: function(coords, done){
+   *         var error;
+   *
+   *         // create a <canvas> element for drawing
+   *         var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+   *
+   *         // setup tile width and height according to the options
+   *         var size = this.getTileSize();
+   *         tile.width = size.x;
+   *         tile.height = size.y;
+   *
+   *         // draw something asynchronously and pass the tile to the done() callback
+   *         setTimeout(function() {
+   *             done(error, tile);
+   *         }, 1000);
+   *
+   *         return tile;
+   *     }
+   * });
+   * ```
+   *
+   * @section
+   */
+
+
+  var GridLayer = Layer.extend({
+
+  	// @section
+  	// @aka GridLayer options
+  	options: {
+  		// @option tileSize: Number|Point = 256
+  		// Width and height of tiles in the grid. Use a number if width and height are equal, or `L.point(width, height)` otherwise.
+  		tileSize: 256,
+
+  		// @option opacity: Number = 1.0
+  		// Opacity of the tiles. Can be used in the `createTile()` function.
+  		opacity: 1,
+
+  		// @option updateWhenIdle: Boolean = (depends)
+  		// Load new tiles only when panning ends.
+  		// `true` by default on mobile browsers, in order to avoid too many requests and keep smooth navigation.
+  		// `false` otherwise in order to display new tiles _during_ panning, since it is easy to pan outside the
+  		// [`keepBuffer`](#gridlayer-keepbuffer) option in desktop browsers.
+  		updateWhenIdle: Browser.mobile,
+
+  		// @option updateWhenZooming: Boolean = true
+  		// By default, a smooth zoom animation (during a [touch zoom](#map-touchzoom) or a [`flyTo()`](#map-flyto)) will update grid layers every integer zoom level. Setting this option to `false` will update the grid layer only when the smooth animation ends.
+  		updateWhenZooming: true,
+
+  		// @option updateInterval: Number = 200
+  		// Tiles will not update more than once every `updateInterval` milliseconds when panning.
+  		updateInterval: 200,
+
+  		// @option zIndex: Number = 1
+  		// The explicit zIndex of the tile layer.
+  		zIndex: 1,
+
+  		// @option bounds: LatLngBounds = undefined
+  		// If set, tiles will only be loaded inside the set `LatLngBounds`.
+  		bounds: null,
+
+  		// @option minZoom: Number = 0
+  		// The minimum zoom level down to which this layer will be displayed (inclusive).
+  		minZoom: 0,
+
+  		// @option maxZoom: Number = undefined
+  		// The maximum zoom level up to which this layer will be displayed (inclusive).
+  		maxZoom: undefined,
+
+  		// @option maxNativeZoom: Number = undefined
+  		// Maximum zoom number the tile source has available. If it is specified,
+  		// the tiles on all zoom levels higher than `maxNativeZoom` will be loaded
+  		// from `maxNativeZoom` level and auto-scaled.
+  		maxNativeZoom: undefined,
+
+  		// @option minNativeZoom: Number = undefined
+  		// Minimum zoom number the tile source has available. If it is specified,
+  		// the tiles on all zoom levels lower than `minNativeZoom` will be loaded
+  		// from `minNativeZoom` level and auto-scaled.
+  		minNativeZoom: undefined,
+
+  		// @option noWrap: Boolean = false
+  		// Whether the layer is wrapped around the antimeridian. If `true`, the
+  		// GridLayer will only be displayed once at low zoom levels. Has no
+  		// effect when the [map CRS](#map-crs) doesn't wrap around. Can be used
+  		// in combination with [`bounds`](#gridlayer-bounds) to prevent requesting
+  		// tiles outside the CRS limits.
+  		noWrap: false,
+
+  		// @option pane: String = 'tilePane'
+  		// `Map pane` where the grid layer will be added.
+  		pane: 'tilePane',
+
+  		// @option className: String = ''
+  		// A custom class name to assign to the tile layer. Empty by default.
+  		className: '',
+
+  		// @option keepBuffer: Number = 2
+  		// When panning the map, keep this many rows and columns of tiles before unloading them.
+  		keepBuffer: 2
+  	},
+
+  	initialize: function (options) {
+  		setOptions(this, options);
+  	},
+
+  	onAdd: function () {
+  		this._initContainer();
+
+  		this._levels = {};
+  		this._tiles = {};
+
+  		this._resetView(); // implicit _update() call
+  	},
+
+  	beforeAdd: function (map) {
+  		map._addZoomLimit(this);
+  	},
+
+  	onRemove: function (map) {
+  		this._removeAllTiles();
+  		remove(this._container);
+  		map._removeZoomLimit(this);
+  		this._container = null;
+  		this._tileZoom = undefined;
+  	},
+
+  	// @method bringToFront: this
+  	// Brings the tile layer to the top of all tile layers.
+  	bringToFront: function () {
+  		if (this._map) {
+  			toFront(this._container);
+  			this._setAutoZIndex(Math.max);
+  		}
+  		return this;
+  	},
+
+  	// @method bringToBack: this
+  	// Brings the tile layer to the bottom of all tile layers.
+  	bringToBack: function () {
+  		if (this._map) {
+  			toBack(this._container);
+  			this._setAutoZIndex(Math.min);
+  		}
+  		return this;
+  	},
+
+  	// @method getContainer: HTMLElement
+  	// Returns the HTML element that contains the tiles for this layer.
+  	getContainer: function () {
+  		return this._container;
+  	},
+
+  	// @method setOpacity(opacity: Number): this
+  	// Changes the [opacity](#gridlayer-opacity) of the grid layer.
+  	setOpacity: function (opacity) {
+  		this.options.opacity = opacity;
+  		this._updateOpacity();
+  		return this;
+  	},
+
+  	// @method setZIndex(zIndex: Number): this
+  	// Changes the [zIndex](#gridlayer-zindex) of the grid layer.
+  	setZIndex: function (zIndex) {
+  		this.options.zIndex = zIndex;
+  		this._updateZIndex();
+
+  		return this;
+  	},
+
+  	// @method isLoading: Boolean
+  	// Returns `true` if any tile in the grid layer has not finished loading.
+  	isLoading: function () {
+  		return this._loading;
+  	},
+
+  	// @method redraw: this
+  	// Causes the layer to clear all the tiles and request them again.
+  	redraw: function () {
+  		if (this._map) {
+  			this._removeAllTiles();
+  			var tileZoom = this._clampZoom(this._map.getZoom());
+  			if (tileZoom !== this._tileZoom) {
+  				this._tileZoom = tileZoom;
+  				this._updateLevels();
+  			}
+  			this._update();
+  		}
+  		return this;
+  	},
+
+  	getEvents: function () {
+  		var events = {
+  			viewprereset: this._invalidateAll,
+  			viewreset: this._resetView,
+  			zoom: this._resetView,
+  			moveend: this._onMoveEnd
+  		};
+
+  		if (!this.options.updateWhenIdle) {
+  			// update tiles on move, but not more often than once per given interval
+  			if (!this._onMove) {
+  				this._onMove = throttle(this._onMoveEnd, this.options.updateInterval, this);
+  			}
+
+  			events.move = this._onMove;
+  		}
+
+  		if (this._zoomAnimated) {
+  			events.zoomanim = this._animateZoom;
+  		}
+
+  		return events;
+  	},
+
+  	// @section Extension methods
+  	// Layers extending `GridLayer` shall reimplement the following method.
+  	// @method createTile(coords: Object, done?: Function): HTMLElement
+  	// Called only internally, must be overridden by classes extending `GridLayer`.
+  	// Returns the `HTMLElement` corresponding to the given `coords`. If the `done` callback
+  	// is specified, it must be called when the tile has finished loading and drawing.
+  	createTile: function () {
+  		return document.createElement('div');
+  	},
+
+  	// @section
+  	// @method getTileSize: Point
+  	// Normalizes the [tileSize option](#gridlayer-tilesize) into a point. Used by the `createTile()` method.
+  	getTileSize: function () {
+  		var s = this.options.tileSize;
+  		return s instanceof Point ? s : new Point(s, s);
+  	},
+
+  	_updateZIndex: function () {
+  		if (this._container && this.options.zIndex !== undefined && this.options.zIndex !== null) {
+  			this._container.style.zIndex = this.options.zIndex;
+  		}
+  	},
+
+  	_setAutoZIndex: function (compare) {
+  		// go through all other layers of the same pane, set zIndex to max + 1 (front) or min - 1 (back)
+
+  		var layers = this.getPane().children,
+  		    edgeZIndex = -compare(-Infinity, Infinity); // -Infinity for max, Infinity for min
+
+  		for (var i = 0, len = layers.length, zIndex; i < len; i++) {
+
+  			zIndex = layers[i].style.zIndex;
+
+  			if (layers[i] !== this._container && zIndex) {
+  				edgeZIndex = compare(edgeZIndex, +zIndex);
+  			}
+  		}
+
+  		if (isFinite(edgeZIndex)) {
+  			this.options.zIndex = edgeZIndex + compare(-1, 1);
+  			this._updateZIndex();
+  		}
+  	},
+
+  	_updateOpacity: function () {
+  		if (!this._map) { return; }
+
+  		// IE doesn't inherit filter opacity properly, so we're forced to set it on tiles
+  		if (Browser.ielt9) { return; }
+
+  		setOpacity(this._container, this.options.opacity);
+
+  		var now = +new Date(),
+  		    nextFrame = false,
+  		    willPrune = false;
+
+  		for (var key in this._tiles) {
+  			var tile = this._tiles[key];
+  			if (!tile.current || !tile.loaded) { continue; }
+
+  			var fade = Math.min(1, (now - tile.loaded) / 200);
+
+  			setOpacity(tile.el, fade);
+  			if (fade < 1) {
+  				nextFrame = true;
+  			} else {
+  				if (tile.active) {
+  					willPrune = true;
+  				} else {
+  					this._onOpaqueTile(tile);
+  				}
+  				tile.active = true;
+  			}
+  		}
+
+  		if (willPrune && !this._noPrune) { this._pruneTiles(); }
+
+  		if (nextFrame) {
+  			cancelAnimFrame(this._fadeFrame);
+  			this._fadeFrame = requestAnimFrame(this._updateOpacity, this);
+  		}
+  	},
+
+  	_onOpaqueTile: falseFn,
+
+  	_initContainer: function () {
+  		if (this._container) { return; }
+
+  		this._container = create$1('div', 'leaflet-layer ' + (this.options.className || ''));
+  		this._updateZIndex();
+
+  		if (this.options.opacity < 1) {
+  			this._updateOpacity();
+  		}
+
+  		this.getPane().appendChild(this._container);
+  	},
+
+  	_updateLevels: function () {
+
+  		var zoom = this._tileZoom,
+  		    maxZoom = this.options.maxZoom;
+
+  		if (zoom === undefined) { return undefined; }
+
+  		for (var z in this._levels) {
+  			z = Number(z);
+  			if (this._levels[z].el.children.length || z === zoom) {
+  				this._levels[z].el.style.zIndex = maxZoom - Math.abs(zoom - z);
+  				this._onUpdateLevel(z);
+  			} else {
+  				remove(this._levels[z].el);
+  				this._removeTilesAtZoom(z);
+  				this._onRemoveLevel(z);
+  				delete this._levels[z];
+  			}
+  		}
+
+  		var level = this._levels[zoom],
+  		    map = this._map;
+
+  		if (!level) {
+  			level = this._levels[zoom] = {};
+
+  			level.el = create$1('div', 'leaflet-tile-container leaflet-zoom-animated', this._container);
+  			level.el.style.zIndex = maxZoom;
+
+  			level.origin = map.project(map.unproject(map.getPixelOrigin()), zoom).round();
+  			level.zoom = zoom;
+
+  			this._setZoomTransform(level, map.getCenter(), map.getZoom());
+
+  			// force the browser to consider the newly added element for transition
+  			falseFn(level.el.offsetWidth);
+
+  			this._onCreateLevel(level);
+  		}
+
+  		this._level = level;
+
+  		return level;
+  	},
+
+  	_onUpdateLevel: falseFn,
+
+  	_onRemoveLevel: falseFn,
+
+  	_onCreateLevel: falseFn,
+
+  	_pruneTiles: function () {
+  		if (!this._map) {
+  			return;
+  		}
+
+  		var key, tile;
+
+  		var zoom = this._map.getZoom();
+  		if (zoom > this.options.maxZoom ||
+  			zoom < this.options.minZoom) {
+  			this._removeAllTiles();
+  			return;
+  		}
+
+  		for (key in this._tiles) {
+  			tile = this._tiles[key];
+  			tile.retain = tile.current;
+  		}
+
+  		for (key in this._tiles) {
+  			tile = this._tiles[key];
+  			if (tile.current && !tile.active) {
+  				var coords = tile.coords;
+  				if (!this._retainParent(coords.x, coords.y, coords.z, coords.z - 5)) {
+  					this._retainChildren(coords.x, coords.y, coords.z, coords.z + 2);
+  				}
+  			}
+  		}
+
+  		for (key in this._tiles) {
+  			if (!this._tiles[key].retain) {
+  				this._removeTile(key);
+  			}
+  		}
+  	},
+
+  	_removeTilesAtZoom: function (zoom) {
+  		for (var key in this._tiles) {
+  			if (this._tiles[key].coords.z !== zoom) {
+  				continue;
+  			}
+  			this._removeTile(key);
+  		}
+  	},
+
+  	_removeAllTiles: function () {
+  		for (var key in this._tiles) {
+  			this._removeTile(key);
+  		}
+  	},
+
+  	_invalidateAll: function () {
+  		for (var z in this._levels) {
+  			remove(this._levels[z].el);
+  			this._onRemoveLevel(Number(z));
+  			delete this._levels[z];
+  		}
+  		this._removeAllTiles();
+
+  		this._tileZoom = undefined;
+  	},
+
+  	_retainParent: function (x, y, z, minZoom) {
+  		var x2 = Math.floor(x / 2),
+  		    y2 = Math.floor(y / 2),
+  		    z2 = z - 1,
+  		    coords2 = new Point(+x2, +y2);
+  		coords2.z = +z2;
+
+  		var key = this._tileCoordsToKey(coords2),
+  		    tile = this._tiles[key];
+
+  		if (tile && tile.active) {
+  			tile.retain = true;
+  			return true;
+
+  		} else if (tile && tile.loaded) {
+  			tile.retain = true;
+  		}
+
+  		if (z2 > minZoom) {
+  			return this._retainParent(x2, y2, z2, minZoom);
+  		}
+
+  		return false;
+  	},
+
+  	_retainChildren: function (x, y, z, maxZoom) {
+
+  		for (var i = 2 * x; i < 2 * x + 2; i++) {
+  			for (var j = 2 * y; j < 2 * y + 2; j++) {
+
+  				var coords = new Point(i, j);
+  				coords.z = z + 1;
+
+  				var key = this._tileCoordsToKey(coords),
+  				    tile = this._tiles[key];
+
+  				if (tile && tile.active) {
+  					tile.retain = true;
+  					continue;
+
+  				} else if (tile && tile.loaded) {
+  					tile.retain = true;
+  				}
+
+  				if (z + 1 < maxZoom) {
+  					this._retainChildren(i, j, z + 1, maxZoom);
+  				}
+  			}
+  		}
+  	},
+
+  	_resetView: function (e) {
+  		var animating = e && (e.pinch || e.flyTo);
+  		this._setView(this._map.getCenter(), this._map.getZoom(), animating, animating);
+  	},
+
+  	_animateZoom: function (e) {
+  		this._setView(e.center, e.zoom, true, e.noUpdate);
+  	},
+
+  	_clampZoom: function (zoom) {
+  		var options = this.options;
+
+  		if (undefined !== options.minNativeZoom && zoom < options.minNativeZoom) {
+  			return options.minNativeZoom;
+  		}
+
+  		if (undefined !== options.maxNativeZoom && options.maxNativeZoom < zoom) {
+  			return options.maxNativeZoom;
+  		}
+
+  		return zoom;
+  	},
+
+  	_setView: function (center, zoom, noPrune, noUpdate) {
+  		var tileZoom = Math.round(zoom);
+  		if ((this.options.maxZoom !== undefined && tileZoom > this.options.maxZoom) ||
+  		    (this.options.minZoom !== undefined && tileZoom < this.options.minZoom)) {
+  			tileZoom = undefined;
+  		} else {
+  			tileZoom = this._clampZoom(tileZoom);
+  		}
+
+  		var tileZoomChanged = this.options.updateWhenZooming && (tileZoom !== this._tileZoom);
+
+  		if (!noUpdate || tileZoomChanged) {
+
+  			this._tileZoom = tileZoom;
+
+  			if (this._abortLoading) {
+  				this._abortLoading();
+  			}
+
+  			this._updateLevels();
+  			this._resetGrid();
+
+  			if (tileZoom !== undefined) {
+  				this._update(center);
+  			}
+
+  			if (!noPrune) {
+  				this._pruneTiles();
+  			}
+
+  			// Flag to prevent _updateOpacity from pruning tiles during
+  			// a zoom anim or a pinch gesture
+  			this._noPrune = !!noPrune;
+  		}
+
+  		this._setZoomTransforms(center, zoom);
+  	},
+
+  	_setZoomTransforms: function (center, zoom) {
+  		for (var i in this._levels) {
+  			this._setZoomTransform(this._levels[i], center, zoom);
+  		}
+  	},
+
+  	_setZoomTransform: function (level, center, zoom) {
+  		var scale = this._map.getZoomScale(zoom, level.zoom),
+  		    translate = level.origin.multiplyBy(scale)
+  		        .subtract(this._map._getNewPixelOrigin(center, zoom)).round();
+
+  		if (Browser.any3d) {
+  			setTransform(level.el, translate, scale);
+  		} else {
+  			setPosition(level.el, translate);
+  		}
+  	},
+
+  	_resetGrid: function () {
+  		var map = this._map,
+  		    crs = map.options.crs,
+  		    tileSize = this._tileSize = this.getTileSize(),
+  		    tileZoom = this._tileZoom;
+
+  		var bounds = this._map.getPixelWorldBounds(this._tileZoom);
+  		if (bounds) {
+  			this._globalTileRange = this._pxBoundsToTileRange(bounds);
+  		}
+
+  		this._wrapX = crs.wrapLng && !this.options.noWrap && [
+  			Math.floor(map.project([0, crs.wrapLng[0]], tileZoom).x / tileSize.x),
+  			Math.ceil(map.project([0, crs.wrapLng[1]], tileZoom).x / tileSize.y)
+  		];
+  		this._wrapY = crs.wrapLat && !this.options.noWrap && [
+  			Math.floor(map.project([crs.wrapLat[0], 0], tileZoom).y / tileSize.x),
+  			Math.ceil(map.project([crs.wrapLat[1], 0], tileZoom).y / tileSize.y)
+  		];
+  	},
+
+  	_onMoveEnd: function () {
+  		if (!this._map || this._map._animatingZoom) { return; }
+
+  		this._update();
+  	},
+
+  	_getTiledPixelBounds: function (center) {
+  		var map = this._map,
+  		    mapZoom = map._animatingZoom ? Math.max(map._animateToZoom, map.getZoom()) : map.getZoom(),
+  		    scale = map.getZoomScale(mapZoom, this._tileZoom),
+  		    pixelCenter = map.project(center, this._tileZoom).floor(),
+  		    halfSize = map.getSize().divideBy(scale * 2);
+
+  		return new Bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));
+  	},
+
+  	// Private method to load tiles in the grid's active zoom level according to map bounds
+  	_update: function (center) {
+  		var map = this._map;
+  		if (!map) { return; }
+  		var zoom = this._clampZoom(map.getZoom());
+
+  		if (center === undefined) { center = map.getCenter(); }
+  		if (this._tileZoom === undefined) { return; }	// if out of minzoom/maxzoom
+
+  		var pixelBounds = this._getTiledPixelBounds(center),
+  		    tileRange = this._pxBoundsToTileRange(pixelBounds),
+  		    tileCenter = tileRange.getCenter(),
+  		    queue = [],
+  		    margin = this.options.keepBuffer,
+  		    noPruneRange = new Bounds(tileRange.getBottomLeft().subtract([margin, -margin]),
+  		                              tileRange.getTopRight().add([margin, -margin]));
+
+  		// Sanity check: panic if the tile range contains Infinity somewhere.
+  		if (!(isFinite(tileRange.min.x) &&
+  		      isFinite(tileRange.min.y) &&
+  		      isFinite(tileRange.max.x) &&
+  		      isFinite(tileRange.max.y))) { throw new Error('Attempted to load an infinite number of tiles'); }
+
+  		for (var key in this._tiles) {
+  			var c = this._tiles[key].coords;
+  			if (c.z !== this._tileZoom || !noPruneRange.contains(new Point(c.x, c.y))) {
+  				this._tiles[key].current = false;
+  			}
+  		}
+
+  		// _update just loads more tiles. If the tile zoom level differs too much
+  		// from the map's, let _setView reset levels and prune old tiles.
+  		if (Math.abs(zoom - this._tileZoom) > 1) { this._setView(center, zoom); return; }
+
+  		// create a queue of coordinates to load tiles from
+  		for (var j = tileRange.min.y; j <= tileRange.max.y; j++) {
+  			for (var i = tileRange.min.x; i <= tileRange.max.x; i++) {
+  				var coords = new Point(i, j);
+  				coords.z = this._tileZoom;
+
+  				if (!this._isValidTile(coords)) { continue; }
+
+  				var tile = this._tiles[this._tileCoordsToKey(coords)];
+  				if (tile) {
+  					tile.current = true;
+  				} else {
+  					queue.push(coords);
+  				}
+  			}
+  		}
+
+  		// sort tile queue to load tiles in order of their distance to center
+  		queue.sort(function (a, b) {
+  			return a.distanceTo(tileCenter) - b.distanceTo(tileCenter);
+  		});
+
+  		if (queue.length !== 0) {
+  			// if it's the first batch of tiles to load
+  			if (!this._loading) {
+  				this._loading = true;
+  				// @event loading: Event
+  				// Fired when the grid layer starts loading tiles.
+  				this.fire('loading');
+  			}
+
+  			// create DOM fragment to append tiles in one batch
+  			var fragment = document.createDocumentFragment();
+
+  			for (i = 0; i < queue.length; i++) {
+  				this._addTile(queue[i], fragment);
+  			}
+
+  			this._level.el.appendChild(fragment);
+  		}
+  	},
+
+  	_isValidTile: function (coords) {
+  		var crs = this._map.options.crs;
+
+  		if (!crs.infinite) {
+  			// don't load tile if it's out of bounds and not wrapped
+  			var bounds = this._globalTileRange;
+  			if ((!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) ||
+  			    (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))) { return false; }
+  		}
+
+  		if (!this.options.bounds) { return true; }
+
+  		// don't load tile if it doesn't intersect the bounds in options
+  		var tileBounds = this._tileCoordsToBounds(coords);
+  		return toLatLngBounds(this.options.bounds).overlaps(tileBounds);
+  	},
+
+  	_keyToBounds: function (key) {
+  		return this._tileCoordsToBounds(this._keyToTileCoords(key));
+  	},
+
+  	_tileCoordsToNwSe: function (coords) {
+  		var map = this._map,
+  		    tileSize = this.getTileSize(),
+  		    nwPoint = coords.scaleBy(tileSize),
+  		    sePoint = nwPoint.add(tileSize),
+  		    nw = map.unproject(nwPoint, coords.z),
+  		    se = map.unproject(sePoint, coords.z);
+  		return [nw, se];
+  	},
+
+  	// converts tile coordinates to its geographical bounds
+  	_tileCoordsToBounds: function (coords) {
+  		var bp = this._tileCoordsToNwSe(coords),
+  		    bounds = new LatLngBounds(bp[0], bp[1]);
+
+  		if (!this.options.noWrap) {
+  			bounds = this._map.wrapLatLngBounds(bounds);
+  		}
+  		return bounds;
+  	},
+  	// converts tile coordinates to key for the tile cache
+  	_tileCoordsToKey: function (coords) {
+  		return coords.x + ':' + coords.y + ':' + coords.z;
+  	},
+
+  	// converts tile cache key to coordinates
+  	_keyToTileCoords: function (key) {
+  		var k = key.split(':'),
+  		    coords = new Point(+k[0], +k[1]);
+  		coords.z = +k[2];
+  		return coords;
+  	},
+
+  	_removeTile: function (key) {
+  		var tile = this._tiles[key];
+  		if (!tile) { return; }
+
+  		remove(tile.el);
+
+  		delete this._tiles[key];
+
+  		// @event tileunload: TileEvent
+  		// Fired when a tile is removed (e.g. when a tile goes off the screen).
+  		this.fire('tileunload', {
+  			tile: tile.el,
+  			coords: this._keyToTileCoords(key)
+  		});
+  	},
+
+  	_initTile: function (tile) {
+  		addClass(tile, 'leaflet-tile');
+
+  		var tileSize = this.getTileSize();
+  		tile.style.width = tileSize.x + 'px';
+  		tile.style.height = tileSize.y + 'px';
+
+  		tile.onselectstart = falseFn;
+  		tile.onmousemove = falseFn;
+
+  		// update opacity on tiles in IE7-8 because of filter inheritance problems
+  		if (Browser.ielt9 && this.options.opacity < 1) {
+  			setOpacity(tile, this.options.opacity);
+  		}
+  	},
+
+  	_addTile: function (coords, container) {
+  		var tilePos = this._getTilePos(coords),
+  		    key = this._tileCoordsToKey(coords);
+
+  		var tile = this.createTile(this._wrapCoords(coords), bind(this._tileReady, this, coords));
+
+  		this._initTile(tile);
+
+  		// if createTile is defined with a second argument ("done" callback),
+  		// we know that tile is async and will be ready later; otherwise
+  		if (this.createTile.length < 2) {
+  			// mark tile as ready, but delay one frame for opacity animation to happen
+  			requestAnimFrame(bind(this._tileReady, this, coords, null, tile));
+  		}
+
+  		setPosition(tile, tilePos);
+
+  		// save tile in cache
+  		this._tiles[key] = {
+  			el: tile,
+  			coords: coords,
+  			current: true
+  		};
+
+  		container.appendChild(tile);
+  		// @event tileloadstart: TileEvent
+  		// Fired when a tile is requested and starts loading.
+  		this.fire('tileloadstart', {
+  			tile: tile,
+  			coords: coords
+  		});
+  	},
+
+  	_tileReady: function (coords, err, tile) {
+  		if (err) {
+  			// @event tileerror: TileErrorEvent
+  			// Fired when there is an error loading a tile.
+  			this.fire('tileerror', {
+  				error: err,
+  				tile: tile,
+  				coords: coords
+  			});
+  		}
+
+  		var key = this._tileCoordsToKey(coords);
+
+  		tile = this._tiles[key];
+  		if (!tile) { return; }
+
+  		tile.loaded = +new Date();
+  		if (this._map._fadeAnimated) {
+  			setOpacity(tile.el, 0);
+  			cancelAnimFrame(this._fadeFrame);
+  			this._fadeFrame = requestAnimFrame(this._updateOpacity, this);
+  		} else {
+  			tile.active = true;
+  			this._pruneTiles();
+  		}
+
+  		if (!err) {
+  			addClass(tile.el, 'leaflet-tile-loaded');
+
+  			// @event tileload: TileEvent
+  			// Fired when a tile loads.
+  			this.fire('tileload', {
+  				tile: tile.el,
+  				coords: coords
+  			});
+  		}
+
+  		if (this._noTilesToLoad()) {
+  			this._loading = false;
+  			// @event load: Event
+  			// Fired when the grid layer loaded all visible tiles.
+  			this.fire('load');
+
+  			if (Browser.ielt9 || !this._map._fadeAnimated) {
+  				requestAnimFrame(this._pruneTiles, this);
+  			} else {
+  				// Wait a bit more than 0.2 secs (the duration of the tile fade-in)
+  				// to trigger a pruning.
+  				setTimeout(bind(this._pruneTiles, this), 250);
+  			}
+  		}
+  	},
+
+  	_getTilePos: function (coords) {
+  		return coords.scaleBy(this.getTileSize()).subtract(this._level.origin);
+  	},
+
+  	_wrapCoords: function (coords) {
+  		var newCoords = new Point(
+  			this._wrapX ? wrapNum(coords.x, this._wrapX) : coords.x,
+  			this._wrapY ? wrapNum(coords.y, this._wrapY) : coords.y);
+  		newCoords.z = coords.z;
+  		return newCoords;
+  	},
+
+  	_pxBoundsToTileRange: function (bounds) {
+  		var tileSize = this.getTileSize();
+  		return new Bounds(
+  			bounds.min.unscaleBy(tileSize).floor(),
+  			bounds.max.unscaleBy(tileSize).ceil().subtract([1, 1]));
+  	},
+
+  	_noTilesToLoad: function () {
+  		for (var key in this._tiles) {
+  			if (!this._tiles[key].loaded) { return false; }
+  		}
+  		return true;
+  	}
+  });
+
+  // @factory L.gridLayer(options?: GridLayer options)
+  // Creates a new instance of GridLayer with the supplied options.
+  function gridLayer(options) {
+  	return new GridLayer(options);
+  }
+
+  /*
+   * @class TileLayer
+   * @inherits GridLayer
+   * @aka L.TileLayer
+   * Used to load and display tile layers on the map. Note that most tile servers require attribution, which you can set under `Layer`. Extends `GridLayer`.
+   *
+   * @example
+   *
+   * ```js
+   * L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+   * ```
+   *
+   * @section URL template
+   * @example
+   *
+   * A string of the following form:
+   *
+   * ```
+   * 'https://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png'
+   * ```
+   *
+   * `{s}` means one of the available subdomains (used sequentially to help with browser parallel requests per domain limitation; subdomain values are specified in options; `a`, `b` or `c` by default, can be omitted), `{z}` — zoom level, `{x}` and `{y}` — tile coordinates. `{r}` can be used to add "&commat;2x" to the URL to load retina tiles.
+   *
+   * You can use custom keys in the template, which will be [evaluated](#util-template) from TileLayer options, like this:
+   *
+   * ```
+   * L.tileLayer('https://{s}.somedomain.com/{foo}/{z}/{x}/{y}.png', {foo: 'bar'});
+   * ```
+   */
+
+
+  var TileLayer = GridLayer.extend({
+
+  	// @section
+  	// @aka TileLayer options
+  	options: {
+  		// @option minZoom: Number = 0
+  		// The minimum zoom level down to which this layer will be displayed (inclusive).
+  		minZoom: 0,
+
+  		// @option maxZoom: Number = 18
+  		// The maximum zoom level up to which this layer will be displayed (inclusive).
+  		maxZoom: 18,
+
+  		// @option subdomains: String|String[] = 'abc'
+  		// Subdomains of the tile service. Can be passed in the form of one string (where each letter is a subdomain name) or an array of strings.
+  		subdomains: 'abc',
+
+  		// @option errorTileUrl: String = ''
+  		// URL to the tile image to show in place of the tile that failed to load.
+  		errorTileUrl: '',
+
+  		// @option zoomOffset: Number = 0
+  		// The zoom number used in tile URLs will be offset with this value.
+  		zoomOffset: 0,
+
+  		// @option tms: Boolean = false
+  		// If `true`, inverses Y axis numbering for tiles (turn this on for [TMS](https://en.wikipedia.org/wiki/Tile_Map_Service) services).
+  		tms: false,
+
+  		// @option zoomReverse: Boolean = false
+  		// If set to true, the zoom number used in tile URLs will be reversed (`maxZoom - zoom` instead of `zoom`)
+  		zoomReverse: false,
+
+  		// @option detectRetina: Boolean = false
+  		// If `true` and user is on a retina display, it will request four tiles of half the specified size and a bigger zoom level in place of one to utilize the high resolution.
+  		detectRetina: false,
+
+  		// @option crossOrigin: Boolean|String = false
+  		// Whether the crossOrigin attribute will be added to the tiles.
+  		// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
+  		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+  		crossOrigin: false,
+
+  		// @option referrerPolicy: Boolean|String = false
+  		// Whether the referrerPolicy attribute will be added to the tiles.
+  		// If a String is provided, all tiles will have their referrerPolicy attribute set to the String provided.
+  		// This may be needed if your map's rendering context has a strict default but your tile provider expects a valid referrer
+  		// (e.g. to validate an API token).
+  		// Refer to [HTMLImageElement.referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy) for valid String values.
+  		referrerPolicy: false
+  	},
+
+  	initialize: function (url, options) {
+
+  		this._url = url;
+
+  		options = setOptions(this, options);
+
+  		// detecting retina displays, adjusting tileSize and zoom levels
+  		if (options.detectRetina && Browser.retina && options.maxZoom > 0) {
+
+  			options.tileSize = Math.floor(options.tileSize / 2);
+
+  			if (!options.zoomReverse) {
+  				options.zoomOffset++;
+  				options.maxZoom = Math.max(options.minZoom, options.maxZoom - 1);
+  			} else {
+  				options.zoomOffset--;
+  				options.minZoom = Math.min(options.maxZoom, options.minZoom + 1);
+  			}
+
+  			options.minZoom = Math.max(0, options.minZoom);
+  		} else if (!options.zoomReverse) {
+  			// make sure maxZoom is gte minZoom
+  			options.maxZoom = Math.max(options.minZoom, options.maxZoom);
+  		} else {
+  			// make sure minZoom is lte maxZoom
+  			options.minZoom = Math.min(options.maxZoom, options.minZoom);
+  		}
+
+  		if (typeof options.subdomains === 'string') {
+  			options.subdomains = options.subdomains.split('');
+  		}
+
+  		this.on('tileunload', this._onTileRemove);
+  	},
+
+  	// @method setUrl(url: String, noRedraw?: Boolean): this
+  	// Updates the layer's URL template and redraws it (unless `noRedraw` is set to `true`).
+  	// If the URL does not change, the layer will not be redrawn unless
+  	// the noRedraw parameter is set to false.
+  	setUrl: function (url, noRedraw) {
+  		if (this._url === url && noRedraw === undefined) {
+  			noRedraw = true;
+  		}
+
+  		this._url = url;
+
+  		if (!noRedraw) {
+  			this.redraw();
+  		}
+  		return this;
+  	},
+
+  	// @method createTile(coords: Object, done?: Function): HTMLElement
+  	// Called only internally, overrides GridLayer's [`createTile()`](#gridlayer-createtile)
+  	// to return an `<img>` HTML element with the appropriate image URL given `coords`. The `done`
+  	// callback is called when the tile has been loaded.
+  	createTile: function (coords, done) {
+  		var tile = document.createElement('img');
+
+  		on(tile, 'load', bind(this._tileOnLoad, this, done, tile));
+  		on(tile, 'error', bind(this._tileOnError, this, done, tile));
+
+  		if (this.options.crossOrigin || this.options.crossOrigin === '') {
+  			tile.crossOrigin = this.options.crossOrigin === true ? '' : this.options.crossOrigin;
+  		}
+
+  		// for this new option we follow the documented behavior
+  		// more closely by only setting the property when string
+  		if (typeof this.options.referrerPolicy === 'string') {
+  			tile.referrerPolicy = this.options.referrerPolicy;
+  		}
+
+  		// The alt attribute is set to the empty string,
+  		// allowing screen readers to ignore the decorative image tiles.
+  		// https://www.w3.org/WAI/tutorials/images/decorative/
+  		// https://www.w3.org/TR/html-aria/#el-img-empty-alt
+  		tile.alt = '';
+
+  		tile.src = this.getTileUrl(coords);
+
+  		return tile;
+  	},
+
+  	// @section Extension methods
+  	// @uninheritable
+  	// Layers extending `TileLayer` might reimplement the following method.
+  	// @method getTileUrl(coords: Object): String
+  	// Called only internally, returns the URL for a tile given its coordinates.
+  	// Classes extending `TileLayer` can override this function to provide custom tile URL naming schemes.
+  	getTileUrl: function (coords) {
+  		var data = {
+  			r: Browser.retina ? '@2x' : '',
+  			s: this._getSubdomain(coords),
+  			x: coords.x,
+  			y: coords.y,
+  			z: this._getZoomForUrl()
+  		};
+  		if (this._map && !this._map.options.crs.infinite) {
+  			var invertedY = this._globalTileRange.max.y - coords.y;
+  			if (this.options.tms) {
+  				data['y'] = invertedY;
+  			}
+  			data['-y'] = invertedY;
+  		}
+
+  		return template(this._url, extend(data, this.options));
+  	},
+
+  	_tileOnLoad: function (done, tile) {
+  		// For https://github.com/Leaflet/Leaflet/issues/3332
+  		if (Browser.ielt9) {
+  			setTimeout(bind(done, this, null, tile), 0);
+  		} else {
+  			done(null, tile);
+  		}
+  	},
+
+  	_tileOnError: function (done, tile, e) {
+  		var errorUrl = this.options.errorTileUrl;
+  		if (errorUrl && tile.getAttribute('src') !== errorUrl) {
+  			tile.src = errorUrl;
+  		}
+  		done(e, tile);
+  	},
+
+  	_onTileRemove: function (e) {
+  		e.tile.onload = null;
+  	},
+
+  	_getZoomForUrl: function () {
+  		var zoom = this._tileZoom,
+  		maxZoom = this.options.maxZoom,
+  		zoomReverse = this.options.zoomReverse,
+  		zoomOffset = this.options.zoomOffset;
+
+  		if (zoomReverse) {
+  			zoom = maxZoom - zoom;
+  		}
+
+  		return zoom + zoomOffset;
+  	},
+
+  	_getSubdomain: function (tilePoint) {
+  		var index = Math.abs(tilePoint.x + tilePoint.y) % this.options.subdomains.length;
+  		return this.options.subdomains[index];
+  	},
+
+  	// stops loading all tiles in the background layer
+  	_abortLoading: function () {
+  		var i, tile;
+  		for (i in this._tiles) {
+  			if (this._tiles[i].coords.z !== this._tileZoom) {
+  				tile = this._tiles[i].el;
+
+  				tile.onload = falseFn;
+  				tile.onerror = falseFn;
+
+  				if (!tile.complete) {
+  					tile.src = emptyImageUrl;
+  					var coords = this._tiles[i].coords;
+  					remove(tile);
+  					delete this._tiles[i];
+  					// @event tileabort: TileEvent
+  					// Fired when a tile was loading but is now not wanted.
+  					this.fire('tileabort', {
+  						tile: tile,
+  						coords: coords
+  					});
+  				}
+  			}
+  		}
+  	},
+
+  	_removeTile: function (key) {
+  		var tile = this._tiles[key];
+  		if (!tile) { return; }
+
+  		// Cancels any pending http requests associated with the tile
+  		tile.el.setAttribute('src', emptyImageUrl);
+
+  		return GridLayer.prototype._removeTile.call(this, key);
+  	},
+
+  	_tileReady: function (coords, err, tile) {
+  		if (!this._map || (tile && tile.getAttribute('src') === emptyImageUrl)) {
+  			return;
+  		}
+
+  		return GridLayer.prototype._tileReady.call(this, coords, err, tile);
+  	}
+  });
+
+
+  // @factory L.tilelayer(urlTemplate: String, options?: TileLayer options)
+  // Instantiates a tile layer object given a `URL template` and optionally an options object.
+
+  function tileLayer(url, options) {
+  	return new TileLayer(url, options);
+  }
+
+  /*
+   * @class TileLayer.WMS
+   * @inherits TileLayer
+   * @aka L.TileLayer.WMS
+   * Used to display [WMS](https://en.wikipedia.org/wiki/Web_Map_Service) services as tile layers on the map. Extends `TileLayer`.
+   *
+   * @example
+   *
+   * ```js
+   * var nexrad = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi", {
+   * 	layers: 'nexrad-n0r-900913',
+   * 	format: 'image/png',
+   * 	transparent: true,
+   * 	attribution: "Weather data © 2012 IEM Nexrad"
+   * });
+   * ```
+   */
+
+  var TileLayerWMS = TileLayer.extend({
+
+  	// @section
+  	// @aka TileLayer.WMS options
+  	// If any custom options not documented here are used, they will be sent to the
+  	// WMS server as extra parameters in each request URL. This can be useful for
+  	// [non-standard vendor WMS parameters](https://docs.geoserver.org/stable/en/user/services/wms/vendor.html).
+  	defaultWmsParams: {
+  		service: 'WMS',
+  		request: 'GetMap',
+
+  		// @option layers: String = ''
+  		// **(required)** Comma-separated list of WMS layers to show.
+  		layers: '',
+
+  		// @option styles: String = ''
+  		// Comma-separated list of WMS styles.
+  		styles: '',
+
+  		// @option format: String = 'image/jpeg'
+  		// WMS image format (use `'image/png'` for layers with transparency).
+  		format: 'image/jpeg',
+
+  		// @option transparent: Boolean = false
+  		// If `true`, the WMS service will return images with transparency.
+  		transparent: false,
+
+  		// @option version: String = '1.1.1'
+  		// Version of the WMS service to use
+  		version: '1.1.1'
+  	},
+
+  	options: {
+  		// @option crs: CRS = null
+  		// Coordinate Reference System to use for the WMS requests, defaults to
+  		// map CRS. Don't change this if you're not sure what it means.
+  		crs: null,
+
+  		// @option uppercase: Boolean = false
+  		// If `true`, WMS request parameter keys will be uppercase.
+  		uppercase: false
+  	},
+
+  	initialize: function (url, options) {
+
+  		this._url = url;
+
+  		var wmsParams = extend({}, this.defaultWmsParams);
+
+  		// all keys that are not TileLayer options go to WMS params
+  		for (var i in options) {
+  			if (!(i in this.options)) {
+  				wmsParams[i] = options[i];
+  			}
+  		}
+
+  		options = setOptions(this, options);
+
+  		var realRetina = options.detectRetina && Browser.retina ? 2 : 1;
+  		var tileSize = this.getTileSize();
+  		wmsParams.width = tileSize.x * realRetina;
+  		wmsParams.height = tileSize.y * realRetina;
+
+  		this.wmsParams = wmsParams;
+  	},
+
+  	onAdd: function (map) {
+
+  		this._crs = this.options.crs || map.options.crs;
+  		this._wmsVersion = parseFloat(this.wmsParams.version);
+
+  		var projectionKey = this._wmsVersion >= 1.3 ? 'crs' : 'srs';
+  		this.wmsParams[projectionKey] = this._crs.code;
+
+  		TileLayer.prototype.onAdd.call(this, map);
+  	},
+
+  	getTileUrl: function (coords) {
+
+  		var tileBounds = this._tileCoordsToNwSe(coords),
+  		    crs = this._crs,
+  		    bounds = toBounds(crs.project(tileBounds[0]), crs.project(tileBounds[1])),
+  		    min = bounds.min,
+  		    max = bounds.max,
+  		    bbox = (this._wmsVersion >= 1.3 && this._crs === EPSG4326 ?
+  		    [min.y, min.x, max.y, max.x] :
+  		    [min.x, min.y, max.x, max.y]).join(','),
+  		    url = TileLayer.prototype.getTileUrl.call(this, coords);
+  		return url +
+  			getParamString(this.wmsParams, url, this.options.uppercase) +
+  			(this.options.uppercase ? '&BBOX=' : '&bbox=') + bbox;
+  	},
+
+  	// @method setParams(params: Object, noRedraw?: Boolean): this
+  	// Merges an object with the new parameters and re-requests tiles on the current screen (unless `noRedraw` was set to true).
+  	setParams: function (params, noRedraw) {
+
+  		extend(this.wmsParams, params);
+
+  		if (!noRedraw) {
+  			this.redraw();
+  		}
+
+  		return this;
+  	}
+  });
+
+
+  // @factory L.tileLayer.wms(baseUrl: String, options: TileLayer.WMS options)
+  // Instantiates a WMS tile layer object given a base URL of the WMS service and a WMS parameters/options object.
+  function tileLayerWMS(url, options) {
+  	return new TileLayerWMS(url, options);
+  }
+
+  TileLayer.WMS = TileLayerWMS;
+  tileLayer.wms = tileLayerWMS;
+
+  /*
+   * @class Renderer
+   * @inherits Layer
+   * @aka L.Renderer
+   *
+   * Base class for vector renderer implementations (`SVG`, `Canvas`). Handles the
+   * DOM container of the renderer, its bounds, and its zoom animation.
+   *
+   * A `Renderer` works as an implicit layer group for all `Path`s - the renderer
+   * itself can be added or removed to the map. All paths use a renderer, which can
+   * be implicit (the map will decide the type of renderer and use it automatically)
+   * or explicit (using the [`renderer`](#path-renderer) option of the path).
+   *
+   * Do not use this class directly, use `SVG` and `Canvas` instead.
+   *
+   * @event update: Event
+   * Fired when the renderer updates its bounds, center and zoom, for example when
+   * its map has moved
+   */
+
+  var Renderer = Layer.extend({
+
+  	// @section
+  	// @aka Renderer options
+  	options: {
+  		// @option padding: Number = 0.1
+  		// How much to extend the clip area around the map view (relative to its size)
+  		// e.g. 0.1 would be 10% of map view in each direction
+  		padding: 0.1
+  	},
+
+  	initialize: function (options) {
+  		setOptions(this, options);
+  		stamp(this);
+  		this._layers = this._layers || {};
+  	},
+
+  	onAdd: function () {
+  		if (!this._container) {
+  			this._initContainer(); // defined by renderer implementations
+
+  			// always keep transform-origin as 0 0
+  			addClass(this._container, 'leaflet-zoom-animated');
+  		}
+
+  		this.getPane().appendChild(this._container);
+  		this._update();
+  		this.on('update', this._updatePaths, this);
+  	},
+
+  	onRemove: function () {
+  		this.off('update', this._updatePaths, this);
+  		this._destroyContainer();
+  	},
+
+  	getEvents: function () {
+  		var events = {
+  			viewreset: this._reset,
+  			zoom: this._onZoom,
+  			moveend: this._update,
+  			zoomend: this._onZoomEnd
+  		};
+  		if (this._zoomAnimated) {
+  			events.zoomanim = this._onAnimZoom;
+  		}
+  		return events;
+  	},
+
+  	_onAnimZoom: function (ev) {
+  		this._updateTransform(ev.center, ev.zoom);
+  	},
+
+  	_onZoom: function () {
+  		this._updateTransform(this._map.getCenter(), this._map.getZoom());
+  	},
+
+  	_updateTransform: function (center, zoom) {
+  		var scale = this._map.getZoomScale(zoom, this._zoom),
+  		    viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
+  		    currentCenterPoint = this._map.project(this._center, zoom),
+
+  		    topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
+  				  .subtract(this._map._getNewPixelOrigin(center, zoom));
+
+  		if (Browser.any3d) {
+  			setTransform(this._container, topLeftOffset, scale);
+  		} else {
+  			setPosition(this._container, topLeftOffset);
+  		}
+  	},
+
+  	_reset: function () {
+  		this._update();
+  		this._updateTransform(this._center, this._zoom);
+
+  		for (var id in this._layers) {
+  			this._layers[id]._reset();
+  		}
+  	},
+
+  	_onZoomEnd: function () {
+  		for (var id in this._layers) {
+  			this._layers[id]._project();
+  		}
+  	},
+
+  	_updatePaths: function () {
+  		for (var id in this._layers) {
+  			this._layers[id]._update();
+  		}
+  	},
+
+  	_update: function () {
+  		// Update pixel bounds of renderer container (for positioning/sizing/clipping later)
+  		// Subclasses are responsible of firing the 'update' event.
+  		var p = this.options.padding,
+  		    size = this._map.getSize(),
+  		    min = this._map.containerPointToLayerPoint(size.multiplyBy(-p)).round();
+
+  		this._bounds = new Bounds(min, min.add(size.multiplyBy(1 + p * 2)).round());
+
+  		this._center = this._map.getCenter();
+  		this._zoom = this._map.getZoom();
+  	}
+  });
+
+  /*
+   * @class Canvas
+   * @inherits Renderer
+   * @aka L.Canvas
+   *
+   * Allows vector layers to be displayed with [`<canvas>`](https://developer.mozilla.org/docs/Web/API/Canvas_API).
+   * Inherits `Renderer`.
+   *
+   * Due to [technical limitations](https://caniuse.com/canvas), Canvas is not
+   * available in all web browsers, notably IE8, and overlapping geometries might
+   * not display properly in some edge cases.
+   *
+   * @example
+   *
+   * Use Canvas by default for all paths in the map:
+   *
+   * ```js
+   * var map = L.map('map', {
+   * 	renderer: L.canvas()
+   * });
+   * ```
+   *
+   * Use a Canvas renderer with extra padding for specific vector geometries:
+   *
+   * ```js
+   * var map = L.map('map');
+   * var myRenderer = L.canvas({ padding: 0.5 });
+   * var line = L.polyline( coordinates, { renderer: myRenderer } );
+   * var circle = L.circle( center, { renderer: myRenderer } );
+   * ```
+   */
+
+  var Canvas = Renderer.extend({
+
+  	// @section
+  	// @aka Canvas options
+  	options: {
+  		// @option tolerance: Number = 0
+  		// How much to extend the click tolerance around a path/object on the map.
+  		tolerance: 0
+  	},
+
+  	getEvents: function () {
+  		var events = Renderer.prototype.getEvents.call(this);
+  		events.viewprereset = this._onViewPreReset;
+  		return events;
+  	},
+
+  	_onViewPreReset: function () {
+  		// Set a flag so that a viewprereset+moveend+viewreset only updates&redraws once
+  		this._postponeUpdatePaths = true;
+  	},
+
+  	onAdd: function () {
+  		Renderer.prototype.onAdd.call(this);
+
+  		// Redraw vectors since canvas is cleared upon removal,
+  		// in case of removing the renderer itself from the map.
+  		this._draw();
+  	},
+
+  	_initContainer: function () {
+  		var container = this._container = document.createElement('canvas');
+
+  		on(container, 'mousemove', this._onMouseMove, this);
+  		on(container, 'click dblclick mousedown mouseup contextmenu', this._onClick, this);
+  		on(container, 'mouseout', this._handleMouseOut, this);
+  		container['_leaflet_disable_events'] = true;
+
+  		this._ctx = container.getContext('2d');
+  	},
+
+  	_destroyContainer: function () {
+  		cancelAnimFrame(this._redrawRequest);
+  		delete this._ctx;
+  		remove(this._container);
+  		off(this._container);
+  		delete this._container;
+  	},
+
+  	_updatePaths: function () {
+  		if (this._postponeUpdatePaths) { return; }
+
+  		var layer;
+  		this._redrawBounds = null;
+  		for (var id in this._layers) {
+  			layer = this._layers[id];
+  			layer._update();
+  		}
+  		this._redraw();
+  	},
+
+  	_update: function () {
+  		if (this._map._animatingZoom && this._bounds) { return; }
+
+  		Renderer.prototype._update.call(this);
+
+  		var b = this._bounds,
+  		    container = this._container,
+  		    size = b.getSize(),
+  		    m = Browser.retina ? 2 : 1;
+
+  		setPosition(container, b.min);
+
+  		// set canvas size (also clearing it); use double size on retina
+  		container.width = m * size.x;
+  		container.height = m * size.y;
+  		container.style.width = size.x + 'px';
+  		container.style.height = size.y + 'px';
+
+  		if (Browser.retina) {
+  			this._ctx.scale(2, 2);
+  		}
+
+  		// translate so we use the same path coordinates after canvas element moves
+  		this._ctx.translate(-b.min.x, -b.min.y);
+
+  		// Tell paths to redraw themselves
+  		this.fire('update');
+  	},
+
+  	_reset: function () {
+  		Renderer.prototype._reset.call(this);
+
+  		if (this._postponeUpdatePaths) {
+  			this._postponeUpdatePaths = false;
+  			this._updatePaths();
+  		}
+  	},
+
+  	_initPath: function (layer) {
+  		this._updateDashArray(layer);
+  		this._layers[stamp(layer)] = layer;
+
+  		var order = layer._order = {
+  			layer: layer,
+  			prev: this._drawLast,
+  			next: null
+  		};
+  		if (this._drawLast) { this._drawLast.next = order; }
+  		this._drawLast = order;
+  		this._drawFirst = this._drawFirst || this._drawLast;
+  	},
+
+  	_addPath: function (layer) {
+  		this._requestRedraw(layer);
+  	},
+
+  	_removePath: function (layer) {
+  		var order = layer._order;
+  		var next = order.next;
+  		var prev = order.prev;
+
+  		if (next) {
+  			next.prev = prev;
+  		} else {
+  			this._drawLast = prev;
+  		}
+  		if (prev) {
+  			prev.next = next;
+  		} else {
+  			this._drawFirst = next;
+  		}
+
+  		delete layer._order;
+
+  		delete this._layers[stamp(layer)];
+
+  		this._requestRedraw(layer);
+  	},
+
+  	_updatePath: function (layer) {
+  		// Redraw the union of the layer's old pixel
+  		// bounds and the new pixel bounds.
+  		this._extendRedrawBounds(layer);
+  		layer._project();
+  		layer._update();
+  		// The redraw will extend the redraw bounds
+  		// with the new pixel bounds.
+  		this._requestRedraw(layer);
+  	},
+
+  	_updateStyle: function (layer) {
+  		this._updateDashArray(layer);
+  		this._requestRedraw(layer);
+  	},
+
+  	_updateDashArray: function (layer) {
+  		if (typeof layer.options.dashArray === 'string') {
+  			var parts = layer.options.dashArray.split(/[, ]+/),
+  			    dashArray = [],
+  			    dashValue,
+  			    i;
+  			for (i = 0; i < parts.length; i++) {
+  				dashValue = Number(parts[i]);
+  				// Ignore dash array containing invalid lengths
+  				if (isNaN(dashValue)) { return; }
+  				dashArray.push(dashValue);
+  			}
+  			layer.options._dashArray = dashArray;
+  		} else {
+  			layer.options._dashArray = layer.options.dashArray;
+  		}
+  	},
+
+  	_requestRedraw: function (layer) {
+  		if (!this._map) { return; }
+
+  		this._extendRedrawBounds(layer);
+  		this._redrawRequest = this._redrawRequest || requestAnimFrame(this._redraw, this);
+  	},
+
+  	_extendRedrawBounds: function (layer) {
+  		if (layer._pxBounds) {
+  			var padding = (layer.options.weight || 0) + 1;
+  			this._redrawBounds = this._redrawBounds || new Bounds();
+  			this._redrawBounds.extend(layer._pxBounds.min.subtract([padding, padding]));
+  			this._redrawBounds.extend(layer._pxBounds.max.add([padding, padding]));
+  		}
+  	},
+
+  	_redraw: function () {
+  		this._redrawRequest = null;
+
+  		if (this._redrawBounds) {
+  			this._redrawBounds.min._floor();
+  			this._redrawBounds.max._ceil();
+  		}
+
+  		this._clear(); // clear layers in redraw bounds
+  		this._draw(); // draw layers
+
+  		this._redrawBounds = null;
+  	},
+
+  	_clear: function () {
+  		var bounds = this._redrawBounds;
+  		if (bounds) {
+  			var size = bounds.getSize();
+  			this._ctx.clearRect(bounds.min.x, bounds.min.y, size.x, size.y);
+  		} else {
+  			this._ctx.save();
+  			this._ctx.setTransform(1, 0, 0, 1, 0, 0);
+  			this._ctx.clearRect(0, 0, this._container.width, this._container.height);
+  			this._ctx.restore();
+  		}
+  	},
+
+  	_draw: function () {
+  		var layer, bounds = this._redrawBounds;
+  		this._ctx.save();
+  		if (bounds) {
+  			var size = bounds.getSize();
+  			this._ctx.beginPath();
+  			this._ctx.rect(bounds.min.x, bounds.min.y, size.x, size.y);
+  			this._ctx.clip();
+  		}
+
+  		this._drawing = true;
+
+  		for (var order = this._drawFirst; order; order = order.next) {
+  			layer = order.layer;
+  			if (!bounds || (layer._pxBounds && layer._pxBounds.intersects(bounds))) {
+  				layer._updatePath();
+  			}
+  		}
+
+  		this._drawing = false;
+
+  		this._ctx.restore();  // Restore state before clipping.
+  	},
+
+  	_updatePoly: function (layer, closed) {
+  		if (!this._drawing) { return; }
+
+  		var i, j, len2, p,
+  		    parts = layer._parts,
+  		    len = parts.length,
+  		    ctx = this._ctx;
+
+  		if (!len) { return; }
+
+  		ctx.beginPath();
+
+  		for (i = 0; i < len; i++) {
+  			for (j = 0, len2 = parts[i].length; j < len2; j++) {
+  				p = parts[i][j];
+  				ctx[j ? 'lineTo' : 'moveTo'](p.x, p.y);
+  			}
+  			if (closed) {
+  				ctx.closePath();
+  			}
+  		}
+
+  		this._fillStroke(ctx, layer);
+
+  		// TODO optimization: 1 fill/stroke for all features with equal style instead of 1 for each feature
+  	},
+
+  	_updateCircle: function (layer) {
+
+  		if (!this._drawing || layer._empty()) { return; }
+
+  		var p = layer._point,
+  		    ctx = this._ctx,
+  		    r = Math.max(Math.round(layer._radius), 1),
+  		    s = (Math.max(Math.round(layer._radiusY), 1) || r) / r;
+
+  		if (s !== 1) {
+  			ctx.save();
+  			ctx.scale(1, s);
+  		}
+
+  		ctx.beginPath();
+  		ctx.arc(p.x, p.y / s, r, 0, Math.PI * 2, false);
+
+  		if (s !== 1) {
+  			ctx.restore();
+  		}
+
+  		this._fillStroke(ctx, layer);
+  	},
+
+  	_fillStroke: function (ctx, layer) {
+  		var options = layer.options;
+
+  		if (options.fill) {
+  			ctx.globalAlpha = options.fillOpacity;
+  			ctx.fillStyle = options.fillColor || options.color;
+  			ctx.fill(options.fillRule || 'evenodd');
+  		}
+
+  		if (options.stroke && options.weight !== 0) {
+  			if (ctx.setLineDash) {
+  				ctx.setLineDash(layer.options && layer.options._dashArray || []);
+  			}
+  			ctx.globalAlpha = options.opacity;
+  			ctx.lineWidth = options.weight;
+  			ctx.strokeStyle = options.color;
+  			ctx.lineCap = options.lineCap;
+  			ctx.lineJoin = options.lineJoin;
+  			ctx.stroke();
+  		}
+  	},
+
+  	// Canvas obviously doesn't have mouse events for individual drawn objects,
+  	// so we emulate that by calculating what's under the mouse on mousemove/click manually
+
+  	_onClick: function (e) {
+  		var point = this._map.mouseEventToLayerPoint(e), layer, clickedLayer;
+
+  		for (var order = this._drawFirst; order; order = order.next) {
+  			layer = order.layer;
+  			if (layer.options.interactive && layer._containsPoint(point)) {
+  				if (!(e.type === 'click' || e.type === 'preclick') || !this._map._draggableMoved(layer)) {
+  					clickedLayer = layer;
+  				}
+  			}
+  		}
+  		this._fireEvent(clickedLayer ? [clickedLayer] : false, e);
+  	},
+
+  	_onMouseMove: function (e) {
+  		if (!this._map || this._map.dragging.moving() || this._map._animatingZoom) { return; }
+
+  		var point = this._map.mouseEventToLayerPoint(e);
+  		this._handleMouseHover(e, point);
+  	},
+
+
+  	_handleMouseOut: function (e) {
+  		var layer = this._hoveredLayer;
+  		if (layer) {
+  			// if we're leaving the layer, fire mouseout
+  			removeClass(this._container, 'leaflet-interactive');
+  			this._fireEvent([layer], e, 'mouseout');
+  			this._hoveredLayer = null;
+  			this._mouseHoverThrottled = false;
+  		}
+  	},
+
+  	_handleMouseHover: function (e, point) {
+  		if (this._mouseHoverThrottled) {
+  			return;
+  		}
+
+  		var layer, candidateHoveredLayer;
+
+  		for (var order = this._drawFirst; order; order = order.next) {
+  			layer = order.layer;
+  			if (layer.options.interactive && layer._containsPoint(point)) {
+  				candidateHoveredLayer = layer;
+  			}
+  		}
+
+  		if (candidateHoveredLayer !== this._hoveredLayer) {
+  			this._handleMouseOut(e);
+
+  			if (candidateHoveredLayer) {
+  				addClass(this._container, 'leaflet-interactive'); // change cursor
+  				this._fireEvent([candidateHoveredLayer], e, 'mouseover');
+  				this._hoveredLayer = candidateHoveredLayer;
+  			}
+  		}
+
+  		this._fireEvent(this._hoveredLayer ? [this._hoveredLayer] : false, e);
+
+  		this._mouseHoverThrottled = true;
+  		setTimeout(bind(function () {
+  			this._mouseHoverThrottled = false;
+  		}, this), 32);
+  	},
+
+  	_fireEvent: function (layers, e, type) {
+  		this._map._fireDOMEvent(e, type || e.type, layers);
+  	},
+
+  	_bringToFront: function (layer) {
+  		var order = layer._order;
+
+  		if (!order) { return; }
+
+  		var next = order.next;
+  		var prev = order.prev;
+
+  		if (next) {
+  			next.prev = prev;
+  		} else {
+  			// Already last
+  			return;
+  		}
+  		if (prev) {
+  			prev.next = next;
+  		} else if (next) {
+  			// Update first entry unless this is the
+  			// single entry
+  			this._drawFirst = next;
+  		}
+
+  		order.prev = this._drawLast;
+  		this._drawLast.next = order;
+
+  		order.next = null;
+  		this._drawLast = order;
+
+  		this._requestRedraw(layer);
+  	},
+
+  	_bringToBack: function (layer) {
+  		var order = layer._order;
+
+  		if (!order) { return; }
+
+  		var next = order.next;
+  		var prev = order.prev;
+
+  		if (prev) {
+  			prev.next = next;
+  		} else {
+  			// Already first
+  			return;
+  		}
+  		if (next) {
+  			next.prev = prev;
+  		} else if (prev) {
+  			// Update last entry unless this is the
+  			// single entry
+  			this._drawLast = prev;
+  		}
+
+  		order.prev = null;
+
+  		order.next = this._drawFirst;
+  		this._drawFirst.prev = order;
+  		this._drawFirst = order;
+
+  		this._requestRedraw(layer);
+  	}
+  });
+
+  // @factory L.canvas(options?: Renderer options)
+  // Creates a Canvas renderer with the given options.
+  function canvas(options) {
+  	return Browser.canvas ? new Canvas(options) : null;
+  }
+
+  /*
+   * Thanks to Dmitry Baranovsky and his Raphael library for inspiration!
+   */
+
+
+  var vmlCreate = (function () {
+  	try {
+  		document.namespaces.add('lvml', 'urn:schemas-microsoft-com:vml');
+  		return function (name) {
+  			return document.createElement('<lvml:' + name + ' class="lvml">');
+  		};
+  	} catch (e) {
+  		// Do not return fn from catch block so `e` can be garbage collected
+  		// See https://github.com/Leaflet/Leaflet/pull/7279
+  	}
+  	return function (name) {
+  		return document.createElement('<' + name + ' xmlns="urn:schemas-microsoft.com:vml" class="lvml">');
+  	};
+  })();
+
+
+  /*
+   * @class SVG
+   *
+   *
+   * VML was deprecated in 2012, which means VML functionality exists only for backwards compatibility
+   * with old versions of Internet Explorer.
+   */
+
+  // mixin to redefine some SVG methods to handle VML syntax which is similar but with some differences
+  var vmlMixin = {
+
+  	_initContainer: function () {
+  		this._container = create$1('div', 'leaflet-vml-container');
+  	},
+
+  	_update: function () {
+  		if (this._map._animatingZoom) { return; }
+  		Renderer.prototype._update.call(this);
+  		this.fire('update');
+  	},
+
+  	_initPath: function (layer) {
+  		var container = layer._container = vmlCreate('shape');
+
+  		addClass(container, 'leaflet-vml-shape ' + (this.options.className || ''));
+
+  		container.coordsize = '1 1';
+
+  		layer._path = vmlCreate('path');
+  		container.appendChild(layer._path);
+
+  		this._updateStyle(layer);
+  		this._layers[stamp(layer)] = layer;
+  	},
+
+  	_addPath: function (layer) {
+  		var container = layer._container;
+  		this._container.appendChild(container);
+
+  		if (layer.options.interactive) {
+  			layer.addInteractiveTarget(container);
+  		}
+  	},
+
+  	_removePath: function (layer) {
+  		var container = layer._container;
+  		remove(container);
+  		layer.removeInteractiveTarget(container);
+  		delete this._layers[stamp(layer)];
+  	},
+
+  	_updateStyle: function (layer) {
+  		var stroke = layer._stroke,
+  		    fill = layer._fill,
+  		    options = layer.options,
+  		    container = layer._container;
+
+  		container.stroked = !!options.stroke;
+  		container.filled = !!options.fill;
+
+  		if (options.stroke) {
+  			if (!stroke) {
+  				stroke = layer._stroke = vmlCreate('stroke');
+  			}
+  			container.appendChild(stroke);
+  			stroke.weight = options.weight + 'px';
+  			stroke.color = options.color;
+  			stroke.opacity = options.opacity;
+
+  			if (options.dashArray) {
+  				stroke.dashStyle = isArray(options.dashArray) ?
+  				    options.dashArray.join(' ') :
+  				    options.dashArray.replace(/( *, *)/g, ' ');
+  			} else {
+  				stroke.dashStyle = '';
+  			}
+  			stroke.endcap = options.lineCap.replace('butt', 'flat');
+  			stroke.joinstyle = options.lineJoin;
+
+  		} else if (stroke) {
+  			container.removeChild(stroke);
+  			layer._stroke = null;
+  		}
+
+  		if (options.fill) {
+  			if (!fill) {
+  				fill = layer._fill = vmlCreate('fill');
+  			}
+  			container.appendChild(fill);
+  			fill.color = options.fillColor || options.color;
+  			fill.opacity = options.fillOpacity;
+
+  		} else if (fill) {
+  			container.removeChild(fill);
+  			layer._fill = null;
+  		}
+  	},
+
+  	_updateCircle: function (layer) {
+  		var p = layer._point.round(),
+  		    r = Math.round(layer._radius),
+  		    r2 = Math.round(layer._radiusY || r);
+
+  		this._setPath(layer, layer._empty() ? 'M0 0' :
+  			'AL ' + p.x + ',' + p.y + ' ' + r + ',' + r2 + ' 0,' + (65535 * 360));
+  	},
+
+  	_setPath: function (layer, path) {
+  		layer._path.v = path;
+  	},
+
+  	_bringToFront: function (layer) {
+  		toFront(layer._container);
+  	},
+
+  	_bringToBack: function (layer) {
+  		toBack(layer._container);
+  	}
+  };
+
+  var create = Browser.vml ? vmlCreate : svgCreate;
+
+  /*
+   * @class SVG
+   * @inherits Renderer
+   * @aka L.SVG
+   *
+   * Allows vector layers to be displayed with [SVG](https://developer.mozilla.org/docs/Web/SVG).
+   * Inherits `Renderer`.
+   *
+   * Due to [technical limitations](https://caniuse.com/svg), SVG is not
+   * available in all web browsers, notably Android 2.x and 3.x.
+   *
+   * Although SVG is not available on IE7 and IE8, these browsers support
+   * [VML](https://en.wikipedia.org/wiki/Vector_Markup_Language)
+   * (a now deprecated technology), and the SVG renderer will fall back to VML in
+   * this case.
+   *
+   * @example
+   *
+   * Use SVG by default for all paths in the map:
+   *
+   * ```js
+   * var map = L.map('map', {
+   * 	renderer: L.svg()
+   * });
+   * ```
+   *
+   * Use a SVG renderer with extra padding for specific vector geometries:
+   *
+   * ```js
+   * var map = L.map('map');
+   * var myRenderer = L.svg({ padding: 0.5 });
+   * var line = L.polyline( coordinates, { renderer: myRenderer } );
+   * var circle = L.circle( center, { renderer: myRenderer } );
+   * ```
+   */
+
+  var SVG = Renderer.extend({
+
+  	_initContainer: function () {
+  		this._container = create('svg');
+
+  		// makes it possible to click through svg root; we'll reset it back in individual paths
+  		this._container.setAttribute('pointer-events', 'none');
+
+  		this._rootGroup = create('g');
+  		this._container.appendChild(this._rootGroup);
+  	},
+
+  	_destroyContainer: function () {
+  		remove(this._container);
+  		off(this._container);
+  		delete this._container;
+  		delete this._rootGroup;
+  		delete this._svgSize;
+  	},
+
+  	_update: function () {
+  		if (this._map._animatingZoom && this._bounds) { return; }
+
+  		Renderer.prototype._update.call(this);
+
+  		var b = this._bounds,
+  		    size = b.getSize(),
+  		    container = this._container;
+
+  		// set size of svg-container if changed
+  		if (!this._svgSize || !this._svgSize.equals(size)) {
+  			this._svgSize = size;
+  			container.setAttribute('width', size.x);
+  			container.setAttribute('height', size.y);
+  		}
+
+  		// movement: update container viewBox so that we don't have to change coordinates of individual layers
+  		setPosition(container, b.min);
+  		container.setAttribute('viewBox', [b.min.x, b.min.y, size.x, size.y].join(' '));
+
+  		this.fire('update');
+  	},
+
+  	// methods below are called by vector layers implementations
+
+  	_initPath: function (layer) {
+  		var path = layer._path = create('path');
+
+  		// @namespace Path
+  		// @option className: String = null
+  		// Custom class name set on an element. Only for SVG renderer.
+  		if (layer.options.className) {
+  			addClass(path, layer.options.className);
+  		}
+
+  		if (layer.options.interactive) {
+  			addClass(path, 'leaflet-interactive');
+  		}
+
+  		this._updateStyle(layer);
+  		this._layers[stamp(layer)] = layer;
+  	},
+
+  	_addPath: function (layer) {
+  		if (!this._rootGroup) { this._initContainer(); }
+  		this._rootGroup.appendChild(layer._path);
+  		layer.addInteractiveTarget(layer._path);
+  	},
+
+  	_removePath: function (layer) {
+  		remove(layer._path);
+  		layer.removeInteractiveTarget(layer._path);
+  		delete this._layers[stamp(layer)];
+  	},
+
+  	_updatePath: function (layer) {
+  		layer._project();
+  		layer._update();
+  	},
+
+  	_updateStyle: function (layer) {
+  		var path = layer._path,
+  		    options = layer.options;
+
+  		if (!path) { return; }
+
+  		if (options.stroke) {
+  			path.setAttribute('stroke', options.color);
+  			path.setAttribute('stroke-opacity', options.opacity);
+  			path.setAttribute('stroke-width', options.weight);
+  			path.setAttribute('stroke-linecap', options.lineCap);
+  			path.setAttribute('stroke-linejoin', options.lineJoin);
+
+  			if (options.dashArray) {
+  				path.setAttribute('stroke-dasharray', options.dashArray);
+  			} else {
+  				path.removeAttribute('stroke-dasharray');
+  			}
+
+  			if (options.dashOffset) {
+  				path.setAttribute('stroke-dashoffset', options.dashOffset);
+  			} else {
+  				path.removeAttribute('stroke-dashoffset');
+  			}
+  		} else {
+  			path.setAttribute('stroke', 'none');
+  		}
+
+  		if (options.fill) {
+  			path.setAttribute('fill', options.fillColor || options.color);
+  			path.setAttribute('fill-opacity', options.fillOpacity);
+  			path.setAttribute('fill-rule', options.fillRule || 'evenodd');
+  		} else {
+  			path.setAttribute('fill', 'none');
+  		}
+  	},
+
+  	_updatePoly: function (layer, closed) {
+  		this._setPath(layer, pointsToPath(layer._parts, closed));
+  	},
+
+  	_updateCircle: function (layer) {
+  		var p = layer._point,
+  		    r = Math.max(Math.round(layer._radius), 1),
+  		    r2 = Math.max(Math.round(layer._radiusY), 1) || r,
+  		    arc = 'a' + r + ',' + r2 + ' 0 1,0 ';
+
+  		// drawing a circle with two half-arcs
+  		var d = layer._empty() ? 'M0 0' :
+  			'M' + (p.x - r) + ',' + p.y +
+  			arc + (r * 2) + ',0 ' +
+  			arc + (-r * 2) + ',0 ';
+
+  		this._setPath(layer, d);
+  	},
+
+  	_setPath: function (layer, path) {
+  		layer._path.setAttribute('d', path);
+  	},
+
+  	// SVG does not have the concept of zIndex so we resort to changing the DOM order of elements
+  	_bringToFront: function (layer) {
+  		toFront(layer._path);
+  	},
+
+  	_bringToBack: function (layer) {
+  		toBack(layer._path);
+  	}
+  });
+
+  if (Browser.vml) {
+  	SVG.include(vmlMixin);
+  }
+
+  // @namespace SVG
+  // @factory L.svg(options?: Renderer options)
+  // Creates a SVG renderer with the given options.
+  function svg(options) {
+  	return Browser.svg || Browser.vml ? new SVG(options) : null;
+  }
+
+  Map.include({
+  	// @namespace Map; @method getRenderer(layer: Path): Renderer
+  	// Returns the instance of `Renderer` that should be used to render the given
+  	// `Path`. It will ensure that the `renderer` options of the map and paths
+  	// are respected, and that the renderers do exist on the map.
+  	getRenderer: function (layer) {
+  		// @namespace Path; @option renderer: Renderer
+  		// Use this specific instance of `Renderer` for this path. Takes
+  		// precedence over the map's [default renderer](#map-renderer).
+  		var renderer = layer.options.renderer || this._getPaneRenderer(layer.options.pane) || this.options.renderer || this._renderer;
+
+  		if (!renderer) {
+  			renderer = this._renderer = this._createRenderer();
+  		}
+
+  		if (!this.hasLayer(renderer)) {
+  			this.addLayer(renderer);
+  		}
+  		return renderer;
+  	},
+
+  	_getPaneRenderer: function (name) {
+  		if (name === 'overlayPane' || name === undefined) {
+  			return false;
+  		}
+
+  		var renderer = this._paneRenderers[name];
+  		if (renderer === undefined) {
+  			renderer = this._createRenderer({pane: name});
+  			this._paneRenderers[name] = renderer;
+  		}
+  		return renderer;
+  	},
+
+  	_createRenderer: function (options) {
+  		// @namespace Map; @option preferCanvas: Boolean = false
+  		// Whether `Path`s should be rendered on a `Canvas` renderer.
+  		// By default, all `Path`s are rendered in a `SVG` renderer.
+  		return (this.options.preferCanvas && canvas(options)) || svg(options);
+  	}
+  });
+
+  /*
+   * L.Rectangle extends Polygon and creates a rectangle when passed a LatLngBounds object.
+   */
+
+  /*
+   * @class Rectangle
+   * @aka L.Rectangle
+   * @inherits Polygon
+   *
+   * A class for drawing rectangle overlays on a map. Extends `Polygon`.
+   *
+   * @example
+   *
+   * ```js
+   * // define rectangle geographical bounds
+   * var bounds = [[54.559322, -5.767822], [56.1210604, -3.021240]];
+   *
+   * // create an orange rectangle
+   * L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(map);
+   *
+   * // zoom the map to the rectangle bounds
+   * map.fitBounds(bounds);
+   * ```
+   *
+   */
+
+
+  var Rectangle = Polygon.extend({
+  	initialize: function (latLngBounds, options) {
+  		Polygon.prototype.initialize.call(this, this._boundsToLatLngs(latLngBounds), options);
+  	},
+
+  	// @method setBounds(latLngBounds: LatLngBounds): this
+  	// Redraws the rectangle with the passed bounds.
+  	setBounds: function (latLngBounds) {
+  		return this.setLatLngs(this._boundsToLatLngs(latLngBounds));
+  	},
+
+  	_boundsToLatLngs: function (latLngBounds) {
+  		latLngBounds = toLatLngBounds(latLngBounds);
+  		return [
+  			latLngBounds.getSouthWest(),
+  			latLngBounds.getNorthWest(),
+  			latLngBounds.getNorthEast(),
+  			latLngBounds.getSouthEast()
+  		];
+  	}
+  });
+
+
+  // @factory L.rectangle(latLngBounds: LatLngBounds, options?: Polyline options)
+  function rectangle(latLngBounds, options) {
+  	return new Rectangle(latLngBounds, options);
+  }
+
+  SVG.create = create;
+  SVG.pointsToPath = pointsToPath;
+
+  GeoJSON.geometryToLayer = geometryToLayer;
+  GeoJSON.coordsToLatLng = coordsToLatLng;
+  GeoJSON.coordsToLatLngs = coordsToLatLngs;
+  GeoJSON.latLngToCoords = latLngToCoords;
+  GeoJSON.latLngsToCoords = latLngsToCoords;
+  GeoJSON.getFeature = getFeature;
+  GeoJSON.asFeature = asFeature;
+
+  /*
+   * L.Handler.BoxZoom is used to add shift-drag zoom interaction to the map
+   * (zoom to a selected bounding box), enabled by default.
+   */
+
+  // @namespace Map
+  // @section Interaction Options
+  Map.mergeOptions({
+  	// @option boxZoom: Boolean = true
+  	// Whether the map can be zoomed to a rectangular area specified by
+  	// dragging the mouse while pressing the shift key.
+  	boxZoom: true
+  });
+
+  var BoxZoom = Handler.extend({
+  	initialize: function (map) {
+  		this._map = map;
+  		this._container = map._container;
+  		this._pane = map._panes.overlayPane;
+  		this._resetStateTimeout = 0;
+  		map.on('unload', this._destroy, this);
+  	},
+
+  	addHooks: function () {
+  		on(this._container, 'mousedown', this._onMouseDown, this);
+  	},
+
+  	removeHooks: function () {
+  		off(this._container, 'mousedown', this._onMouseDown, this);
+  	},
+
+  	moved: function () {
+  		return this._moved;
+  	},
+
+  	_destroy: function () {
+  		remove(this._pane);
+  		delete this._pane;
+  	},
+
+  	_resetState: function () {
+  		this._resetStateTimeout = 0;
+  		this._moved = false;
+  	},
+
+  	_clearDeferredResetState: function () {
+  		if (this._resetStateTimeout !== 0) {
+  			clearTimeout(this._resetStateTimeout);
+  			this._resetStateTimeout = 0;
+  		}
+  	},
+
+  	_onMouseDown: function (e) {
+  		if (!e.shiftKey || ((e.which !== 1) && (e.button !== 1))) { return false; }
+
+  		// Clear the deferred resetState if it hasn't executed yet, otherwise it
+  		// will interrupt the interaction and orphan a box element in the container.
+  		this._clearDeferredResetState();
+  		this._resetState();
+
+  		disableTextSelection();
+  		disableImageDrag();
+
+  		this._startPoint = this._map.mouseEventToContainerPoint(e);
+
+  		on(document, {
+  			contextmenu: stop,
+  			mousemove: this._onMouseMove,
+  			mouseup: this._onMouseUp,
+  			keydown: this._onKeyDown
+  		}, this);
+  	},
+
+  	_onMouseMove: function (e) {
+  		if (!this._moved) {
+  			this._moved = true;
+
+  			this._box = create$1('div', 'leaflet-zoom-box', this._container);
+  			addClass(this._container, 'leaflet-crosshair');
+
+  			this._map.fire('boxzoomstart');
+  		}
+
+  		this._point = this._map.mouseEventToContainerPoint(e);
+
+  		var bounds = new Bounds(this._point, this._startPoint),
+  		    size = bounds.getSize();
+
+  		setPosition(this._box, bounds.min);
+
+  		this._box.style.width  = size.x + 'px';
+  		this._box.style.height = size.y + 'px';
+  	},
+
+  	_finish: function () {
+  		if (this._moved) {
+  			remove(this._box);
+  			removeClass(this._container, 'leaflet-crosshair');
+  		}
+
+  		enableTextSelection();
+  		enableImageDrag();
+
+  		off(document, {
+  			contextmenu: stop,
+  			mousemove: this._onMouseMove,
+  			mouseup: this._onMouseUp,
+  			keydown: this._onKeyDown
+  		}, this);
+  	},
+
+  	_onMouseUp: function (e) {
+  		if ((e.which !== 1) && (e.button !== 1)) { return; }
+
+  		this._finish();
+
+  		if (!this._moved) { return; }
+  		// Postpone to next JS tick so internal click event handling
+  		// still see it as "moved".
+  		this._clearDeferredResetState();
+  		this._resetStateTimeout = setTimeout(bind(this._resetState, this), 0);
+
+  		var bounds = new LatLngBounds(
+  		        this._map.containerPointToLatLng(this._startPoint),
+  		        this._map.containerPointToLatLng(this._point));
+
+  		this._map
+  			.fitBounds(bounds)
+  			.fire('boxzoomend', {boxZoomBounds: bounds});
+  	},
+
+  	_onKeyDown: function (e) {
+  		if (e.keyCode === 27) {
+  			this._finish();
+  			this._clearDeferredResetState();
+  			this._resetState();
+  		}
+  	}
+  });
+
+  // @section Handlers
+  // @property boxZoom: Handler
+  // Box (shift-drag with mouse) zoom handler.
+  Map.addInitHook('addHandler', 'boxZoom', BoxZoom);
+
+  /*
+   * L.Handler.DoubleClickZoom is used to handle double-click zoom on the map, enabled by default.
+   */
+
+  // @namespace Map
+  // @section Interaction Options
+
+  Map.mergeOptions({
+  	// @option doubleClickZoom: Boolean|String = true
+  	// Whether the map can be zoomed in by double clicking on it and
+  	// zoomed out by double clicking while holding shift. If passed
+  	// `'center'`, double-click zoom will zoom to the center of the
+  	//  view regardless of where the mouse was.
+  	doubleClickZoom: true
+  });
+
+  var DoubleClickZoom = Handler.extend({
+  	addHooks: function () {
+  		this._map.on('dblclick', this._onDoubleClick, this);
+  	},
+
+  	removeHooks: function () {
+  		this._map.off('dblclick', this._onDoubleClick, this);
+  	},
+
+  	_onDoubleClick: function (e) {
+  		var map = this._map,
+  		    oldZoom = map.getZoom(),
+  		    delta = map.options.zoomDelta,
+  		    zoom = e.originalEvent.shiftKey ? oldZoom - delta : oldZoom + delta;
+
+  		if (map.options.doubleClickZoom === 'center') {
+  			map.setZoom(zoom);
+  		} else {
+  			map.setZoomAround(e.containerPoint, zoom);
+  		}
+  	}
+  });
+
+  // @section Handlers
+  //
+  // Map properties include interaction handlers that allow you to control
+  // interaction behavior in runtime, enabling or disabling certain features such
+  // as dragging or touch zoom (see `Handler` methods). For example:
+  //
+  // ```js
+  // map.doubleClickZoom.disable();
+  // ```
+  //
+  // @property doubleClickZoom: Handler
+  // Double click zoom handler.
+  Map.addInitHook('addHandler', 'doubleClickZoom', DoubleClickZoom);
+
+  /*
+   * L.Handler.MapDrag is used to make the map draggable (with panning inertia), enabled by default.
+   */
+
+  // @namespace Map
+  // @section Interaction Options
+  Map.mergeOptions({
+  	// @option dragging: Boolean = true
+  	// Whether the map is draggable with mouse/touch or not.
+  	dragging: true,
+
+  	// @section Panning Inertia Options
+  	// @option inertia: Boolean = *
+  	// If enabled, panning of the map will have an inertia effect where
+  	// the map builds momentum while dragging and continues moving in
+  	// the same direction for some time. Feels especially nice on touch
+  	// devices. Enabled by default.
+  	inertia: true,
+
+  	// @option inertiaDeceleration: Number = 3000
+  	// The rate with which the inertial movement slows down, in pixels/second².
+  	inertiaDeceleration: 3400, // px/s^2
+
+  	// @option inertiaMaxSpeed: Number = Infinity
+  	// Max speed of the inertial movement, in pixels/second.
+  	inertiaMaxSpeed: Infinity, // px/s
+
+  	// @option easeLinearity: Number = 0.2
+  	easeLinearity: 0.2,
+
+  	// TODO refactor, move to CRS
+  	// @option worldCopyJump: Boolean = false
+  	// With this option enabled, the map tracks when you pan to another "copy"
+  	// of the world and seamlessly jumps to the original one so that all overlays
+  	// like markers and vector layers are still visible.
+  	worldCopyJump: false,
+
+  	// @option maxBoundsViscosity: Number = 0.0
+  	// If `maxBounds` is set, this option will control how solid the bounds
+  	// are when dragging the map around. The default value of `0.0` allows the
+  	// user to drag outside the bounds at normal speed, higher values will
+  	// slow down map dragging outside bounds, and `1.0` makes the bounds fully
+  	// solid, preventing the user from dragging outside the bounds.
+  	maxBoundsViscosity: 0.0
+  });
+
+  var Drag = Handler.extend({
+  	addHooks: function () {
+  		if (!this._draggable) {
+  			var map = this._map;
+
+  			this._draggable = new Draggable(map._mapPane, map._container);
+
+  			this._draggable.on({
+  				dragstart: this._onDragStart,
+  				drag: this._onDrag,
+  				dragend: this._onDragEnd
+  			}, this);
+
+  			this._draggable.on('predrag', this._onPreDragLimit, this);
+  			if (map.options.worldCopyJump) {
+  				this._draggable.on('predrag', this._onPreDragWrap, this);
+  				map.on('zoomend', this._onZoomEnd, this);
+
+  				map.whenReady(this._onZoomEnd, this);
+  			}
+  		}
+  		addClass(this._map._container, 'leaflet-grab leaflet-touch-drag');
+  		this._draggable.enable();
+  		this._positions = [];
+  		this._times = [];
+  	},
+
+  	removeHooks: function () {
+  		removeClass(this._map._container, 'leaflet-grab');
+  		removeClass(this._map._container, 'leaflet-touch-drag');
+  		this._draggable.disable();
+  	},
+
+  	moved: function () {
+  		return this._draggable && this._draggable._moved;
+  	},
+
+  	moving: function () {
+  		return this._draggable && this._draggable._moving;
+  	},
+
+  	_onDragStart: function () {
+  		var map = this._map;
+
+  		map._stop();
+  		if (this._map.options.maxBounds && this._map.options.maxBoundsViscosity) {
+  			var bounds = toLatLngBounds(this._map.options.maxBounds);
+
+  			this._offsetLimit = toBounds(
+  				this._map.latLngToContainerPoint(bounds.getNorthWest()).multiplyBy(-1),
+  				this._map.latLngToContainerPoint(bounds.getSouthEast()).multiplyBy(-1)
+  					.add(this._map.getSize()));
+
+  			this._viscosity = Math.min(1.0, Math.max(0.0, this._map.options.maxBoundsViscosity));
+  		} else {
+  			this._offsetLimit = null;
+  		}
+
+  		map
+  		    .fire('movestart')
+  		    .fire('dragstart');
+
+  		if (map.options.inertia) {
+  			this._positions = [];
+  			this._times = [];
+  		}
+  	},
+
+  	_onDrag: function (e) {
+  		if (this._map.options.inertia) {
+  			var time = this._lastTime = +new Date(),
+  			    pos = this._lastPos = this._draggable._absPos || this._draggable._newPos;
+
+  			this._positions.push(pos);
+  			this._times.push(time);
+
+  			this._prunePositions(time);
+  		}
+
+  		this._map
+  		    .fire('move', e)
+  		    .fire('drag', e);
+  	},
+
+  	_prunePositions: function (time) {
+  		while (this._positions.length > 1 && time - this._times[0] > 50) {
+  			this._positions.shift();
+  			this._times.shift();
+  		}
+  	},
+
+  	_onZoomEnd: function () {
+  		var pxCenter = this._map.getSize().divideBy(2),
+  		    pxWorldCenter = this._map.latLngToLayerPoint([0, 0]);
+
+  		this._initialWorldOffset = pxWorldCenter.subtract(pxCenter).x;
+  		this._worldWidth = this._map.getPixelWorldBounds().getSize().x;
+  	},
+
+  	_viscousLimit: function (value, threshold) {
+  		return value - (value - threshold) * this._viscosity;
+  	},
+
+  	_onPreDragLimit: function () {
+  		if (!this._viscosity || !this._offsetLimit) { return; }
+
+  		var offset = this._draggable._newPos.subtract(this._draggable._startPos);
+
+  		var limit = this._offsetLimit;
+  		if (offset.x < limit.min.x) { offset.x = this._viscousLimit(offset.x, limit.min.x); }
+  		if (offset.y < limit.min.y) { offset.y = this._viscousLimit(offset.y, limit.min.y); }
+  		if (offset.x > limit.max.x) { offset.x = this._viscousLimit(offset.x, limit.max.x); }
+  		if (offset.y > limit.max.y) { offset.y = this._viscousLimit(offset.y, limit.max.y); }
+
+  		this._draggable._newPos = this._draggable._startPos.add(offset);
+  	},
+
+  	_onPreDragWrap: function () {
+  		// TODO refactor to be able to adjust map pane position after zoom
+  		var worldWidth = this._worldWidth,
+  		    halfWidth = Math.round(worldWidth / 2),
+  		    dx = this._initialWorldOffset,
+  		    x = this._draggable._newPos.x,
+  		    newX1 = (x - halfWidth + dx) % worldWidth + halfWidth - dx,
+  		    newX2 = (x + halfWidth + dx) % worldWidth - halfWidth - dx,
+  		    newX = Math.abs(newX1 + dx) < Math.abs(newX2 + dx) ? newX1 : newX2;
+
+  		this._draggable._absPos = this._draggable._newPos.clone();
+  		this._draggable._newPos.x = newX;
+  	},
+
+  	_onDragEnd: function (e) {
+  		var map = this._map,
+  		    options = map.options,
+
+  		    noInertia = !options.inertia || e.noInertia || this._times.length < 2;
+
+  		map.fire('dragend', e);
+
+  		if (noInertia) {
+  			map.fire('moveend');
+
+  		} else {
+  			this._prunePositions(+new Date());
+
+  			var direction = this._lastPos.subtract(this._positions[0]),
+  			    duration = (this._lastTime - this._times[0]) / 1000,
+  			    ease = options.easeLinearity,
+
+  			    speedVector = direction.multiplyBy(ease / duration),
+  			    speed = speedVector.distanceTo([0, 0]),
+
+  			    limitedSpeed = Math.min(options.inertiaMaxSpeed, speed),
+  			    limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed),
+
+  			    decelerationDuration = limitedSpeed / (options.inertiaDeceleration * ease),
+  			    offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
+
+  			if (!offset.x && !offset.y) {
+  				map.fire('moveend');
+
+  			} else {
+  				offset = map._limitOffset(offset, map.options.maxBounds);
+
+  				requestAnimFrame(function () {
+  					map.panBy(offset, {
+  						duration: decelerationDuration,
+  						easeLinearity: ease,
+  						noMoveStart: true,
+  						animate: true
+  					});
+  				});
+  			}
+  		}
+  	}
+  });
+
+  // @section Handlers
+  // @property dragging: Handler
+  // Map dragging handler (by both mouse and touch).
+  Map.addInitHook('addHandler', 'dragging', Drag);
+
+  /*
+   * L.Map.Keyboard is handling keyboard interaction with the map, enabled by default.
+   */
+
+  // @namespace Map
+  // @section Keyboard Navigation Options
+  Map.mergeOptions({
+  	// @option keyboard: Boolean = true
+  	// Makes the map focusable and allows users to navigate the map with keyboard
+  	// arrows and `+`/`-` keys.
+  	keyboard: true,
+
+  	// @option keyboardPanDelta: Number = 80
+  	// Amount of pixels to pan when pressing an arrow key.
+  	keyboardPanDelta: 80
+  });
+
+  var Keyboard = Handler.extend({
+
+  	keyCodes: {
+  		left:    [37],
+  		right:   [39],
+  		down:    [40],
+  		up:      [38],
+  		zoomIn:  [187, 107, 61, 171],
+  		zoomOut: [189, 109, 54, 173]
+  	},
+
+  	initialize: function (map) {
+  		this._map = map;
+
+  		this._setPanDelta(map.options.keyboardPanDelta);
+  		this._setZoomDelta(map.options.zoomDelta);
+  	},
+
+  	addHooks: function () {
+  		var container = this._map._container;
+
+  		// make the container focusable by tabbing
+  		if (container.tabIndex <= 0) {
+  			container.tabIndex = '0';
+  		}
+
+  		on(container, {
+  			focus: this._onFocus,
+  			blur: this._onBlur,
+  			mousedown: this._onMouseDown
+  		}, this);
+
+  		this._map.on({
+  			focus: this._addHooks,
+  			blur: this._removeHooks
+  		}, this);
+  	},
+
+  	removeHooks: function () {
+  		this._removeHooks();
+
+  		off(this._map._container, {
+  			focus: this._onFocus,
+  			blur: this._onBlur,
+  			mousedown: this._onMouseDown
+  		}, this);
+
+  		this._map.off({
+  			focus: this._addHooks,
+  			blur: this._removeHooks
+  		}, this);
+  	},
+
+  	_onMouseDown: function () {
+  		if (this._focused) { return; }
+
+  		var body = document.body,
+  		    docEl = document.documentElement,
+  		    top = body.scrollTop || docEl.scrollTop,
+  		    left = body.scrollLeft || docEl.scrollLeft;
+
+  		this._map._container.focus();
+
+  		window.scrollTo(left, top);
+  	},
+
+  	_onFocus: function () {
+  		this._focused = true;
+  		this._map.fire('focus');
+  	},
+
+  	_onBlur: function () {
+  		this._focused = false;
+  		this._map.fire('blur');
+  	},
+
+  	_setPanDelta: function (panDelta) {
+  		var keys = this._panKeys = {},
+  		    codes = this.keyCodes,
+  		    i, len;
+
+  		for (i = 0, len = codes.left.length; i < len; i++) {
+  			keys[codes.left[i]] = [-1 * panDelta, 0];
+  		}
+  		for (i = 0, len = codes.right.length; i < len; i++) {
+  			keys[codes.right[i]] = [panDelta, 0];
+  		}
+  		for (i = 0, len = codes.down.length; i < len; i++) {
+  			keys[codes.down[i]] = [0, panDelta];
+  		}
+  		for (i = 0, len = codes.up.length; i < len; i++) {
+  			keys[codes.up[i]] = [0, -1 * panDelta];
+  		}
+  	},
+
+  	_setZoomDelta: function (zoomDelta) {
+  		var keys = this._zoomKeys = {},
+  		    codes = this.keyCodes,
+  		    i, len;
+
+  		for (i = 0, len = codes.zoomIn.length; i < len; i++) {
+  			keys[codes.zoomIn[i]] = zoomDelta;
+  		}
+  		for (i = 0, len = codes.zoomOut.length; i < len; i++) {
+  			keys[codes.zoomOut[i]] = -zoomDelta;
+  		}
+  	},
+
+  	_addHooks: function () {
+  		on(document, 'keydown', this._onKeyDown, this);
+  	},
+
+  	_removeHooks: function () {
+  		off(document, 'keydown', this._onKeyDown, this);
+  	},
+
+  	_onKeyDown: function (e) {
+  		if (e.altKey || e.ctrlKey || e.metaKey) { return; }
+
+  		var key = e.keyCode,
+  		    map = this._map,
+  		    offset;
+
+  		if (key in this._panKeys) {
+  			if (!map._panAnim || !map._panAnim._inProgress) {
+  				offset = this._panKeys[key];
+  				if (e.shiftKey) {
+  					offset = toPoint(offset).multiplyBy(3);
+  				}
+
+  				if (map.options.maxBounds) {
+  					offset = map._limitOffset(toPoint(offset), map.options.maxBounds);
+  				}
+
+  				if (map.options.worldCopyJump) {
+  					var newLatLng = map.wrapLatLng(map.unproject(map.project(map.getCenter()).add(offset)));
+  					map.panTo(newLatLng);
+  				} else {
+  					map.panBy(offset);
+  				}
+  			}
+  		} else if (key in this._zoomKeys) {
+  			map.setZoom(map.getZoom() + (e.shiftKey ? 3 : 1) * this._zoomKeys[key]);
+
+  		} else if (key === 27 && map._popup && map._popup.options.closeOnEscapeKey) {
+  			map.closePopup();
+
+  		} else {
+  			return;
+  		}
+
+  		stop(e);
+  	}
+  });
+
+  // @section Handlers
+  // @section Handlers
+  // @property keyboard: Handler
+  // Keyboard navigation handler.
+  Map.addInitHook('addHandler', 'keyboard', Keyboard);
+
+  /*
+   * L.Handler.ScrollWheelZoom is used by L.Map to enable mouse scroll wheel zoom on the map.
+   */
+
+  // @namespace Map
+  // @section Interaction Options
+  Map.mergeOptions({
+  	// @section Mouse wheel options
+  	// @option scrollWheelZoom: Boolean|String = true
+  	// Whether the map can be zoomed by using the mouse wheel. If passed `'center'`,
+  	// it will zoom to the center of the view regardless of where the mouse was.
+  	scrollWheelZoom: true,
+
+  	// @option wheelDebounceTime: Number = 40
+  	// Limits the rate at which a wheel can fire (in milliseconds). By default
+  	// user can't zoom via wheel more often than once per 40 ms.
+  	wheelDebounceTime: 40,
+
+  	// @option wheelPxPerZoomLevel: Number = 60
+  	// How many scroll pixels (as reported by [L.DomEvent.getWheelDelta](#domevent-getwheeldelta))
+  	// mean a change of one full zoom level. Smaller values will make wheel-zooming
+  	// faster (and vice versa).
+  	wheelPxPerZoomLevel: 60
+  });
+
+  var ScrollWheelZoom = Handler.extend({
+  	addHooks: function () {
+  		on(this._map._container, 'wheel', this._onWheelScroll, this);
+
+  		this._delta = 0;
+  	},
+
+  	removeHooks: function () {
+  		off(this._map._container, 'wheel', this._onWheelScroll, this);
+  	},
+
+  	_onWheelScroll: function (e) {
+  		var delta = getWheelDelta(e);
+
+  		var debounce = this._map.options.wheelDebounceTime;
+
+  		this._delta += delta;
+  		this._lastMousePos = this._map.mouseEventToContainerPoint(e);
+
+  		if (!this._startTime) {
+  			this._startTime = +new Date();
+  		}
+
+  		var left = Math.max(debounce - (+new Date() - this._startTime), 0);
+
+  		clearTimeout(this._timer);
+  		this._timer = setTimeout(bind(this._performZoom, this), left);
+
+  		stop(e);
+  	},
+
+  	_performZoom: function () {
+  		var map = this._map,
+  		    zoom = map.getZoom(),
+  		    snap = this._map.options.zoomSnap || 0;
+
+  		map._stop(); // stop panning and fly animations if any
+
+  		// map the delta with a sigmoid function to -4..4 range leaning on -1..1
+  		var d2 = this._delta / (this._map.options.wheelPxPerZoomLevel * 4),
+  		    d3 = 4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2)))) / Math.LN2,
+  		    d4 = snap ? Math.ceil(d3 / snap) * snap : d3,
+  		    delta = map._limitZoom(zoom + (this._delta > 0 ? d4 : -d4)) - zoom;
+
+  		this._delta = 0;
+  		this._startTime = null;
+
+  		if (!delta) { return; }
+
+  		if (map.options.scrollWheelZoom === 'center') {
+  			map.setZoom(zoom + delta);
+  		} else {
+  			map.setZoomAround(this._lastMousePos, zoom + delta);
+  		}
+  	}
+  });
+
+  // @section Handlers
+  // @property scrollWheelZoom: Handler
+  // Scroll wheel zoom handler.
+  Map.addInitHook('addHandler', 'scrollWheelZoom', ScrollWheelZoom);
+
+  /*
+   * L.Map.TapHold is used to simulate `contextmenu` event on long hold,
+   * which otherwise is not fired by mobile Safari.
+   */
+
+  var tapHoldDelay = 600;
+
+  // @namespace Map
+  // @section Interaction Options
+  Map.mergeOptions({
+  	// @section Touch interaction options
+  	// @option tapHold: Boolean
+  	// Enables simulation of `contextmenu` event, default is `true` for mobile Safari.
+  	tapHold: Browser.touchNative && Browser.safari && Browser.mobile,
+
+  	// @option tapTolerance: Number = 15
+  	// The max number of pixels a user can shift his finger during touch
+  	// for it to be considered a valid tap.
+  	tapTolerance: 15
+  });
+
+  var TapHold = Handler.extend({
+  	addHooks: function () {
+  		on(this._map._container, 'touchstart', this._onDown, this);
+  	},
+
+  	removeHooks: function () {
+  		off(this._map._container, 'touchstart', this._onDown, this);
+  	},
+
+  	_onDown: function (e) {
+  		clearTimeout(this._holdTimeout);
+  		if (e.touches.length !== 1) { return; }
+
+  		var first = e.touches[0];
+  		this._startPos = this._newPos = new Point(first.clientX, first.clientY);
+
+  		this._holdTimeout = setTimeout(bind(function () {
+  			this._cancel();
+  			if (!this._isTapValid()) { return; }
+
+  			// prevent simulated mouse events https://w3c.github.io/touch-events/#mouse-events
+  			on(document, 'touchend', preventDefault);
+  			on(document, 'touchend touchcancel', this._cancelClickPrevent);
+  			this._simulateEvent('contextmenu', first);
+  		}, this), tapHoldDelay);
+
+  		on(document, 'touchend touchcancel contextmenu', this._cancel, this);
+  		on(document, 'touchmove', this._onMove, this);
+  	},
+
+  	_cancelClickPrevent: function cancelClickPrevent() {
+  		off(document, 'touchend', preventDefault);
+  		off(document, 'touchend touchcancel', cancelClickPrevent);
+  	},
+
+  	_cancel: function () {
+  		clearTimeout(this._holdTimeout);
+  		off(document, 'touchend touchcancel contextmenu', this._cancel, this);
+  		off(document, 'touchmove', this._onMove, this);
+  	},
+
+  	_onMove: function (e) {
+  		var first = e.touches[0];
+  		this._newPos = new Point(first.clientX, first.clientY);
+  	},
+
+  	_isTapValid: function () {
+  		return this._newPos.distanceTo(this._startPos) <= this._map.options.tapTolerance;
+  	},
+
+  	_simulateEvent: function (type, e) {
+  		var simulatedEvent = new MouseEvent(type, {
+  			bubbles: true,
+  			cancelable: true,
+  			view: window,
+  			// detail: 1,
+  			screenX: e.screenX,
+  			screenY: e.screenY,
+  			clientX: e.clientX,
+  			clientY: e.clientY,
+  			// button: 2,
+  			// buttons: 2
+  		});
+
+  		simulatedEvent._simulated = true;
+
+  		e.target.dispatchEvent(simulatedEvent);
+  	}
+  });
+
+  // @section Handlers
+  // @property tapHold: Handler
+  // Long tap handler to simulate `contextmenu` event (useful in mobile Safari).
+  Map.addInitHook('addHandler', 'tapHold', TapHold);
+
+  /*
+   * L.Handler.TouchZoom is used by L.Map to add pinch zoom on supported mobile browsers.
+   */
+
+  // @namespace Map
+  // @section Interaction Options
+  Map.mergeOptions({
+  	// @section Touch interaction options
+  	// @option touchZoom: Boolean|String = *
+  	// Whether the map can be zoomed by touch-dragging with two fingers. If
+  	// passed `'center'`, it will zoom to the center of the view regardless of
+  	// where the touch events (fingers) were. Enabled for touch-capable web
+  	// browsers.
+  	touchZoom: Browser.touch,
+
+  	// @option bounceAtZoomLimits: Boolean = true
+  	// Set it to false if you don't want the map to zoom beyond min/max zoom
+  	// and then bounce back when pinch-zooming.
+  	bounceAtZoomLimits: true
+  });
+
+  var TouchZoom = Handler.extend({
+  	addHooks: function () {
+  		addClass(this._map._container, 'leaflet-touch-zoom');
+  		on(this._map._container, 'touchstart', this._onTouchStart, this);
+  	},
+
+  	removeHooks: function () {
+  		removeClass(this._map._container, 'leaflet-touch-zoom');
+  		off(this._map._container, 'touchstart', this._onTouchStart, this);
+  	},
+
+  	_onTouchStart: function (e) {
+  		var map = this._map;
+  		if (!e.touches || e.touches.length !== 2 || map._animatingZoom || this._zooming) { return; }
+
+  		var p1 = map.mouseEventToContainerPoint(e.touches[0]),
+  		    p2 = map.mouseEventToContainerPoint(e.touches[1]);
+
+  		this._centerPoint = map.getSize()._divideBy(2);
+  		this._startLatLng = map.containerPointToLatLng(this._centerPoint);
+  		if (map.options.touchZoom !== 'center') {
+  			this._pinchStartLatLng = map.containerPointToLatLng(p1.add(p2)._divideBy(2));
+  		}
+
+  		this._startDist = p1.distanceTo(p2);
+  		this._startZoom = map.getZoom();
+
+  		this._moved = false;
+  		this._zooming = true;
+
+  		map._stop();
+
+  		on(document, 'touchmove', this._onTouchMove, this);
+  		on(document, 'touchend touchcancel', this._onTouchEnd, this);
+
+  		preventDefault(e);
+  	},
+
+  	_onTouchMove: function (e) {
+  		if (!e.touches || e.touches.length !== 2 || !this._zooming) { return; }
+
+  		var map = this._map,
+  		    p1 = map.mouseEventToContainerPoint(e.touches[0]),
+  		    p2 = map.mouseEventToContainerPoint(e.touches[1]),
+  		    scale = p1.distanceTo(p2) / this._startDist;
+
+  		this._zoom = map.getScaleZoom(scale, this._startZoom);
+
+  		if (!map.options.bounceAtZoomLimits && (
+  			(this._zoom < map.getMinZoom() && scale < 1) ||
+  			(this._zoom > map.getMaxZoom() && scale > 1))) {
+  			this._zoom = map._limitZoom(this._zoom);
+  		}
+
+  		if (map.options.touchZoom === 'center') {
+  			this._center = this._startLatLng;
+  			if (scale === 1) { return; }
+  		} else {
+  			// Get delta from pinch to center, so centerLatLng is delta applied to initial pinchLatLng
+  			var delta = p1._add(p2)._divideBy(2)._subtract(this._centerPoint);
+  			if (scale === 1 && delta.x === 0 && delta.y === 0) { return; }
+  			this._center = map.unproject(map.project(this._pinchStartLatLng, this._zoom).subtract(delta), this._zoom);
+  		}
+
+  		if (!this._moved) {
+  			map._moveStart(true, false);
+  			this._moved = true;
+  		}
+
+  		cancelAnimFrame(this._animRequest);
+
+  		var moveFn = bind(map._move, map, this._center, this._zoom, {pinch: true, round: false}, undefined);
+  		this._animRequest = requestAnimFrame(moveFn, this, true);
+
+  		preventDefault(e);
+  	},
+
+  	_onTouchEnd: function () {
+  		if (!this._moved || !this._zooming) {
+  			this._zooming = false;
+  			return;
+  		}
+
+  		this._zooming = false;
+  		cancelAnimFrame(this._animRequest);
+
+  		off(document, 'touchmove', this._onTouchMove, this);
+  		off(document, 'touchend touchcancel', this._onTouchEnd, this);
+
+  		// Pinch updates GridLayers' levels only when zoomSnap is off, so zoomSnap becomes noUpdate.
+  		if (this._map.options.zoomAnimation) {
+  			this._map._animateZoom(this._center, this._map._limitZoom(this._zoom), true, this._map.options.zoomSnap);
+  		} else {
+  			this._map._resetView(this._center, this._map._limitZoom(this._zoom));
+  		}
+  	}
+  });
+
+  // @section Handlers
+  // @property touchZoom: Handler
+  // Touch zoom handler.
+  Map.addInitHook('addHandler', 'touchZoom', TouchZoom);
+
+  Map.BoxZoom = BoxZoom;
+  Map.DoubleClickZoom = DoubleClickZoom;
+  Map.Drag = Drag;
+  Map.Keyboard = Keyboard;
+  Map.ScrollWheelZoom = ScrollWheelZoom;
+  Map.TapHold = TapHold;
+  Map.TouchZoom = TouchZoom;
+
+  exports.Bounds = Bounds;
+  exports.Browser = Browser;
+  exports.CRS = CRS;
+  exports.Canvas = Canvas;
+  exports.Circle = Circle;
+  exports.CircleMarker = CircleMarker;
+  exports.Class = Class;
+  exports.Control = Control;
+  exports.DivIcon = DivIcon;
+  exports.DivOverlay = DivOverlay;
+  exports.DomEvent = DomEvent;
+  exports.DomUtil = DomUtil;
+  exports.Draggable = Draggable;
+  exports.Evented = Evented;
+  exports.FeatureGroup = FeatureGroup;
+  exports.GeoJSON = GeoJSON;
+  exports.GridLayer = GridLayer;
+  exports.Handler = Handler;
+  exports.Icon = Icon;
+  exports.ImageOverlay = ImageOverlay;
+  exports.LatLng = LatLng;
+  exports.LatLngBounds = LatLngBounds;
+  exports.Layer = Layer;
+  exports.LayerGroup = LayerGroup;
+  exports.LineUtil = LineUtil;
+  exports.Map = Map;
+  exports.Marker = Marker;
+  exports.Mixin = Mixin;
+  exports.Path = Path;
+  exports.Point = Point;
+  exports.PolyUtil = PolyUtil;
+  exports.Polygon = Polygon;
+  exports.Polyline = Polyline;
+  exports.Popup = Popup;
+  exports.PosAnimation = PosAnimation;
+  exports.Projection = index;
+  exports.Rectangle = Rectangle;
+  exports.Renderer = Renderer;
+  exports.SVG = SVG;
+  exports.SVGOverlay = SVGOverlay;
+  exports.TileLayer = TileLayer;
+  exports.Tooltip = Tooltip;
+  exports.Transformation = Transformation;
+  exports.Util = Util;
+  exports.VideoOverlay = VideoOverlay;
+  exports.bind = bind;
+  exports.bounds = toBounds;
+  exports.canvas = canvas;
+  exports.circle = circle;
+  exports.circleMarker = circleMarker;
+  exports.control = control;
+  exports.divIcon = divIcon;
+  exports.extend = extend;
+  exports.featureGroup = featureGroup;
+  exports.geoJSON = geoJSON;
+  exports.geoJson = geoJson;
+  exports.gridLayer = gridLayer;
+  exports.icon = icon;
+  exports.imageOverlay = imageOverlay;
+  exports.latLng = toLatLng;
+  exports.latLngBounds = toLatLngBounds;
+  exports.layerGroup = layerGroup;
+  exports.map = createMap;
+  exports.marker = marker;
+  exports.point = toPoint;
+  exports.polygon = polygon;
+  exports.polyline = polyline;
+  exports.popup = popup;
+  exports.rectangle = rectangle;
+  exports.setOptions = setOptions;
+  exports.stamp = stamp;
+  exports.svg = svg;
+  exports.svgOverlay = svgOverlay;
+  exports.tileLayer = tileLayer;
+  exports.tooltip = tooltip;
+  exports.transformation = toTransformation;
+  exports.version = version;
+  exports.videoOverlay = videoOverlay;
+
+  var oldL = window.L;
+  exports.noConflict = function() {
+  	window.L = oldL;
+  	return this;
+  }
+  // Always export us to window global (see #2364)
+  window.L = exports;
+
+}));
+//# sourceMappingURL=leaflet-src.js.map
+
+
+/***/ }),
+
 /***/ "./node_modules/axios/lib/adapters/adapters.js":
 /*!*****************************************************!*\
   !*** ./node_modules/axios/lib/adapters/adapters.js ***!
   \*****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -1071,6 +18528,7 @@ const isResolvedHandle = (adapter) => _utils_js__WEBPACK_IMPORTED_MODULE_3__["de
   \**************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -1323,6 +18781,7 @@ const resolveBodyLength = async (headers, body) => {
   \************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -1544,6 +19003,7 @@ const isXHRAdapterSupported = typeof XMLHttpRequest !== 'undefined';
   \*****************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -1664,6 +19124,7 @@ axios.default = axios;
   \******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -1814,6 +19275,7 @@ class CancelToken {
   \********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -1855,6 +19317,7 @@ _utils_js__WEBPACK_IMPORTED_MODULE_1__["default"].inherits(CanceledError, _core_
   \***************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ isCancel)
@@ -1874,6 +19337,7 @@ function isCancel(value) {
   \**********************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -2124,6 +19588,7 @@ _utils_js__WEBPACK_IMPORTED_MODULE_3__["default"].forEach(['post', 'put', 'patch
   \***************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -2242,6 +19707,7 @@ AxiosError.from = (error, code, config, request, response, customProps) => {
   \*****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -2560,6 +20026,7 @@ _utils_js__WEBPACK_IMPORTED_MODULE_0__["default"].freezeMethods(AxiosHeaders);
   \***********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -2646,6 +20113,7 @@ class InterceptorManager {
   \******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ buildFullPath)
@@ -2683,6 +20151,7 @@ function buildFullPath(baseURL, requestedURL) {
   \********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ dispatchRequest)
@@ -2784,6 +20253,7 @@ function dispatchRequest(config) {
   \****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ mergeConfig)
@@ -2906,6 +20376,7 @@ function mergeConfig(config1, config2) {
   \***********************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ settle)
@@ -2948,6 +20419,7 @@ function settle(resolve, reject, response) {
   \******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ transformData)
@@ -2993,6 +20465,7 @@ function transformData(fns, response) {
   \**************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3175,6 +20648,7 @@ _utils_js__WEBPACK_IMPORTED_MODULE_0__["default"].forEach(['delete', 'get', 'hea
   \*********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3196,6 +20670,7 @@ __webpack_require__.r(__webpack_exports__);
   \********************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   VERSION: () => (/* binding */ VERSION)
@@ -3210,6 +20685,7 @@ const VERSION = "1.7.7";
   \****************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3283,6 +20759,7 @@ prototype.toString = function toString(encoder) {
   \**********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3368,6 +20845,7 @@ Object.entries(HttpStatusCode).forEach(([key, value]) => {
   \************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ bind)
@@ -3389,6 +20867,7 @@ function bind(fn, thisArg) {
   \****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ buildURL)
@@ -3468,6 +20947,7 @@ function buildURL(url, params, options) {
   \*******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ combineURLs)
@@ -3497,6 +20977,7 @@ function combineURLs(baseURL, relativeURL) {
   \**********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3562,6 +21043,7 @@ const composeSignals = (signals, timeout) => {
   \***************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3620,6 +21102,7 @@ __webpack_require__.r(__webpack_exports__);
   \**********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3730,6 +21213,7 @@ function formDataToJSON(formData) {
   \*********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ isAbsoluteURL)
@@ -3759,6 +21243,7 @@ function isAbsoluteURL(url) {
   \********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ isAxiosError)
@@ -3788,6 +21273,7 @@ function isAxiosError(payload) {
   \***********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3871,6 +21357,7 @@ __webpack_require__.r(__webpack_exports__);
   \************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3887,6 +21374,7 @@ __webpack_require__.r(__webpack_exports__);
   \********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -3957,6 +21445,7 @@ const ignoreDuplicateOf = _utils_js__WEBPACK_IMPORTED_MODULE_0__["default"].toOb
   \*********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ parseProtocol)
@@ -3977,6 +21466,7 @@ function parseProtocol(url) {
   \****************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   asyncDecorator: () => (/* binding */ asyncDecorator),
@@ -4040,6 +21530,7 @@ const asyncDecorator = (fn) => (...args) => _utils_js__WEBPACK_IMPORTED_MODULE_2
   \*********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4119,6 +21610,7 @@ __webpack_require__.r(__webpack_exports__);
   \*******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4188,6 +21680,7 @@ function speedometer(samplesCount, min) {
   \**************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ spread)
@@ -4230,6 +21723,7 @@ function spread(callback) {
   \****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4288,6 +21782,7 @@ function throttle(fn, freq) {
   \******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4524,6 +22019,7 @@ function toFormData(obj, formData, options) {
   \************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ toURLEncodedForm)
@@ -4559,6 +22055,7 @@ function toURLEncodedForm(data, options) {
   \*******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   readBytes: () => (/* binding */ readBytes),
@@ -4662,6 +22159,7 @@ const trackStream = (stream, chunkSize, onProgress, onFinish) => {
   \*****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4769,6 +22267,7 @@ function assertOptions(options, schema, allowUnknown) {
   \*****************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4786,6 +22285,7 @@ __webpack_require__.r(__webpack_exports__);
   \*********************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4803,6 +22303,7 @@ __webpack_require__.r(__webpack_exports__);
   \****************************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4822,6 +22323,7 @@ __webpack_require__.r(__webpack_exports__);
   \**********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4852,6 +22354,7 @@ __webpack_require__.r(__webpack_exports__);
   \*********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   hasBrowserEnv: () => (/* binding */ hasBrowserEnv),
@@ -4915,6 +22418,7 @@ const origin = hasBrowserEnv && window.location.href || 'http://localhost';
   \**************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -4938,6 +22442,7 @@ __webpack_require__.r(__webpack_exports__);
   \*****************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -5705,6 +23210,5194 @@ const asap = typeof queueMicrotask !== 'undefined' ?
 });
 
 
+/***/ }),
+
+/***/ "./node_modules/choices.js/public/assets/scripts/choices.mjs":
+/*!*******************************************************************!*\
+  !*** ./node_modules/choices.js/public/assets/scripts/choices.mjs ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Choices)
+/* harmony export */ });
+/*! choices.js v11.0.2 | © 2024 Josh Johnson | https://github.com/jshjohnson/Choices#readme */
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol */
+
+var extendStatics = function (d, b) {
+  extendStatics = Object.setPrototypeOf || {
+    __proto__: []
+  } instanceof Array && function (d, b) {
+    d.__proto__ = b;
+  } || function (d, b) {
+    for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+  };
+  return extendStatics(d, b);
+};
+function __extends(d, b) {
+  if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+  extendStatics(d, b);
+  function __() {
+    this.constructor = d;
+  }
+  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+var __assign = function () {
+  __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
+function __spreadArray(to, from, pack) {
+  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+    if (ar || !(i in from)) {
+      if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+      ar[i] = from[i];
+    }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from));
+}
+typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+  var e = new Error(message);
+  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+var ActionType = {
+    ADD_CHOICE: 'ADD_CHOICE',
+    REMOVE_CHOICE: 'REMOVE_CHOICE',
+    FILTER_CHOICES: 'FILTER_CHOICES',
+    ACTIVATE_CHOICES: 'ACTIVATE_CHOICES',
+    CLEAR_CHOICES: 'CLEAR_CHOICES',
+    ADD_GROUP: 'ADD_GROUP',
+    ADD_ITEM: 'ADD_ITEM',
+    REMOVE_ITEM: 'REMOVE_ITEM',
+    HIGHLIGHT_ITEM: 'HIGHLIGHT_ITEM',
+};
+
+var EventType = {
+    showDropdown: 'showDropdown',
+    hideDropdown: 'hideDropdown',
+    change: 'change',
+    choice: 'choice',
+    search: 'search',
+    addItem: 'addItem',
+    removeItem: 'removeItem',
+    highlightItem: 'highlightItem',
+    highlightChoice: 'highlightChoice',
+    unhighlightItem: 'unhighlightItem',
+};
+
+var ObjectsInConfig = ['fuseOptions', 'classNames'];
+
+var PassedElementTypes = {
+    Text: 'text',
+    SelectOne: 'select-one',
+    SelectMultiple: 'select-multiple',
+};
+
+var addChoice = function (choice) { return ({
+    type: ActionType.ADD_CHOICE,
+    choice: choice,
+}); };
+var removeChoice = function (choice) { return ({
+    type: ActionType.REMOVE_CHOICE,
+    choice: choice,
+}); };
+var filterChoices = function (results) { return ({
+    type: ActionType.FILTER_CHOICES,
+    results: results,
+}); };
+var activateChoices = function (active) {
+    return ({
+        type: ActionType.ACTIVATE_CHOICES,
+        active: active,
+    });
+};
+
+var addGroup = function (group) { return ({
+    type: ActionType.ADD_GROUP,
+    group: group,
+}); };
+
+var addItem = function (item) { return ({
+    type: ActionType.ADD_ITEM,
+    item: item,
+}); };
+var removeItem$1 = function (item) { return ({
+    type: ActionType.REMOVE_ITEM,
+    item: item,
+}); };
+var highlightItem = function (item, highlighted) { return ({
+    type: ActionType.HIGHLIGHT_ITEM,
+    item: item,
+    highlighted: highlighted,
+}); };
+
+var getRandomNumber = function (min, max) { return Math.floor(Math.random() * (max - min) + min); };
+var generateChars = function (length) {
+    return Array.from({ length: length }, function () { return getRandomNumber(0, 36).toString(36); }).join('');
+};
+var generateId = function (element, prefix) {
+    var id = element.id || (element.name && "".concat(element.name, "-").concat(generateChars(2))) || generateChars(4);
+    id = id.replace(/(:|\.|\[|\]|,)/g, '');
+    id = "".concat(prefix, "-").concat(id);
+    return id;
+};
+var getAdjacentEl = function (startEl, selector, direction) {
+    if (direction === void 0) { direction = 1; }
+    var prop = "".concat(direction > 0 ? 'next' : 'previous', "ElementSibling");
+    var sibling = startEl[prop];
+    while (sibling) {
+        if (sibling.matches(selector)) {
+            return sibling;
+        }
+        sibling = sibling[prop];
+    }
+    return null;
+};
+var isScrolledIntoView = function (element, parent, direction) {
+    if (direction === void 0) { direction = 1; }
+    var isVisible;
+    if (direction > 0) {
+        // In view from bottom
+        isVisible = parent.scrollTop + parent.offsetHeight >= element.offsetTop + element.offsetHeight;
+    }
+    else {
+        // In view from top
+        isVisible = element.offsetTop >= parent.scrollTop;
+    }
+    return isVisible;
+};
+var sanitise = function (value) {
+    if (typeof value !== 'string') {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        if (typeof value === 'object') {
+            if ('raw' in value) {
+                return sanitise(value.raw);
+            }
+            if ('trusted' in value) {
+                return value.trusted;
+            }
+        }
+        return value;
+    }
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/>/g, '&gt;')
+        .replace(/</g, '&lt;')
+        .replace(/'/g, '&#039;')
+        .replace(/"/g, '&quot;');
+};
+var strToEl = (function () {
+    var tmpEl = document.createElement('div');
+    return function (str) {
+        tmpEl.innerHTML = str.trim();
+        var firstChild = tmpEl.children[0];
+        while (tmpEl.firstChild) {
+            tmpEl.removeChild(tmpEl.firstChild);
+        }
+        return firstChild;
+    };
+})();
+var resolveNoticeFunction = function (fn, value) {
+    return typeof fn === 'function' ? fn(sanitise(value), value) : fn;
+};
+var resolveStringFunction = function (fn) {
+    return typeof fn === 'function' ? fn() : fn;
+};
+var unwrapStringForRaw = function (s) {
+    if (typeof s === 'string') {
+        return s;
+    }
+    if (typeof s === 'object') {
+        if ('trusted' in s) {
+            return s.trusted;
+        }
+        if ('raw' in s) {
+            return s.raw;
+        }
+    }
+    return '';
+};
+var unwrapStringForEscaped = function (s) {
+    if (typeof s === 'string') {
+        return s;
+    }
+    if (typeof s === 'object') {
+        if ('escaped' in s) {
+            return s.escaped;
+        }
+        if ('trusted' in s) {
+            return s.trusted;
+        }
+    }
+    return '';
+};
+var escapeForTemplate = function (allowHTML, s) {
+    return allowHTML ? unwrapStringForEscaped(s) : sanitise(s);
+};
+var setElementHtml = function (el, allowHtml, html) {
+    el.innerHTML = escapeForTemplate(allowHtml, html);
+};
+var sortByAlpha = function (_a, _b) {
+    var value = _a.value, _c = _a.label, label = _c === void 0 ? value : _c;
+    var value2 = _b.value, _d = _b.label, label2 = _d === void 0 ? value2 : _d;
+    return unwrapStringForRaw(label).localeCompare(unwrapStringForRaw(label2), [], {
+        sensitivity: 'base',
+        ignorePunctuation: true,
+        numeric: true,
+    });
+};
+var sortByRank = function (a, b) {
+    return a.rank - b.rank;
+};
+var dispatchEvent = function (element, type, customArgs) {
+    if (customArgs === void 0) { customArgs = null; }
+    var event = new CustomEvent(type, {
+        detail: customArgs,
+        bubbles: true,
+        cancelable: true,
+    });
+    return element.dispatchEvent(event);
+};
+/**
+ * Returns an array of keys present on the first but missing on the second object
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+var diff = function (a, b) {
+    var aKeys = Object.keys(a).sort();
+    var bKeys = Object.keys(b).sort();
+    return aKeys.filter(function (i) { return bKeys.indexOf(i) < 0; });
+};
+var getClassNames = function (ClassNames) {
+    return Array.isArray(ClassNames) ? ClassNames : [ClassNames];
+};
+var getClassNamesSelector = function (option) {
+    if (option && Array.isArray(option)) {
+        return option
+            .map(function (item) {
+            return ".".concat(item);
+        })
+            .join('');
+    }
+    return ".".concat(option);
+};
+var addClassesToElement = function (element, className) {
+    var _a;
+    (_a = element.classList).add.apply(_a, getClassNames(className));
+};
+var removeClassesFromElement = function (element, className) {
+    var _a;
+    (_a = element.classList).remove.apply(_a, getClassNames(className));
+};
+var parseCustomProperties = function (customProperties) {
+    if (typeof customProperties !== 'undefined') {
+        try {
+            return JSON.parse(customProperties);
+        }
+        catch (e) {
+            return customProperties;
+        }
+    }
+    return {};
+};
+var updateClassList = function (item, add, remove) {
+    var itemEl = item.itemEl;
+    if (itemEl) {
+        removeClassesFromElement(itemEl, remove);
+        addClassesToElement(itemEl, add);
+    }
+};
+
+var Dropdown = /** @class */ (function () {
+    function Dropdown(_a) {
+        var element = _a.element, type = _a.type, classNames = _a.classNames;
+        this.element = element;
+        this.classNames = classNames;
+        this.type = type;
+        this.isActive = false;
+    }
+    /**
+     * Show dropdown to user by adding active state class
+     */
+    Dropdown.prototype.show = function () {
+        addClassesToElement(this.element, this.classNames.activeState);
+        this.element.setAttribute('aria-expanded', 'true');
+        this.isActive = true;
+        return this;
+    };
+    /**
+     * Hide dropdown from user
+     */
+    Dropdown.prototype.hide = function () {
+        removeClassesFromElement(this.element, this.classNames.activeState);
+        this.element.setAttribute('aria-expanded', 'false');
+        this.isActive = false;
+        return this;
+    };
+    return Dropdown;
+}());
+
+var Container = /** @class */ (function () {
+    function Container(_a) {
+        var element = _a.element, type = _a.type, classNames = _a.classNames, position = _a.position;
+        this.element = element;
+        this.classNames = classNames;
+        this.type = type;
+        this.position = position;
+        this.isOpen = false;
+        this.isFlipped = false;
+        this.isDisabled = false;
+        this.isLoading = false;
+    }
+    /**
+     * Determine whether container should be flipped based on passed
+     * dropdown position
+     */
+    Container.prototype.shouldFlip = function (dropdownPos, dropdownHeight) {
+        // If flip is enabled and the dropdown bottom position is
+        // greater than the window height flip the dropdown.
+        var shouldFlip = false;
+        if (this.position === 'auto') {
+            shouldFlip =
+                this.element.getBoundingClientRect().top - dropdownHeight >= 0 &&
+                    !window.matchMedia("(min-height: ".concat(dropdownPos + 1, "px)")).matches;
+        }
+        else if (this.position === 'top') {
+            shouldFlip = true;
+        }
+        return shouldFlip;
+    };
+    Container.prototype.setActiveDescendant = function (activeDescendantID) {
+        this.element.setAttribute('aria-activedescendant', activeDescendantID);
+    };
+    Container.prototype.removeActiveDescendant = function () {
+        this.element.removeAttribute('aria-activedescendant');
+    };
+    Container.prototype.open = function (dropdownPos, dropdownHeight) {
+        addClassesToElement(this.element, this.classNames.openState);
+        this.element.setAttribute('aria-expanded', 'true');
+        this.isOpen = true;
+        if (this.shouldFlip(dropdownPos, dropdownHeight)) {
+            addClassesToElement(this.element, this.classNames.flippedState);
+            this.isFlipped = true;
+        }
+    };
+    Container.prototype.close = function () {
+        removeClassesFromElement(this.element, this.classNames.openState);
+        this.element.setAttribute('aria-expanded', 'false');
+        this.removeActiveDescendant();
+        this.isOpen = false;
+        // A dropdown flips if it does not have space within the page
+        if (this.isFlipped) {
+            removeClassesFromElement(this.element, this.classNames.flippedState);
+            this.isFlipped = false;
+        }
+    };
+    Container.prototype.addFocusState = function () {
+        addClassesToElement(this.element, this.classNames.focusState);
+    };
+    Container.prototype.removeFocusState = function () {
+        removeClassesFromElement(this.element, this.classNames.focusState);
+    };
+    Container.prototype.enable = function () {
+        removeClassesFromElement(this.element, this.classNames.disabledState);
+        this.element.removeAttribute('aria-disabled');
+        if (this.type === PassedElementTypes.SelectOne) {
+            this.element.setAttribute('tabindex', '0');
+        }
+        this.isDisabled = false;
+    };
+    Container.prototype.disable = function () {
+        addClassesToElement(this.element, this.classNames.disabledState);
+        this.element.setAttribute('aria-disabled', 'true');
+        if (this.type === PassedElementTypes.SelectOne) {
+            this.element.setAttribute('tabindex', '-1');
+        }
+        this.isDisabled = true;
+    };
+    Container.prototype.wrap = function (element) {
+        var el = this.element;
+        var parentNode = element.parentNode;
+        if (parentNode) {
+            if (element.nextSibling) {
+                parentNode.insertBefore(el, element.nextSibling);
+            }
+            else {
+                parentNode.appendChild(el);
+            }
+        }
+        el.appendChild(element);
+    };
+    Container.prototype.unwrap = function (element) {
+        var el = this.element;
+        var parentNode = el.parentNode;
+        if (parentNode) {
+            // Move passed element outside this element
+            parentNode.insertBefore(element, el);
+            // Remove this element
+            parentNode.removeChild(el);
+        }
+    };
+    Container.prototype.addLoadingState = function () {
+        addClassesToElement(this.element, this.classNames.loadingState);
+        this.element.setAttribute('aria-busy', 'true');
+        this.isLoading = true;
+    };
+    Container.prototype.removeLoadingState = function () {
+        removeClassesFromElement(this.element, this.classNames.loadingState);
+        this.element.removeAttribute('aria-busy');
+        this.isLoading = false;
+    };
+    return Container;
+}());
+
+var Input = /** @class */ (function () {
+    function Input(_a) {
+        var element = _a.element, type = _a.type, classNames = _a.classNames, preventPaste = _a.preventPaste;
+        this.element = element;
+        this.type = type;
+        this.classNames = classNames;
+        this.preventPaste = preventPaste;
+        this.isFocussed = this.element.isEqualNode(document.activeElement);
+        this.isDisabled = element.disabled;
+        this._onPaste = this._onPaste.bind(this);
+        this._onInput = this._onInput.bind(this);
+        this._onFocus = this._onFocus.bind(this);
+        this._onBlur = this._onBlur.bind(this);
+    }
+    Object.defineProperty(Input.prototype, "placeholder", {
+        set: function (placeholder) {
+            this.element.placeholder = placeholder;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Input.prototype, "value", {
+        get: function () {
+            return this.element.value;
+        },
+        set: function (value) {
+            this.element.value = value;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Input.prototype.addEventListeners = function () {
+        var el = this.element;
+        el.addEventListener('paste', this._onPaste);
+        el.addEventListener('input', this._onInput, {
+            passive: true,
+        });
+        el.addEventListener('focus', this._onFocus, {
+            passive: true,
+        });
+        el.addEventListener('blur', this._onBlur, {
+            passive: true,
+        });
+    };
+    Input.prototype.removeEventListeners = function () {
+        var el = this.element;
+        el.removeEventListener('input', this._onInput);
+        el.removeEventListener('paste', this._onPaste);
+        el.removeEventListener('focus', this._onFocus);
+        el.removeEventListener('blur', this._onBlur);
+    };
+    Input.prototype.enable = function () {
+        var el = this.element;
+        el.removeAttribute('disabled');
+        this.isDisabled = false;
+    };
+    Input.prototype.disable = function () {
+        var el = this.element;
+        el.setAttribute('disabled', '');
+        this.isDisabled = true;
+    };
+    Input.prototype.focus = function () {
+        if (!this.isFocussed) {
+            this.element.focus();
+        }
+    };
+    Input.prototype.blur = function () {
+        if (this.isFocussed) {
+            this.element.blur();
+        }
+    };
+    Input.prototype.clear = function (setWidth) {
+        if (setWidth === void 0) { setWidth = true; }
+        this.element.value = '';
+        if (setWidth) {
+            this.setWidth();
+        }
+        return this;
+    };
+    /**
+     * Set the correct input width based on placeholder
+     * value or input value
+     */
+    Input.prototype.setWidth = function () {
+        // Resize input to contents or placeholder
+        var element = this.element;
+        element.style.minWidth = "".concat(element.placeholder.length + 1, "ch");
+        element.style.width = "".concat(element.value.length + 1, "ch");
+    };
+    Input.prototype.setActiveDescendant = function (activeDescendantID) {
+        this.element.setAttribute('aria-activedescendant', activeDescendantID);
+    };
+    Input.prototype.removeActiveDescendant = function () {
+        this.element.removeAttribute('aria-activedescendant');
+    };
+    Input.prototype._onInput = function () {
+        if (this.type !== PassedElementTypes.SelectOne) {
+            this.setWidth();
+        }
+    };
+    Input.prototype._onPaste = function (event) {
+        if (this.preventPaste) {
+            event.preventDefault();
+        }
+    };
+    Input.prototype._onFocus = function () {
+        this.isFocussed = true;
+    };
+    Input.prototype._onBlur = function () {
+        this.isFocussed = false;
+    };
+    return Input;
+}());
+
+var SCROLLING_SPEED = 4;
+
+var List = /** @class */ (function () {
+    function List(_a) {
+        var element = _a.element;
+        this.element = element;
+        this.scrollPos = this.element.scrollTop;
+        this.height = this.element.offsetHeight;
+    }
+    List.prototype.prepend = function (node) {
+        var child = this.element.firstElementChild;
+        if (child) {
+            this.element.insertBefore(node, child);
+        }
+        else {
+            this.element.append(node);
+        }
+    };
+    List.prototype.scrollToTop = function () {
+        this.element.scrollTop = 0;
+    };
+    List.prototype.scrollToChildElement = function (element, direction) {
+        var _this = this;
+        if (!element) {
+            return;
+        }
+        var listHeight = this.element.offsetHeight;
+        // Scroll position of dropdown
+        var listScrollPosition = this.element.scrollTop + listHeight;
+        var elementHeight = element.offsetHeight;
+        // Distance from bottom of element to top of parent
+        var elementPos = element.offsetTop + elementHeight;
+        // Difference between the element and scroll position
+        var destination = direction > 0 ? this.element.scrollTop + elementPos - listScrollPosition : element.offsetTop;
+        requestAnimationFrame(function () {
+            _this._animateScroll(destination, direction);
+        });
+    };
+    List.prototype._scrollDown = function (scrollPos, strength, destination) {
+        var easing = (destination - scrollPos) / strength;
+        var distance = easing > 1 ? easing : 1;
+        this.element.scrollTop = scrollPos + distance;
+    };
+    List.prototype._scrollUp = function (scrollPos, strength, destination) {
+        var easing = (scrollPos - destination) / strength;
+        var distance = easing > 1 ? easing : 1;
+        this.element.scrollTop = scrollPos - distance;
+    };
+    List.prototype._animateScroll = function (destination, direction) {
+        var _this = this;
+        var strength = SCROLLING_SPEED;
+        var choiceListScrollTop = this.element.scrollTop;
+        var continueAnimation = false;
+        if (direction > 0) {
+            this._scrollDown(choiceListScrollTop, strength, destination);
+            if (choiceListScrollTop < destination) {
+                continueAnimation = true;
+            }
+        }
+        else {
+            this._scrollUp(choiceListScrollTop, strength, destination);
+            if (choiceListScrollTop > destination) {
+                continueAnimation = true;
+            }
+        }
+        if (continueAnimation) {
+            requestAnimationFrame(function () {
+                _this._animateScroll(destination, direction);
+            });
+        }
+    };
+    return List;
+}());
+
+var WrappedElement = /** @class */ (function () {
+    function WrappedElement(_a) {
+        var element = _a.element, classNames = _a.classNames;
+        this.element = element;
+        this.classNames = classNames;
+        this.isDisabled = false;
+    }
+    Object.defineProperty(WrappedElement.prototype, "isActive", {
+        get: function () {
+            return this.element.dataset.choice === 'active';
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(WrappedElement.prototype, "dir", {
+        get: function () {
+            return this.element.dir;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(WrappedElement.prototype, "value", {
+        get: function () {
+            return this.element.value;
+        },
+        set: function (value) {
+            this.element.setAttribute('value', value);
+            this.element.value = value;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    WrappedElement.prototype.conceal = function () {
+        var el = this.element;
+        // Hide passed input
+        addClassesToElement(el, this.classNames.input);
+        el.hidden = true;
+        // Remove element from tab index
+        el.tabIndex = -1;
+        // Backup original styles if any
+        var origStyle = el.getAttribute('style');
+        if (origStyle) {
+            el.setAttribute('data-choice-orig-style', origStyle);
+        }
+        el.setAttribute('data-choice', 'active');
+    };
+    WrappedElement.prototype.reveal = function () {
+        var el = this.element;
+        // Reinstate passed element
+        removeClassesFromElement(el, this.classNames.input);
+        el.hidden = false;
+        el.removeAttribute('tabindex');
+        // Recover original styles if any
+        var origStyle = el.getAttribute('data-choice-orig-style');
+        if (origStyle) {
+            el.removeAttribute('data-choice-orig-style');
+            el.setAttribute('style', origStyle);
+        }
+        else {
+            el.removeAttribute('style');
+        }
+        el.removeAttribute('data-choice');
+    };
+    WrappedElement.prototype.enable = function () {
+        this.element.removeAttribute('disabled');
+        this.element.disabled = false;
+        this.isDisabled = false;
+    };
+    WrappedElement.prototype.disable = function () {
+        this.element.setAttribute('disabled', '');
+        this.element.disabled = true;
+        this.isDisabled = true;
+    };
+    WrappedElement.prototype.triggerEvent = function (eventType, data) {
+        dispatchEvent(this.element, eventType, data || {});
+    };
+    return WrappedElement;
+}());
+
+var WrappedInput = /** @class */ (function (_super) {
+    __extends(WrappedInput, _super);
+    function WrappedInput() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return WrappedInput;
+}(WrappedElement));
+
+var coerceBool = function (arg, defaultValue) {
+    if (defaultValue === void 0) { defaultValue = true; }
+    return typeof arg === 'undefined' ? defaultValue : !!arg;
+};
+var stringToHtmlClass = function (input) {
+    if (typeof input === 'string') {
+        // eslint-disable-next-line no-param-reassign
+        input = input.split(' ').filter(function (s) { return s.length; });
+    }
+    if (Array.isArray(input) && input.length) {
+        return input;
+    }
+    return undefined;
+};
+var mapInputToChoice = function (value, allowGroup) {
+    if (typeof value === 'string') {
+        var result_1 = mapInputToChoice({
+            value: value,
+            label: value,
+        }, false);
+        return result_1;
+    }
+    var groupOrChoice = value;
+    if ('choices' in groupOrChoice) {
+        if (!allowGroup) {
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup
+            throw new TypeError("optGroup is not allowed");
+        }
+        var group = groupOrChoice;
+        var choices = group.choices.map(function (e) { return mapInputToChoice(e, false); });
+        var result_2 = {
+            id: 0, // actual ID will be assigned during _addGroup
+            label: unwrapStringForRaw(group.label) || group.value,
+            active: !!choices.length,
+            disabled: !!group.disabled,
+            choices: choices,
+        };
+        return result_2;
+    }
+    var choice = groupOrChoice;
+    var result = {
+        id: 0, // actual ID will be assigned during _addChoice
+        group: null, // actual group will be assigned during _addGroup but before _addChoice
+        score: 0, // used in search
+        rank: 0, // used in search, stable sort order
+        value: choice.value,
+        label: choice.label || choice.value,
+        active: coerceBool(choice.active),
+        selected: coerceBool(choice.selected, false),
+        disabled: coerceBool(choice.disabled, false),
+        placeholder: coerceBool(choice.placeholder, false),
+        highlighted: false,
+        labelClass: stringToHtmlClass(choice.labelClass),
+        labelDescription: choice.labelDescription,
+        customProperties: choice.customProperties,
+    };
+    return result;
+};
+
+var isHtmlInputElement = function (e) { return e.tagName === 'INPUT'; };
+var isHtmlSelectElement = function (e) { return e.tagName === 'SELECT'; };
+var isHtmlOption = function (e) { return e.tagName === 'OPTION'; };
+var isHtmlOptgroup = function (e) { return e.tagName === 'OPTGROUP'; };
+
+var WrappedSelect = /** @class */ (function (_super) {
+    __extends(WrappedSelect, _super);
+    function WrappedSelect(_a) {
+        var element = _a.element, classNames = _a.classNames, template = _a.template, extractPlaceholder = _a.extractPlaceholder;
+        var _this = _super.call(this, { element: element, classNames: classNames }) || this;
+        _this.template = template;
+        _this.extractPlaceholder = extractPlaceholder;
+        return _this;
+    }
+    Object.defineProperty(WrappedSelect.prototype, "placeholderOption", {
+        get: function () {
+            return (this.element.querySelector('option[value=""]') ||
+                // Backward compatibility layer for the non-standard placeholder attribute supported in older versions.
+                this.element.querySelector('option[placeholder]'));
+        },
+        enumerable: false,
+        configurable: true
+    });
+    WrappedSelect.prototype.addOptions = function (choices) {
+        var _this = this;
+        var fragment = document.createDocumentFragment();
+        choices.forEach(function (obj) {
+            var choice = obj;
+            if (choice.element) {
+                return;
+            }
+            var option = _this.template(choice);
+            fragment.appendChild(option);
+            choice.element = option;
+        });
+        this.element.appendChild(fragment);
+    };
+    WrappedSelect.prototype.optionsAsChoices = function () {
+        var _this = this;
+        var choices = [];
+        this.element.querySelectorAll(':scope > option, :scope > optgroup').forEach(function (e) {
+            if (isHtmlOption(e)) {
+                choices.push(_this._optionToChoice(e));
+            }
+            else if (isHtmlOptgroup(e)) {
+                choices.push(_this._optgroupToChoice(e));
+            }
+            // todo: hr as empty optgroup, requires displaying empty opt-groups to be useful
+        });
+        return choices;
+    };
+    // eslint-disable-next-line class-methods-use-this
+    WrappedSelect.prototype._optionToChoice = function (option) {
+        // option.value returns the label if there is no value attribute, which can break legacy placeholder attribute support
+        if (!option.hasAttribute('value') && option.hasAttribute('placeholder')) {
+            option.setAttribute('value', '');
+            option.value = '';
+        }
+        return {
+            id: 0,
+            group: null,
+            score: 0,
+            rank: 0,
+            value: option.value,
+            label: option.innerHTML,
+            element: option,
+            active: true,
+            // this returns true if nothing is selected on initial load, which will break placeholder support
+            selected: this.extractPlaceholder ? option.selected : option.hasAttribute('selected'),
+            disabled: option.disabled,
+            highlighted: false,
+            placeholder: this.extractPlaceholder && (!option.value || option.hasAttribute('placeholder')),
+            labelClass: typeof option.dataset.labelClass !== 'undefined' ? stringToHtmlClass(option.dataset.labelClass) : undefined,
+            labelDescription: typeof option.dataset.labelDescription !== 'undefined' ? option.dataset.labelDescription : undefined,
+            customProperties: parseCustomProperties(option.dataset.customProperties),
+        };
+    };
+    WrappedSelect.prototype._optgroupToChoice = function (optgroup) {
+        var _this = this;
+        var options = optgroup.querySelectorAll('option');
+        var choices = Array.from(options).map(function (option) { return _this._optionToChoice(option); });
+        return {
+            id: 0,
+            label: optgroup.label || '',
+            element: optgroup,
+            active: !!choices.length,
+            disabled: optgroup.disabled,
+            choices: choices,
+        };
+    };
+    return WrappedSelect;
+}(WrappedElement));
+
+var DEFAULT_CLASSNAMES = {
+    containerOuter: ['choices'],
+    containerInner: ['choices__inner'],
+    input: ['choices__input'],
+    inputCloned: ['choices__input--cloned'],
+    list: ['choices__list'],
+    listItems: ['choices__list--multiple'],
+    listSingle: ['choices__list--single'],
+    listDropdown: ['choices__list--dropdown'],
+    item: ['choices__item'],
+    itemSelectable: ['choices__item--selectable'],
+    itemDisabled: ['choices__item--disabled'],
+    itemChoice: ['choices__item--choice'],
+    description: ['choices__description'],
+    placeholder: ['choices__placeholder'],
+    group: ['choices__group'],
+    groupHeading: ['choices__heading'],
+    button: ['choices__button'],
+    activeState: ['is-active'],
+    focusState: ['is-focused'],
+    openState: ['is-open'],
+    disabledState: ['is-disabled'],
+    highlightedState: ['is-highlighted'],
+    selectedState: ['is-selected'],
+    flippedState: ['is-flipped'],
+    loadingState: ['is-loading'],
+    notice: ['choices__notice'],
+    addChoice: ['choices__item--selectable', 'add-choice'],
+    noResults: ['has-no-results'],
+    noChoices: ['has-no-choices'],
+};
+var DEFAULT_CONFIG = {
+    items: [],
+    choices: [],
+    silent: false,
+    renderChoiceLimit: -1,
+    maxItemCount: -1,
+    closeDropdownOnSelect: 'auto',
+    singleModeForMultiSelect: false,
+    addChoices: false,
+    addItems: true,
+    addItemFilter: function (value) { return !!value && value !== ''; },
+    removeItems: true,
+    removeItemButton: false,
+    removeItemButtonAlignLeft: false,
+    editItems: false,
+    allowHTML: false,
+    allowHtmlUserInput: false,
+    duplicateItemsAllowed: true,
+    delimiter: ',',
+    paste: true,
+    searchEnabled: true,
+    searchChoices: true,
+    searchFloor: 1,
+    searchResultLimit: 4,
+    searchFields: ['label', 'value'],
+    position: 'auto',
+    resetScrollPosition: true,
+    shouldSort: true,
+    shouldSortItems: false,
+    sorter: sortByAlpha,
+    shadowRoot: null,
+    placeholder: true,
+    placeholderValue: null,
+    searchPlaceholderValue: null,
+    prependValue: null,
+    appendValue: null,
+    renderSelectedChoices: 'auto',
+    loadingText: 'Loading...',
+    noResultsText: 'No results found',
+    noChoicesText: 'No choices to choose from',
+    itemSelectText: 'Press to select',
+    uniqueItemText: 'Only unique values can be added',
+    customAddItemText: 'Only values matching specific conditions can be added',
+    addItemText: function (value) { return "Press Enter to add <b>\"".concat(value, "\"</b>"); },
+    removeItemIconText: function () { return "Remove item"; },
+    removeItemLabelText: function (value) { return "Remove item: ".concat(value); },
+    maxItemText: function (maxItemCount) { return "Only ".concat(maxItemCount, " values can be added"); },
+    valueComparer: function (value1, value2) { return value1 === value2; },
+    fuseOptions: {
+        includeScore: true,
+    },
+    labelId: '',
+    callbackOnInit: null,
+    callbackOnCreateTemplates: null,
+    classNames: DEFAULT_CLASSNAMES,
+    appendGroupInSearch: false,
+};
+
+var removeItem = function (item) {
+    var itemEl = item.itemEl;
+    if (itemEl) {
+        itemEl.remove();
+        item.itemEl = undefined;
+    }
+};
+function items(s, action, context) {
+    var state = s;
+    var update = true;
+    switch (action.type) {
+        case ActionType.ADD_ITEM: {
+            action.item.selected = true;
+            var el = action.item.element;
+            if (el) {
+                el.selected = true;
+                el.setAttribute('selected', '');
+            }
+            state.push(action.item);
+            break;
+        }
+        case ActionType.REMOVE_ITEM: {
+            action.item.selected = false;
+            var el = action.item.element;
+            if (el) {
+                el.selected = false;
+                el.removeAttribute('selected');
+                // For a select-one, if all options are deselected, the first item is selected. To set a black value, select.value needs to be set
+                var select = el.parentElement;
+                if (select && isHtmlSelectElement(select) && select.type === PassedElementTypes.SelectOne) {
+                    select.value = '';
+                }
+            }
+            // this is mixing concerns, but this is *so much faster*
+            removeItem(action.item);
+            state = state.filter(function (choice) { return choice.id !== action.item.id; });
+            break;
+        }
+        case ActionType.REMOVE_CHOICE: {
+            removeItem(action.choice);
+            state = state.filter(function (item) { return item.id !== action.choice.id; });
+            break;
+        }
+        case ActionType.HIGHLIGHT_ITEM: {
+            var highlighted = action.highlighted;
+            var item = state.find(function (obj) { return obj.id === action.item.id; });
+            if (item && item.highlighted !== highlighted) {
+                item.highlighted = highlighted;
+                if (context) {
+                    updateClassList(item, highlighted ? context.classNames.highlightedState : context.classNames.selectedState, highlighted ? context.classNames.selectedState : context.classNames.highlightedState);
+                }
+            }
+            break;
+        }
+        default: {
+            update = false;
+            break;
+        }
+    }
+    return { state: state, update: update };
+}
+
+function groups(s, action) {
+    var state = s;
+    var update = true;
+    switch (action.type) {
+        case ActionType.ADD_GROUP: {
+            state.push(action.group);
+            break;
+        }
+        case ActionType.CLEAR_CHOICES: {
+            state = [];
+            break;
+        }
+        default: {
+            update = false;
+            break;
+        }
+    }
+    return { state: state, update: update };
+}
+
+/* eslint-disable */
+function choices(s, action, context) {
+    var state = s;
+    var update = true;
+    switch (action.type) {
+        case ActionType.ADD_CHOICE: {
+            state.push(action.choice);
+            break;
+        }
+        case ActionType.REMOVE_CHOICE: {
+            action.choice.choiceEl = undefined;
+            if (action.choice.group) {
+                action.choice.group.choices = action.choice.group.choices.filter(function (obj) { return obj.id !== action.choice.id; });
+            }
+            state = state.filter(function (obj) { return obj.id !== action.choice.id; });
+            break;
+        }
+        case ActionType.ADD_ITEM:
+        case ActionType.REMOVE_ITEM: {
+            action.item.choiceEl = undefined;
+            break;
+        }
+        case ActionType.FILTER_CHOICES: {
+            // avoid O(n^2) algorithm complexity when searching/filtering choices
+            var scoreLookup_1 = [];
+            action.results.forEach(function (result) {
+                scoreLookup_1[result.item.id] = result;
+            });
+            state.forEach(function (choice) {
+                var result = scoreLookup_1[choice.id];
+                if (result !== undefined) {
+                    choice.score = result.score;
+                    choice.rank = result.rank;
+                    choice.active = true;
+                }
+                else {
+                    choice.score = 0;
+                    choice.rank = 0;
+                    choice.active = false;
+                }
+                if (context && context.appendGroupInSearch) {
+                    choice.choiceEl = undefined;
+                }
+            });
+            break;
+        }
+        case ActionType.ACTIVATE_CHOICES: {
+            state.forEach(function (choice) {
+                choice.active = action.active;
+                if (context && context.appendGroupInSearch) {
+                    choice.choiceEl = undefined;
+                }
+            });
+            break;
+        }
+        case ActionType.CLEAR_CHOICES: {
+            state = [];
+            break;
+        }
+        default: {
+            update = false;
+            break;
+        }
+    }
+    return { state: state, update: update };
+}
+
+var reducers = {
+    groups: groups,
+    items: items,
+    choices: choices,
+};
+var Store = /** @class */ (function () {
+    function Store(context) {
+        this._state = this.defaultState;
+        this._listeners = [];
+        this._txn = 0;
+        this._context = context;
+    }
+    Object.defineProperty(Store.prototype, "defaultState", {
+        // eslint-disable-next-line class-methods-use-this
+        get: function () {
+            return {
+                groups: [],
+                items: [],
+                choices: [],
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
+    // eslint-disable-next-line class-methods-use-this
+    Store.prototype.changeSet = function (init) {
+        return {
+            groups: init,
+            items: init,
+            choices: init,
+        };
+    };
+    Store.prototype.reset = function () {
+        this._state = this.defaultState;
+        var changes = this.changeSet(true);
+        if (this._txn) {
+            this._changeSet = changes;
+        }
+        else {
+            this._listeners.forEach(function (l) { return l(changes); });
+        }
+    };
+    Store.prototype.subscribe = function (onChange) {
+        this._listeners.push(onChange);
+        return this;
+    };
+    Store.prototype.dispatch = function (action) {
+        var _this = this;
+        var state = this._state;
+        var hasChanges = false;
+        var changes = this._changeSet || this.changeSet(false);
+        Object.keys(reducers).forEach(function (key) {
+            var stateUpdate = reducers[key](state[key], action, _this._context);
+            if (stateUpdate.update) {
+                hasChanges = true;
+                changes[key] = true;
+                state[key] = stateUpdate.state;
+            }
+        });
+        if (hasChanges) {
+            if (this._txn) {
+                this._changeSet = changes;
+            }
+            else {
+                this._listeners.forEach(function (l) { return l(changes); });
+            }
+        }
+    };
+    Store.prototype.withTxn = function (func) {
+        this._txn++;
+        try {
+            func();
+        }
+        finally {
+            this._txn = Math.max(0, this._txn - 1);
+            if (!this._txn) {
+                var changeSet_1 = this._changeSet;
+                if (changeSet_1) {
+                    this._changeSet = undefined;
+                    this._listeners.forEach(function (l) { return l(changeSet_1); });
+                }
+            }
+        }
+    };
+    Object.defineProperty(Store.prototype, "state", {
+        /**
+         * Get store object
+         */
+        get: function () {
+            return this._state;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "items", {
+        /**
+         * Get items from store
+         */
+        get: function () {
+            return this.state.items;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "highlightedActiveItems", {
+        /**
+         * Get highlighted items from store
+         */
+        get: function () {
+            return this.items.filter(function (item) { return !item.disabled && item.active && item.highlighted; });
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "choices", {
+        /**
+         * Get choices from store
+         */
+        get: function () {
+            return this.state.choices;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "activeChoices", {
+        /**
+         * Get active choices from store
+         */
+        get: function () {
+            return this.choices.filter(function (choice) { return choice.active; });
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "searchableChoices", {
+        /**
+         * Get choices that can be searched (excluding placeholders)
+         */
+        get: function () {
+            return this.choices.filter(function (choice) { return !choice.disabled && !choice.placeholder; });
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "groups", {
+        /**
+         * Get groups from store
+         */
+        get: function () {
+            return this.state.groups;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Store.prototype, "activeGroups", {
+        /**
+         * Get active groups from store
+         */
+        get: function () {
+            var _this = this;
+            return this.state.groups.filter(function (group) {
+                var isActive = group.active && !group.disabled;
+                var hasActiveOptions = _this.state.choices.some(function (choice) { return choice.active && !choice.disabled; });
+                return isActive && hasActiveOptions;
+            }, []);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Store.prototype.inTxn = function () {
+        return this._txn > 0;
+    };
+    /**
+     * Get single choice by it's ID
+     */
+    Store.prototype.getChoiceById = function (id) {
+        return this.activeChoices.find(function (choice) { return choice.id === id; });
+    };
+    /**
+     * Get group by group id
+     */
+    Store.prototype.getGroupById = function (id) {
+        return this.groups.find(function (group) { return group.id === id; });
+    };
+    return Store;
+}());
+
+var NoticeTypes = {
+    noChoices: 'no-choices',
+    noResults: 'no-results',
+    addChoice: 'add-choice',
+    generic: '',
+};
+
+function _defineProperty(e, r, t) {
+  return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+    value: t,
+    enumerable: !0,
+    configurable: !0,
+    writable: !0
+  }) : e[r] = t, e;
+}
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread2(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      _defineProperty(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+function _toPrimitive(t, r) {
+  if ("object" != typeof t || !t) return t;
+  var e = t[Symbol.toPrimitive];
+  if (void 0 !== e) {
+    var i = e.call(t, r || "default");
+    if ("object" != typeof i) return i;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return ("string" === r ? String : Number)(t);
+}
+function _toPropertyKey(t) {
+  var i = _toPrimitive(t, "string");
+  return "symbol" == typeof i ? i : i + "";
+}
+
+/**
+ * Fuse.js v7.0.0 - Lightweight fuzzy-search (http://fusejs.io)
+ *
+ * Copyright (c) 2023 Kiro Risk (http://kiro.me)
+ * All Rights Reserved. Apache Software License 2.0
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+function isArray(value) {
+  return !Array.isArray ? getTag(value) === '[object Array]' : Array.isArray(value);
+}
+
+// Adapted from: https://github.com/lodash/lodash/blob/master/.internal/baseToString.js
+const INFINITY = 1 / 0;
+function baseToString(value) {
+  // Exit early for strings to avoid a performance hit in some environments.
+  if (typeof value == 'string') {
+    return value;
+  }
+  let result = value + '';
+  return result == '0' && 1 / value == -INFINITY ? '-0' : result;
+}
+function toString(value) {
+  return value == null ? '' : baseToString(value);
+}
+function isString(value) {
+  return typeof value === 'string';
+}
+function isNumber(value) {
+  return typeof value === 'number';
+}
+
+// Adapted from: https://github.com/lodash/lodash/blob/master/isBoolean.js
+function isBoolean(value) {
+  return value === true || value === false || isObjectLike(value) && getTag(value) == '[object Boolean]';
+}
+function isObject(value) {
+  return typeof value === 'object';
+}
+
+// Checks if `value` is object-like.
+function isObjectLike(value) {
+  return isObject(value) && value !== null;
+}
+function isDefined(value) {
+  return value !== undefined && value !== null;
+}
+function isBlank(value) {
+  return !value.trim().length;
+}
+
+// Gets the `toStringTag` of `value`.
+// Adapted from: https://github.com/lodash/lodash/blob/master/.internal/getTag.js
+function getTag(value) {
+  return value == null ? value === undefined ? '[object Undefined]' : '[object Null]' : Object.prototype.toString.call(value);
+}
+const EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
+const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
+const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = key => `Invalid value for key ${key}`;
+const PATTERN_LENGTH_TOO_LARGE = max => `Pattern length exceeds max of ${max}.`;
+const MISSING_KEY_PROPERTY = name => `Missing ${name} property in key`;
+const INVALID_KEY_WEIGHT_VALUE = key => `Property 'weight' in key '${key}' must be a positive integer`;
+const hasOwn = Object.prototype.hasOwnProperty;
+class KeyStore {
+  constructor(keys) {
+    this._keys = [];
+    this._keyMap = {};
+    let totalWeight = 0;
+    keys.forEach(key => {
+      let obj = createKey(key);
+      this._keys.push(obj);
+      this._keyMap[obj.id] = obj;
+      totalWeight += obj.weight;
+    });
+
+    // Normalize weights so that their sum is equal to 1
+    this._keys.forEach(key => {
+      key.weight /= totalWeight;
+    });
+  }
+  get(keyId) {
+    return this._keyMap[keyId];
+  }
+  keys() {
+    return this._keys;
+  }
+  toJSON() {
+    return JSON.stringify(this._keys);
+  }
+}
+function createKey(key) {
+  let path = null;
+  let id = null;
+  let src = null;
+  let weight = 1;
+  let getFn = null;
+  if (isString(key) || isArray(key)) {
+    src = key;
+    path = createKeyPath(key);
+    id = createKeyId(key);
+  } else {
+    if (!hasOwn.call(key, 'name')) {
+      throw new Error(MISSING_KEY_PROPERTY('name'));
+    }
+    const name = key.name;
+    src = name;
+    if (hasOwn.call(key, 'weight')) {
+      weight = key.weight;
+      if (weight <= 0) {
+        throw new Error(INVALID_KEY_WEIGHT_VALUE(name));
+      }
+    }
+    path = createKeyPath(name);
+    id = createKeyId(name);
+    getFn = key.getFn;
+  }
+  return {
+    path,
+    id,
+    weight,
+    src,
+    getFn
+  };
+}
+function createKeyPath(key) {
+  return isArray(key) ? key : key.split('.');
+}
+function createKeyId(key) {
+  return isArray(key) ? key.join('.') : key;
+}
+function get(obj, path) {
+  let list = [];
+  let arr = false;
+  const deepGet = (obj, path, index) => {
+    if (!isDefined(obj)) {
+      return;
+    }
+    if (!path[index]) {
+      // If there's no path left, we've arrived at the object we care about.
+      list.push(obj);
+    } else {
+      let key = path[index];
+      const value = obj[key];
+      if (!isDefined(value)) {
+        return;
+      }
+
+      // If we're at the last value in the path, and if it's a string/number/bool,
+      // add it to the list
+      if (index === path.length - 1 && (isString(value) || isNumber(value) || isBoolean(value))) {
+        list.push(toString(value));
+      } else if (isArray(value)) {
+        arr = true;
+        // Search each item in the array.
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          deepGet(value[i], path, index + 1);
+        }
+      } else if (path.length) {
+        // An object. Recurse further.
+        deepGet(value, path, index + 1);
+      }
+    }
+  };
+
+  // Backwards compatibility (since path used to be a string)
+  deepGet(obj, isString(path) ? path.split('.') : path, 0);
+  return arr ? list : list[0];
+}
+const MatchOptions = {
+  // Whether the matches should be included in the result set. When `true`, each record in the result
+  // set will include the indices of the matched characters.
+  // These can consequently be used for highlighting purposes.
+  includeMatches: false,
+  // When `true`, the matching function will continue to the end of a search pattern even if
+  // a perfect match has already been located in the string.
+  findAllMatches: false,
+  // Minimum number of characters that must be matched before a result is considered a match
+  minMatchCharLength: 1
+};
+const BasicOptions = {
+  // When `true`, the algorithm continues searching to the end of the input even if a perfect
+  // match is found before the end of the same input.
+  isCaseSensitive: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  includeScore: false,
+  // List of properties that will be searched. This also supports nested properties.
+  keys: [],
+  // Whether to sort the result list, by score
+  shouldSort: true,
+  // Default sort function: sort by ascending score, ascending index
+  sortFn: (a, b) => a.score === b.score ? a.idx < b.idx ? -1 : 1 : a.score < b.score ? -1 : 1
+};
+const FuzzyOptions = {
+  // Approximately where in the text is the pattern expected to be found?
+  location: 0,
+  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+  // (of both letters and location), a threshold of '1.0' would match anything.
+  threshold: 0.6,
+  // Determines how close the match must be to the fuzzy location (specified above).
+  // An exact letter match which is 'distance' characters away from the fuzzy location
+  // would score as a complete mismatch. A distance of '0' requires the match be at
+  // the exact location specified, a threshold of '1000' would require a perfect match
+  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+  distance: 100
+};
+const AdvancedOptions = {
+  // When `true`, it enables the use of unix-like search commands
+  useExtendedSearch: false,
+  // The get function to use when fetching an object's properties.
+  // The default will search nested paths *ie foo.bar.baz*
+  getFn: get,
+  // When `true`, search will ignore `location` and `distance`, so it won't matter
+  // where in the string the pattern appears.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
+  ignoreLocation: false,
+  // When `true`, the calculation for the relevance score (used for sorting) will
+  // ignore the field-length norm.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
+  ignoreFieldNorm: false,
+  // The weight to determine how much field length norm effects scoring.
+  fieldNormWeight: 1
+};
+var Config = _objectSpread2(_objectSpread2(_objectSpread2(_objectSpread2({}, BasicOptions), MatchOptions), FuzzyOptions), AdvancedOptions);
+const SPACE = /[^ ]+/g;
+
+// Field-length norm: the shorter the field, the higher the weight.
+// Set to 3 decimals to reduce index size.
+function norm(weight = 1, mantissa = 3) {
+  const cache = new Map();
+  const m = Math.pow(10, mantissa);
+  return {
+    get(value) {
+      const numTokens = value.match(SPACE).length;
+      if (cache.has(numTokens)) {
+        return cache.get(numTokens);
+      }
+
+      // Default function is 1/sqrt(x), weight makes that variable
+      const norm = 1 / Math.pow(numTokens, 0.5 * weight);
+
+      // In place of `toFixed(mantissa)`, for faster computation
+      const n = parseFloat(Math.round(norm * m) / m);
+      cache.set(numTokens, n);
+      return n;
+    },
+    clear() {
+      cache.clear();
+    }
+  };
+}
+class FuseIndex {
+  constructor({
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
+  } = {}) {
+    this.norm = norm(fieldNormWeight, 3);
+    this.getFn = getFn;
+    this.isCreated = false;
+    this.setIndexRecords();
+  }
+  setSources(docs = []) {
+    this.docs = docs;
+  }
+  setIndexRecords(records = []) {
+    this.records = records;
+  }
+  setKeys(keys = []) {
+    this.keys = keys;
+    this._keysMap = {};
+    keys.forEach((key, idx) => {
+      this._keysMap[key.id] = idx;
+    });
+  }
+  create() {
+    if (this.isCreated || !this.docs.length) {
+      return;
+    }
+    this.isCreated = true;
+
+    // List is Array<String>
+    if (isString(this.docs[0])) {
+      this.docs.forEach((doc, docIndex) => {
+        this._addString(doc, docIndex);
+      });
+    } else {
+      // List is Array<Object>
+      this.docs.forEach((doc, docIndex) => {
+        this._addObject(doc, docIndex);
+      });
+    }
+    this.norm.clear();
+  }
+  // Adds a doc to the end of the index
+  add(doc) {
+    const idx = this.size();
+    if (isString(doc)) {
+      this._addString(doc, idx);
+    } else {
+      this._addObject(doc, idx);
+    }
+  }
+  // Removes the doc at the specified index of the index
+  removeAt(idx) {
+    this.records.splice(idx, 1);
+
+    // Change ref index of every subsquent doc
+    for (let i = idx, len = this.size(); i < len; i += 1) {
+      this.records[i].i -= 1;
+    }
+  }
+  getValueForItemAtKeyId(item, keyId) {
+    return item[this._keysMap[keyId]];
+  }
+  size() {
+    return this.records.length;
+  }
+  _addString(doc, docIndex) {
+    if (!isDefined(doc) || isBlank(doc)) {
+      return;
+    }
+    let record = {
+      v: doc,
+      i: docIndex,
+      n: this.norm.get(doc)
+    };
+    this.records.push(record);
+  }
+  _addObject(doc, docIndex) {
+    let record = {
+      i: docIndex,
+      $: {}
+    };
+
+    // Iterate over every key (i.e, path), and fetch the value at that key
+    this.keys.forEach((key, keyIndex) => {
+      let value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
+      if (!isDefined(value)) {
+        return;
+      }
+      if (isArray(value)) {
+        let subRecords = [];
+        const stack = [{
+          nestedArrIndex: -1,
+          value
+        }];
+        while (stack.length) {
+          const {
+            nestedArrIndex,
+            value
+          } = stack.pop();
+          if (!isDefined(value)) {
+            continue;
+          }
+          if (isString(value) && !isBlank(value)) {
+            let subRecord = {
+              v: value,
+              i: nestedArrIndex,
+              n: this.norm.get(value)
+            };
+            subRecords.push(subRecord);
+          } else if (isArray(value)) {
+            value.forEach((item, k) => {
+              stack.push({
+                nestedArrIndex: k,
+                value: item
+              });
+            });
+          } else ;
+        }
+        record.$[keyIndex] = subRecords;
+      } else if (isString(value) && !isBlank(value)) {
+        let subRecord = {
+          v: value,
+          n: this.norm.get(value)
+        };
+        record.$[keyIndex] = subRecord;
+      }
+    });
+    this.records.push(record);
+  }
+  toJSON() {
+    return {
+      keys: this.keys,
+      records: this.records
+    };
+  }
+}
+function createIndex(keys, docs, {
+  getFn = Config.getFn,
+  fieldNormWeight = Config.fieldNormWeight
+} = {}) {
+  const myIndex = new FuseIndex({
+    getFn,
+    fieldNormWeight
+  });
+  myIndex.setKeys(keys.map(createKey));
+  myIndex.setSources(docs);
+  myIndex.create();
+  return myIndex;
+}
+function parseIndex(data, {
+  getFn = Config.getFn,
+  fieldNormWeight = Config.fieldNormWeight
+} = {}) {
+  const {
+    keys,
+    records
+  } = data;
+  const myIndex = new FuseIndex({
+    getFn,
+    fieldNormWeight
+  });
+  myIndex.setKeys(keys);
+  myIndex.setIndexRecords(records);
+  return myIndex;
+}
+function computeScore$1(pattern, {
+  errors = 0,
+  currentLocation = 0,
+  expectedLocation = 0,
+  distance = Config.distance,
+  ignoreLocation = Config.ignoreLocation
+} = {}) {
+  const accuracy = errors / pattern.length;
+  if (ignoreLocation) {
+    return accuracy;
+  }
+  const proximity = Math.abs(expectedLocation - currentLocation);
+  if (!distance) {
+    // Dodge divide by zero error.
+    return proximity ? 1.0 : accuracy;
+  }
+  return accuracy + proximity / distance;
+}
+function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMatchCharLength) {
+  let indices = [];
+  let start = -1;
+  let end = -1;
+  let i = 0;
+  for (let len = matchmask.length; i < len; i += 1) {
+    let match = matchmask[i];
+    if (match && start === -1) {
+      start = i;
+    } else if (!match && start !== -1) {
+      end = i - 1;
+      if (end - start + 1 >= minMatchCharLength) {
+        indices.push([start, end]);
+      }
+      start = -1;
+    }
+  }
+
+  // (i-1 - start) + 1 => i - start
+  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
+    indices.push([start, i - 1]);
+  }
+  return indices;
+}
+
+// Machine word size
+const MAX_BITS = 32;
+function search(text, pattern, patternAlphabet, {
+  location = Config.location,
+  distance = Config.distance,
+  threshold = Config.threshold,
+  findAllMatches = Config.findAllMatches,
+  minMatchCharLength = Config.minMatchCharLength,
+  includeMatches = Config.includeMatches,
+  ignoreLocation = Config.ignoreLocation
+} = {}) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
+  }
+  const patternLen = pattern.length;
+  // Set starting location at beginning text and initialize the alphabet.
+  const textLen = text.length;
+  // Handle the case when location > text.length
+  const expectedLocation = Math.max(0, Math.min(location, textLen));
+  // Highest score beyond which we give up.
+  let currentThreshold = threshold;
+  // Is there a nearby exact match? (speedup)
+  let bestLocation = expectedLocation;
+
+  // Performance: only computer matches when the minMatchCharLength > 1
+  // OR if `includeMatches` is true.
+  const computeMatches = minMatchCharLength > 1 || includeMatches;
+  // A mask of the matches, used for building the indices
+  const matchMask = computeMatches ? Array(textLen) : [];
+  let index;
+
+  // Get all exact matches, here for speed up
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
+    let score = computeScore$1(pattern, {
+      currentLocation: index,
+      expectedLocation,
+      distance,
+      ignoreLocation
+    });
+    currentThreshold = Math.min(score, currentThreshold);
+    bestLocation = index + patternLen;
+    if (computeMatches) {
+      let i = 0;
+      while (i < patternLen) {
+        matchMask[index + i] = 1;
+        i += 1;
+      }
+    }
+  }
+
+  // Reset the best location
+  bestLocation = -1;
+  let lastBitArr = [];
+  let finalScore = 1;
+  let binMax = patternLen + textLen;
+  const mask = 1 << patternLen - 1;
+  for (let i = 0; i < patternLen; i += 1) {
+    // Scan for the best match; each iteration allows for one more error.
+    // Run a binary search to determine how far from the match location we can stray
+    // at this error level.
+    let binMin = 0;
+    let binMid = binMax;
+    while (binMin < binMid) {
+      const score = computeScore$1(pattern, {
+        errors: i,
+        currentLocation: expectedLocation + binMid,
+        expectedLocation,
+        distance,
+        ignoreLocation
+      });
+      if (score <= currentThreshold) {
+        binMin = binMid;
+      } else {
+        binMax = binMid;
+      }
+      binMid = Math.floor((binMax - binMin) / 2 + binMin);
+    }
+
+    // Use the result from this iteration as the maximum for the next.
+    binMax = binMid;
+    let start = Math.max(1, expectedLocation - binMid + 1);
+    let finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
+
+    // Initialize the bit array
+    let bitArr = Array(finish + 2);
+    bitArr[finish + 1] = (1 << i) - 1;
+    for (let j = finish; j >= start; j -= 1) {
+      let currentLocation = j - 1;
+      let charMatch = patternAlphabet[text.charAt(currentLocation)];
+      if (computeMatches) {
+        // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
+        matchMask[currentLocation] = +!!charMatch;
+      }
+
+      // First pass: exact match
+      bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch;
+
+      // Subsequent passes: fuzzy match
+      if (i) {
+        bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
+      }
+      if (bitArr[j] & mask) {
+        finalScore = computeScore$1(pattern, {
+          errors: i,
+          currentLocation,
+          expectedLocation,
+          distance,
+          ignoreLocation
+        });
+
+        // This match will almost certainly be better than any existing match.
+        // But check anyway.
+        if (finalScore <= currentThreshold) {
+          // Indeed it is
+          currentThreshold = finalScore;
+          bestLocation = currentLocation;
+
+          // Already passed `loc`, downhill from here on in.
+          if (bestLocation <= expectedLocation) {
+            break;
+          }
+
+          // When passing `bestLocation`, don't exceed our current distance from `expectedLocation`.
+          start = Math.max(1, 2 * expectedLocation - bestLocation);
+        }
+      }
+    }
+
+    // No hope for a (better) match at greater error levels.
+    const score = computeScore$1(pattern, {
+      errors: i + 1,
+      currentLocation: expectedLocation,
+      expectedLocation,
+      distance,
+      ignoreLocation
+    });
+    if (score > currentThreshold) {
+      break;
+    }
+    lastBitArr = bitArr;
+  }
+  const result = {
+    isMatch: bestLocation >= 0,
+    // Count exact matches (those with a score of 0) to be "almost" exact
+    score: Math.max(0.001, finalScore)
+  };
+  if (computeMatches) {
+    const indices = convertMaskToIndices(matchMask, minMatchCharLength);
+    if (!indices.length) {
+      result.isMatch = false;
+    } else if (includeMatches) {
+      result.indices = indices;
+    }
+  }
+  return result;
+}
+function createPatternAlphabet(pattern) {
+  let mask = {};
+  for (let i = 0, len = pattern.length; i < len; i += 1) {
+    const char = pattern.charAt(i);
+    mask[char] = (mask[char] || 0) | 1 << len - i - 1;
+  }
+  return mask;
+}
+class BitapSearch {
+  constructor(pattern, {
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreLocation = Config.ignoreLocation
+  } = {}) {
+    this.options = {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive,
+      ignoreLocation
+    };
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.chunks = [];
+    if (!this.pattern.length) {
+      return;
+    }
+    const addChunk = (pattern, startIndex) => {
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern),
+        startIndex
+      });
+    };
+    const len = this.pattern.length;
+    if (len > MAX_BITS) {
+      let i = 0;
+      const remainder = len % MAX_BITS;
+      const end = len - remainder;
+      while (i < end) {
+        addChunk(this.pattern.substr(i, MAX_BITS), i);
+        i += MAX_BITS;
+      }
+      if (remainder) {
+        const startIndex = len - MAX_BITS;
+        addChunk(this.pattern.substr(startIndex), startIndex);
+      }
+    } else {
+      addChunk(this.pattern, 0);
+    }
+  }
+  searchIn(text) {
+    const {
+      isCaseSensitive,
+      includeMatches
+    } = this.options;
+    if (!isCaseSensitive) {
+      text = text.toLowerCase();
+    }
+
+    // Exact match
+    if (this.pattern === text) {
+      let result = {
+        isMatch: true,
+        score: 0
+      };
+      if (includeMatches) {
+        result.indices = [[0, text.length - 1]];
+      }
+      return result;
+    }
+
+    // Otherwise, use Bitap algorithm
+    const {
+      location,
+      distance,
+      threshold,
+      findAllMatches,
+      minMatchCharLength,
+      ignoreLocation
+    } = this.options;
+    let allIndices = [];
+    let totalScore = 0;
+    let hasMatches = false;
+    this.chunks.forEach(({
+      pattern,
+      alphabet,
+      startIndex
+    }) => {
+      const {
+        isMatch,
+        score,
+        indices
+      } = search(text, pattern, alphabet, {
+        location: location + startIndex,
+        distance,
+        threshold,
+        findAllMatches,
+        minMatchCharLength,
+        includeMatches,
+        ignoreLocation
+      });
+      if (isMatch) {
+        hasMatches = true;
+      }
+      totalScore += score;
+      if (isMatch && indices) {
+        allIndices = [...allIndices, ...indices];
+      }
+    });
+    let result = {
+      isMatch: hasMatches,
+      score: hasMatches ? totalScore / this.chunks.length : 1
+    };
+    if (hasMatches && includeMatches) {
+      result.indices = allIndices;
+    }
+    return result;
+  }
+}
+class BaseMatch {
+  constructor(pattern) {
+    this.pattern = pattern;
+  }
+  static isMultiMatch(pattern) {
+    return getMatch(pattern, this.multiRegex);
+  }
+  static isSingleMatch(pattern) {
+    return getMatch(pattern, this.singleRegex);
+  }
+  search( /*text*/) {}
+}
+function getMatch(pattern, exp) {
+  const matches = pattern.match(exp);
+  return matches ? matches[1] : null;
+}
+
+// Token: 'file
+
+class ExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'exact';
+  }
+  static get multiRegex() {
+    return /^="(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^=(.*)$/;
+  }
+  search(text) {
+    const isMatch = text === this.pattern;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
+    };
+  }
+}
+
+// Token: !fire
+
+class InverseExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'inverse-exact';
+  }
+  static get multiRegex() {
+    return /^!"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^!(.*)$/;
+  }
+  search(text) {
+    const index = text.indexOf(this.pattern);
+    const isMatch = index === -1;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+
+// Token: ^file
+
+class PrefixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'prefix-exact';
+  }
+  static get multiRegex() {
+    return /^\^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^\^(.*)$/;
+  }
+  search(text) {
+    const isMatch = text.startsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
+    };
+  }
+}
+
+// Token: !^fire
+
+class InversePrefixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'inverse-prefix-exact';
+  }
+  static get multiRegex() {
+    return /^!\^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^!\^(.*)$/;
+  }
+  search(text) {
+    const isMatch = !text.startsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+
+// Token: .file$
+
+class SuffixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'suffix-exact';
+  }
+  static get multiRegex() {
+    return /^"(.*)"\$$/;
+  }
+  static get singleRegex() {
+    return /^(.*)\$$/;
+  }
+  search(text) {
+    const isMatch = text.endsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [text.length - this.pattern.length, text.length - 1]
+    };
+  }
+}
+
+// Token: !.file$
+
+class InverseSuffixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'inverse-suffix-exact';
+  }
+  static get multiRegex() {
+    return /^!"(.*)"\$$/;
+  }
+  static get singleRegex() {
+    return /^!(.*)\$$/;
+  }
+  search(text) {
+    const isMatch = !text.endsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+class FuzzyMatch extends BaseMatch {
+  constructor(pattern, {
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreLocation = Config.ignoreLocation
+  } = {}) {
+    super(pattern);
+    this._bitapSearch = new BitapSearch(pattern, {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive,
+      ignoreLocation
+    });
+  }
+  static get type() {
+    return 'fuzzy';
+  }
+  static get multiRegex() {
+    return /^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^(.*)$/;
+  }
+  search(text) {
+    return this._bitapSearch.searchIn(text);
+  }
+}
+
+// Token: 'file
+
+class IncludeMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'include';
+  }
+  static get multiRegex() {
+    return /^'"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^'(.*)$/;
+  }
+  search(text) {
+    let location = 0;
+    let index;
+    const indices = [];
+    const patternLen = this.pattern.length;
+
+    // Get all exact matches
+    while ((index = text.indexOf(this.pattern, location)) > -1) {
+      location = index + patternLen;
+      indices.push([index, location - 1]);
+    }
+    const isMatch = !!indices.length;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices
+    };
+  }
+}
+
+// ❗Order is important. DO NOT CHANGE.
+const searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
+const searchersLen = searchers.length;
+
+// Regex to split by spaces, but keep anything in quotes together
+const SPACE_RE = / +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/;
+const OR_TOKEN = '|';
+
+// Return a 2D array representation of the query, for simpler parsing.
+// Example:
+// "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
+function parseQuery(pattern, options = {}) {
+  return pattern.split(OR_TOKEN).map(item => {
+    let query = item.trim().split(SPACE_RE).filter(item => item && !!item.trim());
+    let results = [];
+    for (let i = 0, len = query.length; i < len; i += 1) {
+      const queryItem = query[i];
+
+      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
+      let found = false;
+      let idx = -1;
+      while (!found && ++idx < searchersLen) {
+        const searcher = searchers[idx];
+        let token = searcher.isMultiMatch(queryItem);
+        if (token) {
+          results.push(new searcher(token, options));
+          found = true;
+        }
+      }
+      if (found) {
+        continue;
+      }
+
+      // 2. Handle single query matches (i.e, once that are *not* quoted)
+      idx = -1;
+      while (++idx < searchersLen) {
+        const searcher = searchers[idx];
+        let token = searcher.isSingleMatch(queryItem);
+        if (token) {
+          results.push(new searcher(token, options));
+          break;
+        }
+      }
+    }
+    return results;
+  });
+}
+
+// These extended matchers can return an array of matches, as opposed
+// to a singl match
+const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type]);
+
+/**
+ * Command-like searching
+ * ======================
+ *
+ * Given multiple search terms delimited by spaces.e.g. `^jscript .python$ ruby !java`,
+ * search in a given text.
+ *
+ * Search syntax:
+ *
+ * | Token       | Match type                 | Description                            |
+ * | ----------- | -------------------------- | -------------------------------------- |
+ * | `jscript`   | fuzzy-match                | Items that fuzzy match `jscript`       |
+ * | `=scheme`   | exact-match                | Items that are `scheme`                |
+ * | `'python`   | include-match              | Items that include `python`            |
+ * | `!ruby`     | inverse-exact-match        | Items that do not include `ruby`       |
+ * | `^java`     | prefix-exact-match         | Items that start with `java`           |
+ * | `!^earlang` | inverse-prefix-exact-match | Items that do not start with `earlang` |
+ * | `.js$`      | suffix-exact-match         | Items that end with `.js`              |
+ * | `!.go$`     | inverse-suffix-exact-match | Items that do not end with `.go`       |
+ *
+ * A single pipe character acts as an OR operator. For example, the following
+ * query matches entries that start with `core` and end with either`go`, `rb`,
+ * or`py`.
+ *
+ * ```
+ * ^core go$ | rb$ | py$
+ * ```
+ */
+class ExtendedSearch {
+  constructor(pattern, {
+    isCaseSensitive = Config.isCaseSensitive,
+    includeMatches = Config.includeMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    ignoreLocation = Config.ignoreLocation,
+    findAllMatches = Config.findAllMatches,
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance
+  } = {}) {
+    this.query = null;
+    this.options = {
+      isCaseSensitive,
+      includeMatches,
+      minMatchCharLength,
+      findAllMatches,
+      ignoreLocation,
+      location,
+      threshold,
+      distance
+    };
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.query = parseQuery(this.pattern, this.options);
+  }
+  static condition(_, options) {
+    return options.useExtendedSearch;
+  }
+  searchIn(text) {
+    const query = this.query;
+    if (!query) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const {
+      includeMatches,
+      isCaseSensitive
+    } = this.options;
+    text = isCaseSensitive ? text : text.toLowerCase();
+    let numMatches = 0;
+    let allIndices = [];
+    let totalScore = 0;
+
+    // ORs
+    for (let i = 0, qLen = query.length; i < qLen; i += 1) {
+      const searchers = query[i];
+
+      // Reset indices
+      allIndices.length = 0;
+      numMatches = 0;
+
+      // ANDs
+      for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
+        const searcher = searchers[j];
+        const {
+          isMatch,
+          indices,
+          score
+        } = searcher.search(text);
+        if (isMatch) {
+          numMatches += 1;
+          totalScore += score;
+          if (includeMatches) {
+            const type = searcher.constructor.type;
+            if (MultiMatchSet.has(type)) {
+              allIndices = [...allIndices, ...indices];
+            } else {
+              allIndices.push(indices);
+            }
+          }
+        } else {
+          totalScore = 0;
+          numMatches = 0;
+          allIndices.length = 0;
+          break;
+        }
+      }
+
+      // OR condition, so if TRUE, return
+      if (numMatches) {
+        let result = {
+          isMatch: true,
+          score: totalScore / numMatches
+        };
+        if (includeMatches) {
+          result.indices = allIndices;
+        }
+        return result;
+      }
+    }
+
+    // Nothing was matched
+    return {
+      isMatch: false,
+      score: 1
+    };
+  }
+}
+const registeredSearchers = [];
+function register(...args) {
+  registeredSearchers.push(...args);
+}
+function createSearcher(pattern, options) {
+  for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
+    let searcherClass = registeredSearchers[i];
+    if (searcherClass.condition(pattern, options)) {
+      return new searcherClass(pattern, options);
+    }
+  }
+  return new BitapSearch(pattern, options);
+}
+const LogicalOperator = {
+  AND: '$and',
+  OR: '$or'
+};
+const KeyType = {
+  PATH: '$path',
+  PATTERN: '$val'
+};
+const isExpression = query => !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
+const isPath = query => !!query[KeyType.PATH];
+const isLeaf = query => !isArray(query) && isObject(query) && !isExpression(query);
+const convertToExplicit = query => ({
+  [LogicalOperator.AND]: Object.keys(query).map(key => ({
+    [key]: query[key]
+  }))
+});
+
+// When `auto` is `true`, the parse function will infer and initialize and add
+// the appropriate `Searcher` instance
+function parse(query, options, {
+  auto = true
+} = {}) {
+  const next = query => {
+    let keys = Object.keys(query);
+    const isQueryPath = isPath(query);
+    if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
+      return next(convertToExplicit(query));
+    }
+    if (isLeaf(query)) {
+      const key = isQueryPath ? query[KeyType.PATH] : keys[0];
+      const pattern = isQueryPath ? query[KeyType.PATTERN] : query[key];
+      if (!isString(pattern)) {
+        throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
+      }
+      const obj = {
+        keyId: createKeyId(key),
+        pattern
+      };
+      if (auto) {
+        obj.searcher = createSearcher(pattern, options);
+      }
+      return obj;
+    }
+    let node = {
+      children: [],
+      operator: keys[0]
+    };
+    keys.forEach(key => {
+      const value = query[key];
+      if (isArray(value)) {
+        value.forEach(item => {
+          node.children.push(next(item));
+        });
+      }
+    });
+    return node;
+  };
+  if (!isExpression(query)) {
+    query = convertToExplicit(query);
+  }
+  return next(query);
+}
+
+// Practical scoring function
+function computeScore(results, {
+  ignoreFieldNorm = Config.ignoreFieldNorm
+}) {
+  results.forEach(result => {
+    let totalScore = 1;
+    result.matches.forEach(({
+      key,
+      norm,
+      score
+    }) => {
+      const weight = key ? key.weight : null;
+      totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
+    });
+    result.score = totalScore;
+  });
+}
+function transformMatches(result, data) {
+  const matches = result.matches;
+  data.matches = [];
+  if (!isDefined(matches)) {
+    return;
+  }
+  matches.forEach(match => {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return;
+    }
+    const {
+      indices,
+      value
+    } = match;
+    let obj = {
+      indices,
+      value
+    };
+    if (match.key) {
+      obj.key = match.key.src;
+    }
+    if (match.idx > -1) {
+      obj.refIndex = match.idx;
+    }
+    data.matches.push(obj);
+  });
+}
+function transformScore(result, data) {
+  data.score = result.score;
+}
+function format(results, docs, {
+  includeMatches = Config.includeMatches,
+  includeScore = Config.includeScore
+} = {}) {
+  const transformers = [];
+  if (includeMatches) transformers.push(transformMatches);
+  if (includeScore) transformers.push(transformScore);
+  return results.map(result => {
+    const {
+      idx
+    } = result;
+    const data = {
+      item: docs[idx],
+      refIndex: idx
+    };
+    if (transformers.length) {
+      transformers.forEach(transformer => {
+        transformer(result, data);
+      });
+    }
+    return data;
+  });
+}
+class Fuse {
+  constructor(docs, options = {}, index) {
+    this.options = _objectSpread2(_objectSpread2({}, Config), options);
+    if (this.options.useExtendedSearch && !true) {}
+    this._keyStore = new KeyStore(this.options.keys);
+    this.setCollection(docs, index);
+  }
+  setCollection(docs, index) {
+    this._docs = docs;
+    if (index && !(index instanceof FuseIndex)) {
+      throw new Error(INCORRECT_INDEX_TYPE);
+    }
+    this._myIndex = index || createIndex(this.options.keys, this._docs, {
+      getFn: this.options.getFn,
+      fieldNormWeight: this.options.fieldNormWeight
+    });
+  }
+  add(doc) {
+    if (!isDefined(doc)) {
+      return;
+    }
+    this._docs.push(doc);
+    this._myIndex.add(doc);
+  }
+  remove(predicate = ( /* doc, idx */) => false) {
+    const results = [];
+    for (let i = 0, len = this._docs.length; i < len; i += 1) {
+      const doc = this._docs[i];
+      if (predicate(doc, i)) {
+        this.removeAt(i);
+        i -= 1;
+        len -= 1;
+        results.push(doc);
+      }
+    }
+    return results;
+  }
+  removeAt(idx) {
+    this._docs.splice(idx, 1);
+    this._myIndex.removeAt(idx);
+  }
+  getIndex() {
+    return this._myIndex;
+  }
+  search(query, {
+    limit = -1
+  } = {}) {
+    const {
+      includeMatches,
+      includeScore,
+      shouldSort,
+      sortFn,
+      ignoreFieldNorm
+    } = this.options;
+    let results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
+    computeScore(results, {
+      ignoreFieldNorm
+    });
+    if (shouldSort) {
+      results.sort(sortFn);
+    }
+    if (isNumber(limit) && limit > -1) {
+      results = results.slice(0, limit);
+    }
+    return format(results, this._docs, {
+      includeMatches,
+      includeScore
+    });
+  }
+  _searchStringList(query) {
+    const searcher = createSearcher(query, this.options);
+    const {
+      records
+    } = this._myIndex;
+    const results = [];
+
+    // Iterate over every string in the index
+    records.forEach(({
+      v: text,
+      i: idx,
+      n: norm
+    }) => {
+      if (!isDefined(text)) {
+        return;
+      }
+      const {
+        isMatch,
+        score,
+        indices
+      } = searcher.searchIn(text);
+      if (isMatch) {
+        results.push({
+          item: text,
+          idx,
+          matches: [{
+            score,
+            value: text,
+            norm,
+            indices
+          }]
+        });
+      }
+    });
+    return results;
+  }
+  _searchLogical(query) {
+    const expression = parse(query, this.options);
+    const evaluate = (node, item, idx) => {
+      if (!node.children) {
+        const {
+          keyId,
+          searcher
+        } = node;
+        const matches = this._findMatches({
+          key: this._keyStore.get(keyId),
+          value: this._myIndex.getValueForItemAtKeyId(item, keyId),
+          searcher
+        });
+        if (matches && matches.length) {
+          return [{
+            idx,
+            item,
+            matches
+          }];
+        }
+        return [];
+      }
+      const res = [];
+      for (let i = 0, len = node.children.length; i < len; i += 1) {
+        const child = node.children[i];
+        const result = evaluate(child, item, idx);
+        if (result.length) {
+          res.push(...result);
+        } else if (node.operator === LogicalOperator.AND) {
+          return [];
+        }
+      }
+      return res;
+    };
+    const records = this._myIndex.records;
+    const resultMap = {};
+    const results = [];
+    records.forEach(({
+      $: item,
+      i: idx
+    }) => {
+      if (isDefined(item)) {
+        let expResults = evaluate(expression, item, idx);
+        if (expResults.length) {
+          // Dedupe when adding
+          if (!resultMap[idx]) {
+            resultMap[idx] = {
+              idx,
+              item,
+              matches: []
+            };
+            results.push(resultMap[idx]);
+          }
+          expResults.forEach(({
+            matches
+          }) => {
+            resultMap[idx].matches.push(...matches);
+          });
+        }
+      }
+    });
+    return results;
+  }
+  _searchObjectList(query) {
+    const searcher = createSearcher(query, this.options);
+    const {
+      keys,
+      records
+    } = this._myIndex;
+    const results = [];
+
+    // List is Array<Object>
+    records.forEach(({
+      $: item,
+      i: idx
+    }) => {
+      if (!isDefined(item)) {
+        return;
+      }
+      let matches = [];
+
+      // Iterate over every key (i.e, path), and fetch the value at that key
+      keys.forEach((key, keyIndex) => {
+        matches.push(...this._findMatches({
+          key,
+          value: item[keyIndex],
+          searcher
+        }));
+      });
+      if (matches.length) {
+        results.push({
+          idx,
+          item,
+          matches
+        });
+      }
+    });
+    return results;
+  }
+  _findMatches({
+    key,
+    value,
+    searcher
+  }) {
+    if (!isDefined(value)) {
+      return [];
+    }
+    let matches = [];
+    if (isArray(value)) {
+      value.forEach(({
+        v: text,
+        i: idx,
+        n: norm
+      }) => {
+        if (!isDefined(text)) {
+          return;
+        }
+        const {
+          isMatch,
+          score,
+          indices
+        } = searcher.searchIn(text);
+        if (isMatch) {
+          matches.push({
+            score,
+            key,
+            value: text,
+            idx,
+            norm,
+            indices
+          });
+        }
+      });
+    } else {
+      const {
+        v: text,
+        n: norm
+      } = value;
+      const {
+        isMatch,
+        score,
+        indices
+      } = searcher.searchIn(text);
+      if (isMatch) {
+        matches.push({
+          score,
+          key,
+          value: text,
+          norm,
+          indices
+        });
+      }
+    }
+    return matches;
+  }
+}
+Fuse.version = '7.0.0';
+Fuse.createIndex = createIndex;
+Fuse.parseIndex = parseIndex;
+Fuse.config = Config;
+{
+  Fuse.parseQuery = parse;
+}
+{
+  register(ExtendedSearch);
+}
+
+var SearchByFuse = /** @class */ (function () {
+    function SearchByFuse(config) {
+        this._haystack = [];
+        this._fuseOptions = __assign(__assign({}, config.fuseOptions), { keys: __spreadArray([], config.searchFields, true), includeMatches: true });
+    }
+    SearchByFuse.prototype.index = function (data) {
+        this._haystack = data;
+        if (this._fuse) {
+            this._fuse.setCollection(data);
+        }
+    };
+    SearchByFuse.prototype.reset = function () {
+        this._haystack = [];
+        this._fuse = undefined;
+    };
+    SearchByFuse.prototype.isEmptyIndex = function () {
+        return !this._haystack.length;
+    };
+    SearchByFuse.prototype.search = function (needle) {
+        if (!this._fuse) {
+            {
+                this._fuse = new Fuse(this._haystack, this._fuseOptions);
+            }
+        }
+        var results = this._fuse.search(needle);
+        return results.map(function (value, i) {
+            return {
+                item: value.item,
+                score: value.score || 0,
+                rank: i + 1, // If value.score is used for sorting, this can create non-stable sorts!
+            };
+        });
+    };
+    return SearchByFuse;
+}());
+
+function getSearcher(config) {
+    {
+        return new SearchByFuse(config);
+    }
+}
+
+/**
+ * Helpers to create HTML elements used by Choices
+ * Can be overridden by providing `callbackOnCreateTemplates` option.
+ * `Choices.defaults.templates` allows access to the default template methods from `callbackOnCreateTemplates`
+ */
+var isEmptyObject = function (obj) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (var prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            return false;
+        }
+    }
+    return true;
+};
+var assignCustomProperties = function (el, choice, withCustomProperties) {
+    var dataset = el.dataset;
+    var customProperties = choice.customProperties, labelClass = choice.labelClass, labelDescription = choice.labelDescription;
+    if (labelClass) {
+        dataset.labelClass = getClassNames(labelClass).join(' ');
+    }
+    if (labelDescription) {
+        dataset.labelDescription = labelDescription;
+    }
+    if (withCustomProperties && customProperties) {
+        if (typeof customProperties === 'string') {
+            dataset.customProperties = customProperties;
+        }
+        else if (typeof customProperties === 'object' && !isEmptyObject(customProperties)) {
+            dataset.customProperties = JSON.stringify(customProperties);
+        }
+    }
+};
+var addAriaLabel = function (docRoot, id, element) {
+    var label = id && docRoot.querySelector("label[for='".concat(id, "']"));
+    var text = label && label.innerText;
+    if (text) {
+        element.setAttribute('aria-label', text);
+    }
+};
+var templates = {
+    containerOuter: function (_a, dir, isSelectElement, isSelectOneElement, searchEnabled, passedElementType, labelId) {
+        var containerOuter = _a.classNames.containerOuter;
+        var div = document.createElement('div');
+        addClassesToElement(div, containerOuter);
+        div.dataset.type = passedElementType;
+        if (dir) {
+            div.dir = dir;
+        }
+        if (isSelectOneElement) {
+            div.tabIndex = 0;
+        }
+        if (isSelectElement) {
+            div.setAttribute('role', searchEnabled ? 'combobox' : 'listbox');
+            if (searchEnabled) {
+                div.setAttribute('aria-autocomplete', 'list');
+            }
+            else if (!labelId) {
+                addAriaLabel(this._docRoot, this.passedElement.element.id, div);
+            }
+            div.setAttribute('aria-haspopup', 'true');
+            div.setAttribute('aria-expanded', 'false');
+        }
+        if (labelId) {
+            div.setAttribute('aria-labelledby', labelId);
+        }
+        return div;
+    },
+    containerInner: function (_a) {
+        var containerInner = _a.classNames.containerInner;
+        var div = document.createElement('div');
+        addClassesToElement(div, containerInner);
+        return div;
+    },
+    itemList: function (_a, isSelectOneElement) {
+        var searchEnabled = _a.searchEnabled, _b = _a.classNames, list = _b.list, listSingle = _b.listSingle, listItems = _b.listItems;
+        var div = document.createElement('div');
+        addClassesToElement(div, list);
+        addClassesToElement(div, isSelectOneElement ? listSingle : listItems);
+        if (this._isSelectElement && searchEnabled) {
+            div.setAttribute('role', 'listbox');
+        }
+        return div;
+    },
+    placeholder: function (_a, value) {
+        var allowHTML = _a.allowHTML, placeholder = _a.classNames.placeholder;
+        var div = document.createElement('div');
+        addClassesToElement(div, placeholder);
+        setElementHtml(div, allowHTML, value);
+        return div;
+    },
+    item: function (_a, choice, removeItemButton) {
+        var allowHTML = _a.allowHTML, removeItemButtonAlignLeft = _a.removeItemButtonAlignLeft, removeItemIconText = _a.removeItemIconText, removeItemLabelText = _a.removeItemLabelText, _b = _a.classNames, item = _b.item, button = _b.button, highlightedState = _b.highlightedState, itemSelectable = _b.itemSelectable, placeholder = _b.placeholder;
+        var rawValue = unwrapStringForRaw(choice.value);
+        var div = document.createElement('div');
+        addClassesToElement(div, item);
+        if (choice.labelClass) {
+            var spanLabel = document.createElement('span');
+            setElementHtml(spanLabel, allowHTML, choice.label);
+            addClassesToElement(spanLabel, choice.labelClass);
+            div.appendChild(spanLabel);
+        }
+        else {
+            setElementHtml(div, allowHTML, choice.label);
+        }
+        div.dataset.item = '';
+        div.dataset.id = choice.id;
+        div.dataset.value = rawValue;
+        assignCustomProperties(div, choice, true);
+        if (choice.disabled || this.containerOuter.isDisabled) {
+            div.setAttribute('aria-disabled', 'true');
+        }
+        if (this._isSelectElement) {
+            div.setAttribute('aria-selected', 'true');
+            div.setAttribute('role', 'option');
+        }
+        if (choice.placeholder) {
+            addClassesToElement(div, placeholder);
+            div.dataset.placeholder = '';
+        }
+        addClassesToElement(div, choice.highlighted ? highlightedState : itemSelectable);
+        if (removeItemButton) {
+            if (choice.disabled) {
+                removeClassesFromElement(div, itemSelectable);
+            }
+            div.dataset.deletable = '';
+            var removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            addClassesToElement(removeButton, button);
+            setElementHtml(removeButton, true, resolveNoticeFunction(removeItemIconText, choice.value));
+            var REMOVE_ITEM_LABEL = resolveNoticeFunction(removeItemLabelText, choice.value);
+            if (REMOVE_ITEM_LABEL) {
+                removeButton.setAttribute('aria-label', REMOVE_ITEM_LABEL);
+            }
+            removeButton.dataset.button = '';
+            if (removeItemButtonAlignLeft) {
+                div.insertAdjacentElement('afterbegin', removeButton);
+            }
+            else {
+                div.appendChild(removeButton);
+            }
+        }
+        return div;
+    },
+    choiceList: function (_a, isSelectOneElement) {
+        var list = _a.classNames.list;
+        var div = document.createElement('div');
+        addClassesToElement(div, list);
+        if (!isSelectOneElement) {
+            div.setAttribute('aria-multiselectable', 'true');
+        }
+        div.setAttribute('role', 'listbox');
+        return div;
+    },
+    choiceGroup: function (_a, _b) {
+        var allowHTML = _a.allowHTML, _c = _a.classNames, group = _c.group, groupHeading = _c.groupHeading, itemDisabled = _c.itemDisabled;
+        var id = _b.id, label = _b.label, disabled = _b.disabled;
+        var rawLabel = unwrapStringForRaw(label);
+        var div = document.createElement('div');
+        addClassesToElement(div, group);
+        if (disabled) {
+            addClassesToElement(div, itemDisabled);
+        }
+        div.setAttribute('role', 'group');
+        div.dataset.group = '';
+        div.dataset.id = id;
+        div.dataset.value = rawLabel;
+        if (disabled) {
+            div.setAttribute('aria-disabled', 'true');
+        }
+        var heading = document.createElement('div');
+        addClassesToElement(heading, groupHeading);
+        setElementHtml(heading, allowHTML, label || '');
+        div.appendChild(heading);
+        return div;
+    },
+    choice: function (_a, choice, selectText, groupName) {
+        var allowHTML = _a.allowHTML, _b = _a.classNames, item = _b.item, itemChoice = _b.itemChoice, itemSelectable = _b.itemSelectable, selectedState = _b.selectedState, itemDisabled = _b.itemDisabled, description = _b.description, placeholder = _b.placeholder;
+        // eslint-disable-next-line prefer-destructuring
+        var label = choice.label;
+        var rawValue = unwrapStringForRaw(choice.value);
+        var div = document.createElement('div');
+        div.id = choice.elementId;
+        addClassesToElement(div, item);
+        addClassesToElement(div, itemChoice);
+        if (groupName && typeof label === 'string') {
+            label = escapeForTemplate(allowHTML, label);
+            label += " (".concat(groupName, ")");
+            label = { trusted: label };
+        }
+        var describedBy = div;
+        if (choice.labelClass) {
+            var spanLabel = document.createElement('span');
+            setElementHtml(spanLabel, allowHTML, label);
+            addClassesToElement(spanLabel, choice.labelClass);
+            describedBy = spanLabel;
+            div.appendChild(spanLabel);
+        }
+        else {
+            setElementHtml(div, allowHTML, label);
+        }
+        if (choice.labelDescription) {
+            var descId = "".concat(choice.elementId, "-description");
+            describedBy.setAttribute('aria-describedby', descId);
+            var spanDesc = document.createElement('span');
+            setElementHtml(spanDesc, allowHTML, choice.labelDescription);
+            spanDesc.id = descId;
+            addClassesToElement(spanDesc, description);
+            div.appendChild(spanDesc);
+        }
+        if (choice.selected) {
+            addClassesToElement(div, selectedState);
+        }
+        if (choice.placeholder) {
+            addClassesToElement(div, placeholder);
+        }
+        div.setAttribute('role', choice.group ? 'treeitem' : 'option');
+        div.dataset.choice = '';
+        div.dataset.id = choice.id;
+        div.dataset.value = rawValue;
+        if (selectText) {
+            div.dataset.selectText = selectText;
+        }
+        if (choice.group) {
+            div.dataset.groupId = "".concat(choice.group.id);
+        }
+        assignCustomProperties(div, choice, false);
+        if (choice.disabled) {
+            addClassesToElement(div, itemDisabled);
+            div.dataset.choiceDisabled = '';
+            div.setAttribute('aria-disabled', 'true');
+        }
+        else {
+            addClassesToElement(div, itemSelectable);
+            div.dataset.choiceSelectable = '';
+        }
+        return div;
+    },
+    input: function (_a, placeholderValue) {
+        var _b = _a.classNames, input = _b.input, inputCloned = _b.inputCloned, labelId = _a.labelId;
+        var inp = document.createElement('input');
+        inp.type = 'search';
+        addClassesToElement(inp, input);
+        addClassesToElement(inp, inputCloned);
+        inp.autocomplete = 'off';
+        inp.autocapitalize = 'off';
+        inp.spellcheck = false;
+        inp.setAttribute('role', 'textbox');
+        inp.setAttribute('aria-autocomplete', 'list');
+        if (placeholderValue) {
+            inp.setAttribute('aria-label', placeholderValue);
+        }
+        else if (!labelId) {
+            addAriaLabel(this._docRoot, this.passedElement.element.id, inp);
+        }
+        return inp;
+    },
+    dropdown: function (_a) {
+        var _b = _a.classNames, list = _b.list, listDropdown = _b.listDropdown;
+        var div = document.createElement('div');
+        addClassesToElement(div, list);
+        addClassesToElement(div, listDropdown);
+        div.setAttribute('aria-expanded', 'false');
+        return div;
+    },
+    notice: function (_a, innerHTML, type) {
+        var _b = _a.classNames, item = _b.item, itemChoice = _b.itemChoice, addChoice = _b.addChoice, noResults = _b.noResults, noChoices = _b.noChoices, noticeItem = _b.notice;
+        if (type === void 0) { type = NoticeTypes.generic; }
+        var notice = document.createElement('div');
+        setElementHtml(notice, true, innerHTML);
+        addClassesToElement(notice, item);
+        addClassesToElement(notice, itemChoice);
+        addClassesToElement(notice, noticeItem);
+        // eslint-disable-next-line default-case
+        switch (type) {
+            case NoticeTypes.addChoice:
+                addClassesToElement(notice, addChoice);
+                break;
+            case NoticeTypes.noResults:
+                addClassesToElement(notice, noResults);
+                break;
+            case NoticeTypes.noChoices:
+                addClassesToElement(notice, noChoices);
+                break;
+        }
+        if (type === NoticeTypes.addChoice) {
+            notice.dataset.choiceSelectable = '';
+            notice.dataset.choice = '';
+        }
+        return notice;
+    },
+    option: function (choice) {
+        // HtmlOptionElement's label value does not support HTML, so the avoid double escaping unwrap the untrusted string.
+        var labelValue = unwrapStringForRaw(choice.label);
+        var opt = new Option(labelValue, choice.value, false, choice.selected);
+        assignCustomProperties(opt, choice, true);
+        opt.disabled = choice.disabled;
+        if (choice.selected) {
+            opt.setAttribute('selected', '');
+        }
+        return opt;
+    },
+};
+
+/** @see {@link http://browserhacks.com/#hack-acea075d0ac6954f275a70023906050c} */
+var IS_IE11 = '-ms-scroll-limit' in document.documentElement.style &&
+    '-ms-ime-align' in document.documentElement.style;
+var USER_DEFAULTS = {};
+var parseDataSetId = function (element) {
+    if (!element) {
+        return undefined;
+    }
+    return element.dataset.id ? parseInt(element.dataset.id, 10) : undefined;
+};
+var selectableChoiceIdentifier = '[data-choice-selectable]';
+/**
+ * Choices
+ * @author Josh Johnson<josh@joshuajohnson.co.uk>
+ */
+var Choices = /** @class */ (function () {
+    function Choices(element, userConfig) {
+        if (element === void 0) { element = '[data-choice]'; }
+        if (userConfig === void 0) { userConfig = {}; }
+        var _this = this;
+        this.initialisedOK = undefined;
+        this._hasNonChoicePlaceholder = false;
+        this._lastAddedChoiceId = 0;
+        this._lastAddedGroupId = 0;
+        var defaults = Choices.defaults;
+        this.config = __assign(__assign(__assign({}, defaults.allOptions), defaults.options), userConfig);
+        ObjectsInConfig.forEach(function (key) {
+            _this.config[key] = __assign(__assign(__assign({}, defaults.allOptions[key]), defaults.options[key]), userConfig[key]);
+        });
+        var config = this.config;
+        if (!config.silent) {
+            this._validateConfig();
+        }
+        var docRoot = config.shadowRoot || document.documentElement;
+        this._docRoot = docRoot;
+        var passedElement = typeof element === 'string' ? docRoot.querySelector(element) : element;
+        if (!passedElement ||
+            typeof passedElement !== 'object' ||
+            !(isHtmlInputElement(passedElement) || isHtmlSelectElement(passedElement))) {
+            if (!passedElement && typeof element === 'string') {
+                throw TypeError("Selector ".concat(element, " failed to find an element"));
+            }
+            throw TypeError("Expected one of the following types text|select-one|select-multiple");
+        }
+        var elementType = passedElement.type;
+        var isText = elementType === PassedElementTypes.Text;
+        if (isText || config.maxItemCount !== 1) {
+            config.singleModeForMultiSelect = false;
+        }
+        if (config.singleModeForMultiSelect) {
+            elementType = PassedElementTypes.SelectMultiple;
+        }
+        var isSelectOne = elementType === PassedElementTypes.SelectOne;
+        var isSelectMultiple = elementType === PassedElementTypes.SelectMultiple;
+        var isSelect = isSelectOne || isSelectMultiple;
+        this._elementType = elementType;
+        this._isTextElement = isText;
+        this._isSelectOneElement = isSelectOne;
+        this._isSelectMultipleElement = isSelectMultiple;
+        this._isSelectElement = isSelectOne || isSelectMultiple;
+        this._canAddUserChoices = (isText && config.addItems) || (isSelect && config.addChoices);
+        if (typeof config.renderSelectedChoices !== 'boolean') {
+            config.renderSelectedChoices = config.renderSelectedChoices === 'always' || isSelectOne;
+        }
+        if (config.closeDropdownOnSelect === 'auto') {
+            config.closeDropdownOnSelect = isText || isSelectOne || config.singleModeForMultiSelect;
+        }
+        else {
+            config.closeDropdownOnSelect = coerceBool(config.closeDropdownOnSelect);
+        }
+        if (config.placeholder) {
+            if (config.placeholderValue) {
+                this._hasNonChoicePlaceholder = true;
+            }
+            else if (passedElement.dataset.placeholder) {
+                this._hasNonChoicePlaceholder = true;
+                config.placeholderValue = passedElement.dataset.placeholder;
+            }
+        }
+        if (userConfig.addItemFilter && typeof userConfig.addItemFilter !== 'function') {
+            var re = userConfig.addItemFilter instanceof RegExp ? userConfig.addItemFilter : new RegExp(userConfig.addItemFilter);
+            config.addItemFilter = re.test.bind(re);
+        }
+        if (this._isTextElement) {
+            this.passedElement = new WrappedInput({
+                element: passedElement,
+                classNames: config.classNames,
+            });
+        }
+        else {
+            var selectEl = passedElement;
+            this.passedElement = new WrappedSelect({
+                element: selectEl,
+                classNames: config.classNames,
+                template: function (data) { return _this._templates.option(data); },
+                extractPlaceholder: config.placeholder && !this._hasNonChoicePlaceholder,
+            });
+        }
+        this.initialised = false;
+        this._store = new Store(config);
+        this._currentValue = '';
+        config.searchEnabled = (!isText && config.searchEnabled) || isSelectMultiple;
+        this._canSearch = config.searchEnabled;
+        this._isScrollingOnIe = false;
+        this._highlightPosition = 0;
+        this._wasTap = true;
+        this._placeholderValue = this._generatePlaceholderValue();
+        this._baseId = generateId(passedElement, 'choices-');
+        /**
+         * setting direction in cases where it's explicitly set on passedElement
+         * or when calculated direction is different from the document
+         */
+        this._direction = passedElement.dir;
+        if (!this._direction) {
+            var elementDirection = window.getComputedStyle(passedElement).direction;
+            var documentDirection = window.getComputedStyle(document.documentElement).direction;
+            if (elementDirection !== documentDirection) {
+                this._direction = elementDirection;
+            }
+        }
+        this._idNames = {
+            itemChoice: 'item-choice',
+        };
+        this._templates = defaults.templates;
+        this._render = this._render.bind(this);
+        this._onFocus = this._onFocus.bind(this);
+        this._onBlur = this._onBlur.bind(this);
+        this._onKeyUp = this._onKeyUp.bind(this);
+        this._onKeyDown = this._onKeyDown.bind(this);
+        this._onInput = this._onInput.bind(this);
+        this._onClick = this._onClick.bind(this);
+        this._onTouchMove = this._onTouchMove.bind(this);
+        this._onTouchEnd = this._onTouchEnd.bind(this);
+        this._onMouseDown = this._onMouseDown.bind(this);
+        this._onMouseOver = this._onMouseOver.bind(this);
+        this._onFormReset = this._onFormReset.bind(this);
+        this._onSelectKey = this._onSelectKey.bind(this);
+        this._onEnterKey = this._onEnterKey.bind(this);
+        this._onEscapeKey = this._onEscapeKey.bind(this);
+        this._onDirectionKey = this._onDirectionKey.bind(this);
+        this._onDeleteKey = this._onDeleteKey.bind(this);
+        // If element has already been initialised with Choices, fail silently
+        if (this.passedElement.isActive) {
+            if (!config.silent) {
+                console.warn('Trying to initialise Choices on element already initialised', { element: element });
+            }
+            this.initialised = true;
+            this.initialisedOK = false;
+            return;
+        }
+        // Let's go
+        this.init();
+        // preserve the selected item list after setup for form reset
+        this._initialItems = this._store.items.map(function (choice) { return choice.value; });
+    }
+    Object.defineProperty(Choices, "defaults", {
+        get: function () {
+            return Object.preventExtensions({
+                get options() {
+                    return USER_DEFAULTS;
+                },
+                get allOptions() {
+                    return DEFAULT_CONFIG;
+                },
+                get templates() {
+                    return templates;
+                },
+            });
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Choices.prototype.init = function () {
+        if (this.initialised || this.initialisedOK !== undefined) {
+            return;
+        }
+        this._searcher = getSearcher(this.config);
+        this._loadChoices();
+        this._createTemplates();
+        this._createElements();
+        this._createStructure();
+        if ((this._isTextElement && !this.config.addItems) ||
+            this.passedElement.element.hasAttribute('disabled') ||
+            !!this.passedElement.element.closest('fieldset:disabled')) {
+            this.disable();
+        }
+        else {
+            this.enable();
+            this._addEventListeners();
+        }
+        // should be triggered **after** disabled state to avoid additional re-draws
+        this._initStore();
+        this.initialised = true;
+        this.initialisedOK = true;
+        var callbackOnInit = this.config.callbackOnInit;
+        // Run callback if it is a function
+        if (typeof callbackOnInit === 'function') {
+            callbackOnInit.call(this);
+        }
+    };
+    Choices.prototype.destroy = function () {
+        if (!this.initialised) {
+            return;
+        }
+        this._removeEventListeners();
+        this.passedElement.reveal();
+        this.containerOuter.unwrap(this.passedElement.element);
+        this._store._listeners = []; // prevents select/input value being wiped
+        this.clearStore(false);
+        this._stopSearch();
+        this._templates = Choices.defaults.templates;
+        this.initialised = false;
+        this.initialisedOK = undefined;
+    };
+    Choices.prototype.enable = function () {
+        if (this.passedElement.isDisabled) {
+            this.passedElement.enable();
+        }
+        if (this.containerOuter.isDisabled) {
+            this._addEventListeners();
+            this.input.enable();
+            this.containerOuter.enable();
+        }
+        return this;
+    };
+    Choices.prototype.disable = function () {
+        if (!this.passedElement.isDisabled) {
+            this.passedElement.disable();
+        }
+        if (!this.containerOuter.isDisabled) {
+            this._removeEventListeners();
+            this.input.disable();
+            this.containerOuter.disable();
+        }
+        return this;
+    };
+    Choices.prototype.highlightItem = function (item, runEvent) {
+        if (runEvent === void 0) { runEvent = true; }
+        if (!item || !item.id) {
+            return this;
+        }
+        var choice = this._store.items.find(function (c) { return c.id === item.id; });
+        if (!choice || choice.highlighted) {
+            return this;
+        }
+        this._store.dispatch(highlightItem(choice, true));
+        if (runEvent) {
+            this.passedElement.triggerEvent(EventType.highlightItem, this._getChoiceForOutput(choice));
+        }
+        return this;
+    };
+    Choices.prototype.unhighlightItem = function (item, runEvent) {
+        if (runEvent === void 0) { runEvent = true; }
+        if (!item || !item.id) {
+            return this;
+        }
+        var choice = this._store.items.find(function (c) { return c.id === item.id; });
+        if (!choice || !choice.highlighted) {
+            return this;
+        }
+        this._store.dispatch(highlightItem(choice, false));
+        if (runEvent) {
+            this.passedElement.triggerEvent(EventType.unhighlightItem, this._getChoiceForOutput(choice));
+        }
+        return this;
+    };
+    Choices.prototype.highlightAll = function () {
+        var _this = this;
+        this._store.withTxn(function () {
+            _this._store.items.forEach(function (item) {
+                if (!item.highlighted) {
+                    _this._store.dispatch(highlightItem(item, true));
+                    _this.passedElement.triggerEvent(EventType.highlightItem, _this._getChoiceForOutput(item));
+                }
+            });
+        });
+        return this;
+    };
+    Choices.prototype.unhighlightAll = function () {
+        var _this = this;
+        this._store.withTxn(function () {
+            _this._store.items.forEach(function (item) {
+                if (item.highlighted) {
+                    _this._store.dispatch(highlightItem(item, false));
+                    _this.passedElement.triggerEvent(EventType.highlightItem, _this._getChoiceForOutput(item));
+                }
+            });
+        });
+        return this;
+    };
+    Choices.prototype.removeActiveItemsByValue = function (value) {
+        var _this = this;
+        this._store.withTxn(function () {
+            _this._store.items.filter(function (item) { return item.value === value; }).forEach(function (item) { return _this._removeItem(item); });
+        });
+        return this;
+    };
+    Choices.prototype.removeActiveItems = function (excludedId) {
+        var _this = this;
+        this._store.withTxn(function () {
+            _this._store.items.filter(function (_a) {
+                var id = _a.id;
+                return id !== excludedId;
+            }).forEach(function (item) { return _this._removeItem(item); });
+        });
+        return this;
+    };
+    Choices.prototype.removeHighlightedItems = function (runEvent) {
+        var _this = this;
+        if (runEvent === void 0) { runEvent = false; }
+        this._store.withTxn(function () {
+            _this._store.highlightedActiveItems.forEach(function (item) {
+                _this._removeItem(item);
+                // If this action was performed by the user
+                // trigger the event
+                if (runEvent) {
+                    _this._triggerChange(item.value);
+                }
+            });
+        });
+        return this;
+    };
+    Choices.prototype.showDropdown = function (preventInputFocus) {
+        var _this = this;
+        if (this.dropdown.isActive) {
+            return this;
+        }
+        requestAnimationFrame(function () {
+            _this.dropdown.show();
+            var rect = _this.dropdown.element.getBoundingClientRect();
+            _this.containerOuter.open(rect.bottom, rect.height);
+            if (!preventInputFocus && _this._canSearch) {
+                _this.input.focus();
+            }
+            _this.passedElement.triggerEvent(EventType.showDropdown);
+        });
+        return this;
+    };
+    Choices.prototype.hideDropdown = function (preventInputBlur) {
+        var _this = this;
+        if (!this.dropdown.isActive) {
+            return this;
+        }
+        requestAnimationFrame(function () {
+            _this.dropdown.hide();
+            _this.containerOuter.close();
+            if (!preventInputBlur && _this._canSearch) {
+                _this.input.removeActiveDescendant();
+                _this.input.blur();
+            }
+            _this.passedElement.triggerEvent(EventType.hideDropdown);
+        });
+        return this;
+    };
+    Choices.prototype.getValue = function (valueOnly) {
+        var _this = this;
+        var values = this._store.items.map(function (item) {
+            return (valueOnly ? item.value : _this._getChoiceForOutput(item));
+        });
+        return this._isSelectOneElement || this.config.singleModeForMultiSelect ? values[0] : values;
+    };
+    Choices.prototype.setValue = function (items) {
+        var _this = this;
+        if (!this.initialisedOK) {
+            this._warnChoicesInitFailed('setValue');
+            return this;
+        }
+        this._store.withTxn(function () {
+            items.forEach(function (value) {
+                if (value) {
+                    _this._addChoice(mapInputToChoice(value, false));
+                }
+            });
+        });
+        // @todo integrate with Store
+        this._searcher.reset();
+        return this;
+    };
+    Choices.prototype.setChoiceByValue = function (value) {
+        var _this = this;
+        if (!this.initialisedOK) {
+            this._warnChoicesInitFailed('setChoiceByValue');
+            return this;
+        }
+        if (this._isTextElement) {
+            return this;
+        }
+        this._store.withTxn(function () {
+            // If only one value has been passed, convert to array
+            var choiceValue = Array.isArray(value) ? value : [value];
+            // Loop through each value and
+            choiceValue.forEach(function (val) { return _this._findAndSelectChoiceByValue(val); });
+            _this.unhighlightAll();
+        });
+        // @todo integrate with Store
+        this._searcher.reset();
+        return this;
+    };
+    /**
+     * Set choices of select input via an array of objects (or function that returns array of object or promise of it),
+     * a value field name and a label field name.
+     * This behaves the same as passing items via the choices option but can be called after initialising Choices.
+     * This can also be used to add groups of choices (see example 2); Optionally pass a true `replaceChoices` value to remove any existing choices.
+     * Optionally pass a `customProperties` object to add additional data to your choices (useful when searching/filtering etc).
+     *
+     * **Input types affected:** select-one, select-multiple
+     *
+     * @example
+     * ```js
+     * const example = new Choices(element);
+     *
+     * example.setChoices([
+     *   {value: 'One', label: 'Label One', disabled: true},
+     *   {value: 'Two', label: 'Label Two', selected: true},
+     *   {value: 'Three', label: 'Label Three'},
+     * ], 'value', 'label', false);
+     * ```
+     *
+     * @example
+     * ```js
+     * const example = new Choices(element);
+     *
+     * example.setChoices(async () => {
+     *   try {
+     *      const items = await fetch('/items');
+     *      return items.json()
+     *   } catch(err) {
+     *      console.error(err)
+     *   }
+     * });
+     * ```
+     *
+     * @example
+     * ```js
+     * const example = new Choices(element);
+     *
+     * example.setChoices([{
+     *   label: 'Group one',
+     *   id: 1,
+     *   disabled: false,
+     *   choices: [
+     *     {value: 'Child One', label: 'Child One', selected: true},
+     *     {value: 'Child Two', label: 'Child Two',  disabled: true},
+     *     {value: 'Child Three', label: 'Child Three'},
+     *   ]
+     * },
+     * {
+     *   label: 'Group two',
+     *   id: 2,
+     *   disabled: false,
+     *   choices: [
+     *     {value: 'Child Four', label: 'Child Four', disabled: true},
+     *     {value: 'Child Five', label: 'Child Five'},
+     *     {value: 'Child Six', label: 'Child Six', customProperties: {
+     *       description: 'Custom description about child six',
+     *       random: 'Another random custom property'
+     *     }},
+     *   ]
+     * }], 'value', 'label', false);
+     * ```
+     */
+    Choices.prototype.setChoices = function (choicesArrayOrFetcher, value, label, replaceChoices, clearSearchFlag) {
+        var _this = this;
+        if (choicesArrayOrFetcher === void 0) { choicesArrayOrFetcher = []; }
+        if (value === void 0) { value = 'value'; }
+        if (label === void 0) { label = 'label'; }
+        if (replaceChoices === void 0) { replaceChoices = false; }
+        if (clearSearchFlag === void 0) { clearSearchFlag = true; }
+        if (!this.initialisedOK) {
+            this._warnChoicesInitFailed('setChoices');
+            return this;
+        }
+        if (!this._isSelectElement) {
+            throw new TypeError("setChoices can't be used with INPUT based Choices");
+        }
+        if (typeof value !== 'string' || !value) {
+            throw new TypeError("value parameter must be a name of 'value' field in passed objects");
+        }
+        // Clear choices if needed
+        if (replaceChoices) {
+            this.clearChoices();
+        }
+        if (typeof choicesArrayOrFetcher === 'function') {
+            // it's a choices fetcher function
+            var fetcher_1 = choicesArrayOrFetcher(this);
+            if (typeof Promise === 'function' && fetcher_1 instanceof Promise) {
+                // that's a promise
+                // eslint-disable-next-line no-promise-executor-return
+                return new Promise(function (resolve) { return requestAnimationFrame(resolve); })
+                    .then(function () { return _this._handleLoadingState(true); })
+                    .then(function () { return fetcher_1; })
+                    .then(function (data) { return _this.setChoices(data, value, label, replaceChoices); })
+                    .catch(function (err) {
+                    if (!_this.config.silent) {
+                        console.error(err);
+                    }
+                })
+                    .then(function () { return _this._handleLoadingState(false); })
+                    .then(function () { return _this; });
+            }
+            // function returned something else than promise, let's check if it's an array of choices
+            if (!Array.isArray(fetcher_1)) {
+                throw new TypeError(".setChoices first argument function must return either array of choices or Promise, got: ".concat(typeof fetcher_1));
+            }
+            // recursion with results, it's sync and choices were cleared already
+            return this.setChoices(fetcher_1, value, label, false);
+        }
+        if (!Array.isArray(choicesArrayOrFetcher)) {
+            throw new TypeError(".setChoices must be called either with array of choices with a function resulting into Promise of array of choices");
+        }
+        this.containerOuter.removeLoadingState();
+        this._store.withTxn(function () {
+            if (clearSearchFlag) {
+                _this._isSearching = false;
+            }
+            var isDefaultValue = value === 'value';
+            var isDefaultLabel = label === 'label';
+            choicesArrayOrFetcher.forEach(function (groupOrChoice) {
+                if ('choices' in groupOrChoice) {
+                    var group = groupOrChoice;
+                    if (!isDefaultLabel) {
+                        group = __assign(__assign({}, group), { label: group[label] });
+                    }
+                    _this._addGroup(mapInputToChoice(group, true));
+                }
+                else {
+                    var choice = groupOrChoice;
+                    if (!isDefaultLabel || !isDefaultValue) {
+                        choice = __assign(__assign({}, choice), { value: choice[value], label: choice[label] });
+                    }
+                    _this._addChoice(mapInputToChoice(choice, false));
+                }
+            });
+            _this.unhighlightAll();
+        });
+        // @todo integrate with Store
+        this._searcher.reset();
+        return this;
+    };
+    Choices.prototype.refresh = function (withEvents, selectFirstOption, deselectAll) {
+        var _this = this;
+        if (withEvents === void 0) { withEvents = false; }
+        if (selectFirstOption === void 0) { selectFirstOption = false; }
+        if (deselectAll === void 0) { deselectAll = false; }
+        if (!this._isSelectElement) {
+            if (!this.config.silent) {
+                console.warn('refresh method can only be used on choices backed by a <select> element');
+            }
+            return this;
+        }
+        this._store.withTxn(function () {
+            var choicesFromOptions = _this.passedElement.optionsAsChoices();
+            // Build the list of items which require preserving
+            var existingItems = {};
+            if (!deselectAll) {
+                _this._store.items.forEach(function (choice) {
+                    if (choice.id && choice.active && choice.selected && !choice.disabled) {
+                        existingItems[choice.value] = true;
+                    }
+                });
+            }
+            _this.clearStore(false);
+            var updateChoice = function (choice) {
+                if (deselectAll) {
+                    _this._store.dispatch(removeItem$1(choice));
+                }
+                else if (existingItems[choice.value]) {
+                    choice.selected = true;
+                }
+            };
+            choicesFromOptions.forEach(function (groupOrChoice) {
+                if ('choices' in groupOrChoice) {
+                    groupOrChoice.choices.forEach(updateChoice);
+                    return;
+                }
+                updateChoice(groupOrChoice);
+            });
+            /* @todo only generate add events for the added options instead of all
+            if (withEvents) {
+              items.forEach((choice) => {
+                if (existingItems[choice.value]) {
+                  this.passedElement.triggerEvent(
+                    EventType.removeItem,
+                    this._getChoiceForEvent(choice),
+                  );
+                }
+              });
+            }
+            */
+            // load new choices & items
+            _this._addPredefinedChoices(choicesFromOptions, selectFirstOption, withEvents);
+            // re-do search if required
+            if (_this._isSearching) {
+                _this._searchChoices(_this.input.value);
+            }
+        });
+        return this;
+    };
+    Choices.prototype.removeChoice = function (value) {
+        var choice = this._store.choices.find(function (c) { return c.value === value; });
+        if (!choice) {
+            return this;
+        }
+        this._clearNotice();
+        this._store.dispatch(removeChoice(choice));
+        // @todo integrate with Store
+        this._searcher.reset();
+        if (choice.selected) {
+            this.passedElement.triggerEvent(EventType.removeItem, this._getChoiceForOutput(choice));
+        }
+        return this;
+    };
+    Choices.prototype.clearChoices = function () {
+        var _this = this;
+        this._store.withTxn(function () {
+            _this._store.choices.forEach(function (choice) {
+                if (!choice.selected) {
+                    _this._store.dispatch(removeChoice(choice));
+                }
+            });
+        });
+        // @todo integrate with Store
+        this._searcher.reset();
+        return this;
+    };
+    Choices.prototype.clearStore = function (clearOptions) {
+        if (clearOptions === void 0) { clearOptions = true; }
+        this._stopSearch();
+        if (clearOptions) {
+            this.passedElement.element.replaceChildren('');
+        }
+        this.itemList.element.replaceChildren('');
+        this.choiceList.element.replaceChildren('');
+        this._store.reset();
+        this._lastAddedChoiceId = 0;
+        this._lastAddedGroupId = 0;
+        // @todo integrate with Store
+        this._searcher.reset();
+        return this;
+    };
+    Choices.prototype.clearInput = function () {
+        var shouldSetInputWidth = !this._isSelectOneElement;
+        this.input.clear(shouldSetInputWidth);
+        this._stopSearch();
+        return this;
+    };
+    Choices.prototype._validateConfig = function () {
+        var config = this.config;
+        var invalidConfigOptions = diff(config, DEFAULT_CONFIG);
+        if (invalidConfigOptions.length) {
+            console.warn('Unknown config option(s) passed', invalidConfigOptions.join(', '));
+        }
+        if (config.allowHTML && config.allowHtmlUserInput) {
+            if (config.addItems) {
+                console.warn('Warning: allowHTML/allowHtmlUserInput/addItems all being true is strongly not recommended and may lead to XSS attacks');
+            }
+            if (config.addChoices) {
+                console.warn('Warning: allowHTML/allowHtmlUserInput/addChoices all being true is strongly not recommended and may lead to XSS attacks');
+            }
+        }
+    };
+    Choices.prototype._render = function (changes) {
+        if (changes === void 0) { changes = { choices: true, groups: true, items: true }; }
+        if (this._store.inTxn()) {
+            return;
+        }
+        if (this._isSelectElement) {
+            if (changes.choices || changes.groups) {
+                this._renderChoices();
+            }
+        }
+        if (changes.items) {
+            this._renderItems();
+        }
+    };
+    Choices.prototype._renderChoices = function () {
+        var _this = this;
+        if (!this._canAddItems()) {
+            return; // block rendering choices if the input limit is reached.
+        }
+        var _a = this, config = _a.config, isSearching = _a._isSearching;
+        var _b = this._store, activeGroups = _b.activeGroups, activeChoices = _b.activeChoices;
+        var renderLimit = 0;
+        if (isSearching && config.searchResultLimit > 0) {
+            renderLimit = config.searchResultLimit;
+        }
+        else if (config.renderChoiceLimit > 0) {
+            renderLimit = config.renderChoiceLimit;
+        }
+        if (this._isSelectElement) {
+            var backingOptions = activeChoices.filter(function (choice) { return !choice.element; });
+            if (backingOptions.length) {
+                this.passedElement.addOptions(backingOptions);
+            }
+        }
+        var fragment = document.createDocumentFragment();
+        var renderableChoices = function (choices) {
+            return choices.filter(function (choice) {
+                return !choice.placeholder && (isSearching ? !!choice.rank : config.renderSelectedChoices || !choice.selected);
+            });
+        };
+        var selectableChoices = false;
+        var renderChoices = function (choices, withinGroup, groupLabel) {
+            if (isSearching) {
+                // sortByRank is used to ensure stable sorting, as scores are non-unique
+                // this additionally ensures fuseOptions.sortFn is not ignored
+                choices.sort(sortByRank);
+            }
+            else if (config.shouldSort) {
+                choices.sort(config.sorter);
+            }
+            var choiceLimit = choices.length;
+            choiceLimit = !withinGroup && renderLimit && choiceLimit > renderLimit ? renderLimit : choiceLimit;
+            choiceLimit--;
+            choices.every(function (choice, index) {
+                // choiceEl being empty signals the contents has probably significantly changed
+                var dropdownItem = choice.choiceEl || _this._templates.choice(config, choice, config.itemSelectText, groupLabel);
+                choice.choiceEl = dropdownItem;
+                fragment.appendChild(dropdownItem);
+                if (!choice.disabled && (isSearching || !choice.selected)) {
+                    selectableChoices = true;
+                }
+                return index < choiceLimit;
+            });
+        };
+        if (activeChoices.length) {
+            if (config.resetScrollPosition) {
+                requestAnimationFrame(function () { return _this.choiceList.scrollToTop(); });
+            }
+            if (!this._hasNonChoicePlaceholder && !isSearching && this._isSelectOneElement) {
+                // If we have a placeholder choice along with groups
+                renderChoices(activeChoices.filter(function (choice) { return choice.placeholder && !choice.group; }), false, undefined);
+            }
+            // If we have grouped options
+            if (activeGroups.length && !isSearching) {
+                if (config.shouldSort) {
+                    activeGroups.sort(config.sorter);
+                }
+                // render Choices without group first, regardless of sort, otherwise they won't be distinguishable
+                // from the last group
+                renderChoices(activeChoices.filter(function (choice) { return !choice.placeholder && !choice.group; }), false, undefined);
+                activeGroups.forEach(function (group) {
+                    var groupChoices = renderableChoices(group.choices);
+                    if (groupChoices.length) {
+                        if (group.label) {
+                            var dropdownGroup = group.groupEl || _this._templates.choiceGroup(_this.config, group);
+                            group.groupEl = dropdownGroup;
+                            dropdownGroup.remove();
+                            fragment.appendChild(dropdownGroup);
+                        }
+                        renderChoices(groupChoices, true, config.appendGroupInSearch && isSearching ? group.label : undefined);
+                    }
+                });
+            }
+            else {
+                renderChoices(renderableChoices(activeChoices), false, undefined);
+            }
+        }
+        if (!selectableChoices) {
+            if (!this._notice) {
+                this._notice = {
+                    text: resolveStringFunction(isSearching ? config.noResultsText : config.noChoicesText),
+                    type: isSearching ? NoticeTypes.noResults : NoticeTypes.noChoices,
+                };
+            }
+            fragment.replaceChildren('');
+        }
+        this._renderNotice(fragment);
+        this.choiceList.element.replaceChildren(fragment);
+        if (selectableChoices) {
+            this._highlightChoice();
+        }
+    };
+    Choices.prototype._renderItems = function () {
+        var _this = this;
+        var items = this._store.items || [];
+        var itemList = this.itemList.element;
+        var config = this.config;
+        var fragment = document.createDocumentFragment();
+        var itemFromList = function (item) {
+            return itemList.querySelector("[data-item][data-id=\"".concat(item.id, "\"]"));
+        };
+        var addItemToFragment = function (item) {
+            var el = item.itemEl;
+            if (el && el.parentElement) {
+                return;
+            }
+            el = itemFromList(item) || _this._templates.item(config, item, config.removeItemButton);
+            item.itemEl = el;
+            fragment.appendChild(el);
+        };
+        // new items
+        items.forEach(addItemToFragment);
+        var addItems = !!fragment.childNodes.length;
+        if (this._isSelectOneElement && this._hasNonChoicePlaceholder) {
+            var existingItems = itemList.children.length;
+            if (addItems || existingItems > 1) {
+                var placeholder = itemList.querySelector(getClassNamesSelector(config.classNames.placeholder));
+                if (placeholder) {
+                    placeholder.remove();
+                }
+            }
+            else if (!existingItems) {
+                addItems = true;
+                addItemToFragment(mapInputToChoice({
+                    selected: true,
+                    value: '',
+                    label: config.placeholderValue || '',
+                    placeholder: true,
+                }, false));
+            }
+        }
+        if (addItems) {
+            itemList.append(fragment);
+            if (config.shouldSortItems && !this._isSelectOneElement) {
+                items.sort(config.sorter);
+                // push sorting into the DOM
+                items.forEach(function (item) {
+                    var el = itemFromList(item);
+                    if (el) {
+                        el.remove();
+                        fragment.append(el);
+                    }
+                });
+                itemList.append(fragment);
+            }
+        }
+        if (this._isTextElement) {
+            // Update the value of the hidden input
+            this.passedElement.value = items.map(function (_a) {
+                var value = _a.value;
+                return value;
+            }).join(config.delimiter);
+        }
+    };
+    Choices.prototype._displayNotice = function (text, type, openDropdown) {
+        if (openDropdown === void 0) { openDropdown = true; }
+        var oldNotice = this._notice;
+        if (oldNotice &&
+            ((oldNotice.type === type && oldNotice.text === text) ||
+                (oldNotice.type === NoticeTypes.addChoice &&
+                    (type === NoticeTypes.noResults || type === NoticeTypes.noChoices)))) {
+            if (openDropdown) {
+                this.showDropdown(true);
+            }
+            return;
+        }
+        this._clearNotice();
+        this._notice = text
+            ? {
+                text: text,
+                type: type,
+            }
+            : undefined;
+        this._renderNotice();
+        if (openDropdown && text) {
+            this.showDropdown(true);
+        }
+    };
+    Choices.prototype._clearNotice = function () {
+        if (!this._notice) {
+            return;
+        }
+        var noticeElement = this.choiceList.element.querySelector(getClassNamesSelector(this.config.classNames.notice));
+        if (noticeElement) {
+            noticeElement.remove();
+        }
+        this._notice = undefined;
+    };
+    Choices.prototype._renderNotice = function (fragment) {
+        var noticeConf = this._notice;
+        if (noticeConf) {
+            var notice = this._templates.notice(this.config, noticeConf.text, noticeConf.type);
+            if (fragment) {
+                fragment.append(notice);
+            }
+            else {
+                this.choiceList.prepend(notice);
+            }
+        }
+    };
+    // eslint-disable-next-line class-methods-use-this
+    Choices.prototype._getChoiceForOutput = function (choice, keyCode) {
+        return {
+            id: choice.id,
+            highlighted: choice.highlighted,
+            labelClass: choice.labelClass,
+            labelDescription: choice.labelDescription,
+            customProperties: choice.customProperties,
+            disabled: choice.disabled,
+            active: choice.active,
+            label: choice.label,
+            placeholder: choice.placeholder,
+            value: choice.value,
+            groupValue: choice.group ? choice.group.label : undefined,
+            element: choice.element,
+            keyCode: keyCode,
+        };
+    };
+    Choices.prototype._triggerChange = function (value) {
+        if (value === undefined || value === null) {
+            return;
+        }
+        this.passedElement.triggerEvent(EventType.change, {
+            value: value,
+        });
+    };
+    Choices.prototype._handleButtonAction = function (element) {
+        var _this = this;
+        var items = this._store.items;
+        if (!items.length || !this.config.removeItems || !this.config.removeItemButton) {
+            return;
+        }
+        var id = element && parseDataSetId(element.parentElement);
+        var itemToRemove = id && items.find(function (item) { return item.id === id; });
+        if (!itemToRemove) {
+            return;
+        }
+        this._store.withTxn(function () {
+            // Remove item associated with button
+            _this._removeItem(itemToRemove);
+            _this._triggerChange(itemToRemove.value);
+            if (_this._isSelectOneElement && !_this._hasNonChoicePlaceholder) {
+                var placeholderChoice = _this._store.choices
+                    .reverse()
+                    .find(function (choice) { return !choice.disabled && choice.placeholder; });
+                if (placeholderChoice) {
+                    _this._addItem(placeholderChoice);
+                    _this.unhighlightAll();
+                    if (placeholderChoice.value) {
+                        _this._triggerChange(placeholderChoice.value);
+                    }
+                }
+            }
+        });
+    };
+    Choices.prototype._handleItemAction = function (element, hasShiftKey) {
+        var _this = this;
+        if (hasShiftKey === void 0) { hasShiftKey = false; }
+        var items = this._store.items;
+        if (!items.length || !this.config.removeItems || this._isSelectOneElement) {
+            return;
+        }
+        var id = parseDataSetId(element);
+        if (!id) {
+            return;
+        }
+        // We only want to select one item with a click
+        // so we deselect any items that aren't the target
+        // unless shift is being pressed
+        items.forEach(function (item) {
+            if (item.id === id && !item.highlighted) {
+                _this.highlightItem(item);
+            }
+            else if (!hasShiftKey && item.highlighted) {
+                _this.unhighlightItem(item);
+            }
+        });
+        // Focus input as without focus, a user cannot do anything with a
+        // highlighted item
+        this.input.focus();
+    };
+    Choices.prototype._handleChoiceAction = function (element) {
+        var _this = this;
+        // If we are clicking on an option
+        var id = parseDataSetId(element);
+        var choice = id && this._store.getChoiceById(id);
+        if (!choice || choice.disabled) {
+            return false;
+        }
+        var hasActiveDropdown = this.dropdown.isActive;
+        if (!choice.selected) {
+            if (!this._canAddItems()) {
+                return true; // causes _onEnterKey to early out
+            }
+            this._store.withTxn(function () {
+                _this._addItem(choice, true, true);
+                _this.clearInput();
+                _this.unhighlightAll();
+            });
+            this._triggerChange(choice.value);
+        }
+        // We want to close the dropdown if we are dealing with a single select box
+        if (hasActiveDropdown && this.config.closeDropdownOnSelect) {
+            this.hideDropdown(true);
+            this.containerOuter.element.focus();
+        }
+        return true;
+    };
+    Choices.prototype._handleBackspace = function (items) {
+        var config = this.config;
+        if (!config.removeItems || !items.length) {
+            return;
+        }
+        var lastItem = items[items.length - 1];
+        var hasHighlightedItems = items.some(function (item) { return item.highlighted; });
+        // If editing the last item is allowed and there are not other selected items,
+        // we can edit the item value. Otherwise if we can remove items, remove all selected items
+        if (config.editItems && !hasHighlightedItems && lastItem) {
+            this.input.value = lastItem.value;
+            this.input.setWidth();
+            this._removeItem(lastItem);
+            this._triggerChange(lastItem.value);
+        }
+        else {
+            if (!hasHighlightedItems) {
+                // Highlight last item if none already highlighted
+                this.highlightItem(lastItem, false);
+            }
+            this.removeHighlightedItems(true);
+        }
+    };
+    Choices.prototype._loadChoices = function () {
+        var _a;
+        var config = this.config;
+        if (this._isTextElement) {
+            // Assign preset items from passed object first
+            this._presetChoices = config.items.map(function (e) { return mapInputToChoice(e, false); });
+            // Add any values passed from attribute
+            if (this.passedElement.value) {
+                var elementItems = this.passedElement.value
+                    .split(config.delimiter)
+                    .map(function (e) { return mapInputToChoice(e, false); });
+                this._presetChoices = this._presetChoices.concat(elementItems);
+            }
+            this._presetChoices.forEach(function (choice) {
+                choice.selected = true;
+            });
+        }
+        else if (this._isSelectElement) {
+            // Assign preset choices from passed object
+            this._presetChoices = config.choices.map(function (e) { return mapInputToChoice(e, true); });
+            // Create array of choices from option elements
+            var choicesFromOptions = this.passedElement.optionsAsChoices();
+            if (choicesFromOptions) {
+                (_a = this._presetChoices).push.apply(_a, choicesFromOptions);
+            }
+        }
+    };
+    Choices.prototype._handleLoadingState = function (setLoading) {
+        if (setLoading === void 0) { setLoading = true; }
+        var el = this.itemList.element;
+        if (setLoading) {
+            this.disable();
+            this.containerOuter.addLoadingState();
+            if (this._isSelectOneElement) {
+                el.replaceChildren(this._templates.placeholder(this.config, this.config.loadingText));
+            }
+            else {
+                this.input.placeholder = this.config.loadingText;
+            }
+        }
+        else {
+            this.enable();
+            this.containerOuter.removeLoadingState();
+            if (this._isSelectOneElement) {
+                el.replaceChildren('');
+                this._render();
+            }
+            else {
+                this.input.placeholder = this._placeholderValue || '';
+            }
+        }
+    };
+    Choices.prototype._handleSearch = function (value) {
+        if (!this.input.isFocussed) {
+            return;
+        }
+        // Check that we have a value to search and the input was an alphanumeric character
+        if (value !== null && typeof value !== 'undefined' && value.length >= this.config.searchFloor) {
+            var resultCount = this.config.searchChoices ? this._searchChoices(value) : 0;
+            if (resultCount !== null) {
+                // Trigger search event
+                this.passedElement.triggerEvent(EventType.search, {
+                    value: value,
+                    resultCount: resultCount,
+                });
+            }
+        }
+        else if (this._store.choices.some(function (option) { return !option.active; })) {
+            this._stopSearch();
+        }
+    };
+    Choices.prototype._canAddItems = function () {
+        var config = this.config;
+        var maxItemCount = config.maxItemCount, maxItemText = config.maxItemText;
+        if (!config.singleModeForMultiSelect && maxItemCount > 0 && maxItemCount <= this._store.items.length) {
+            this.choiceList.element.replaceChildren('');
+            this._displayNotice(typeof maxItemText === 'function' ? maxItemText(maxItemCount) : maxItemText, NoticeTypes.addChoice);
+            return false;
+        }
+        return true;
+    };
+    Choices.prototype._canCreateItem = function (value) {
+        var config = this.config;
+        var canAddItem = true;
+        var notice = '';
+        if (canAddItem && typeof config.addItemFilter === 'function' && !config.addItemFilter(value)) {
+            canAddItem = false;
+            notice = resolveNoticeFunction(config.customAddItemText, value);
+        }
+        if (canAddItem) {
+            var foundChoice = this._store.choices.find(function (choice) { return config.valueComparer(choice.value, value); });
+            if (this._isSelectElement) {
+                // for exact matches, do not prompt to add it as a custom choice
+                if (foundChoice) {
+                    this._displayNotice('', NoticeTypes.addChoice);
+                    return false;
+                }
+            }
+            else if (this._isTextElement && !config.duplicateItemsAllowed) {
+                if (foundChoice) {
+                    canAddItem = false;
+                    notice = resolveNoticeFunction(config.uniqueItemText, value);
+                }
+            }
+        }
+        if (canAddItem) {
+            notice = resolveNoticeFunction(config.addItemText, value);
+        }
+        if (notice) {
+            this._displayNotice(notice, NoticeTypes.addChoice);
+        }
+        return canAddItem;
+    };
+    Choices.prototype._searchChoices = function (value) {
+        var newValue = value.trim().replace(/\s{2,}/, ' ');
+        // signal input didn't change search
+        if (!newValue.length || newValue === this._currentValue) {
+            return null;
+        }
+        var searcher = this._searcher;
+        if (searcher.isEmptyIndex()) {
+            searcher.index(this._store.searchableChoices);
+        }
+        // If new value matches the desired length and is not the same as the current value with a space
+        var results = searcher.search(newValue);
+        this._currentValue = newValue;
+        this._highlightPosition = 0;
+        this._isSearching = true;
+        var notice = this._notice;
+        var noticeType = notice && notice.type;
+        if (noticeType !== NoticeTypes.addChoice) {
+            if (!results.length) {
+                this._displayNotice(resolveStringFunction(this.config.noResultsText), NoticeTypes.noResults);
+            }
+            else {
+                this._clearNotice();
+            }
+        }
+        this._store.dispatch(filterChoices(results));
+        return results.length;
+    };
+    Choices.prototype._stopSearch = function () {
+        if (this._isSearching) {
+            this._currentValue = '';
+            this._isSearching = false;
+            this._clearNotice();
+            this._store.dispatch(activateChoices(true));
+            this.passedElement.triggerEvent(EventType.search, {
+                value: '',
+                resultCount: 0,
+            });
+        }
+    };
+    Choices.prototype._addEventListeners = function () {
+        var documentElement = this._docRoot;
+        var outerElement = this.containerOuter.element;
+        var inputElement = this.input.element;
+        // capture events - can cancel event processing or propagation
+        documentElement.addEventListener('touchend', this._onTouchEnd, true);
+        outerElement.addEventListener('keydown', this._onKeyDown, true);
+        outerElement.addEventListener('mousedown', this._onMouseDown, true);
+        // passive events - doesn't call `preventDefault` or `stopPropagation`
+        documentElement.addEventListener('click', this._onClick, { passive: true });
+        documentElement.addEventListener('touchmove', this._onTouchMove, {
+            passive: true,
+        });
+        this.dropdown.element.addEventListener('mouseover', this._onMouseOver, {
+            passive: true,
+        });
+        if (this._isSelectOneElement) {
+            outerElement.addEventListener('focus', this._onFocus, {
+                passive: true,
+            });
+            outerElement.addEventListener('blur', this._onBlur, {
+                passive: true,
+            });
+        }
+        inputElement.addEventListener('keyup', this._onKeyUp, {
+            passive: true,
+        });
+        inputElement.addEventListener('input', this._onInput, {
+            passive: true,
+        });
+        inputElement.addEventListener('focus', this._onFocus, {
+            passive: true,
+        });
+        inputElement.addEventListener('blur', this._onBlur, {
+            passive: true,
+        });
+        if (inputElement.form) {
+            inputElement.form.addEventListener('reset', this._onFormReset, {
+                passive: true,
+            });
+        }
+        this.input.addEventListeners();
+    };
+    Choices.prototype._removeEventListeners = function () {
+        var documentElement = this._docRoot;
+        var outerElement = this.containerOuter.element;
+        var inputElement = this.input.element;
+        documentElement.removeEventListener('touchend', this._onTouchEnd, true);
+        outerElement.removeEventListener('keydown', this._onKeyDown, true);
+        outerElement.removeEventListener('mousedown', this._onMouseDown, true);
+        documentElement.removeEventListener('click', this._onClick);
+        documentElement.removeEventListener('touchmove', this._onTouchMove);
+        this.dropdown.element.removeEventListener('mouseover', this._onMouseOver);
+        if (this._isSelectOneElement) {
+            outerElement.removeEventListener('focus', this._onFocus);
+            outerElement.removeEventListener('blur', this._onBlur);
+        }
+        inputElement.removeEventListener('keyup', this._onKeyUp);
+        inputElement.removeEventListener('input', this._onInput);
+        inputElement.removeEventListener('focus', this._onFocus);
+        inputElement.removeEventListener('blur', this._onBlur);
+        if (inputElement.form) {
+            inputElement.form.removeEventListener('reset', this._onFormReset);
+        }
+        this.input.removeEventListeners();
+    };
+    Choices.prototype._onKeyDown = function (event) {
+        var keyCode = event.keyCode;
+        var hasActiveDropdown = this.dropdown.isActive;
+        /*
+        See:
+        https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key
+        https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
+        https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF - UTF-16 surrogate pairs
+        https://stackoverflow.com/a/70866532 - "Unidentified" for mobile
+        http://www.unicode.org/versions/Unicode5.2.0/ch16.pdf#G19635 - U+FFFF is reserved (Section 16.7)
+    
+        Logic: when a key event is sent, `event.key` represents its printable value _or_ one
+        of a large list of special values indicating meta keys/functionality. In addition,
+        key events for compose functionality contain a value of `Dead` when mid-composition.
+    
+        I can't quite verify it, but non-English IMEs may also be able to generate key codes
+        for code points in the surrogate-pair range, which could potentially be seen as having
+        key.length > 1. Since `Fn` is one of the special keys, we can't distinguish by that
+        alone.
+    
+        Here, key.length === 1 means we know for sure the input was printable and not a special
+        `key` value. When the length is greater than 1, it could be either a printable surrogate
+        pair or a special `key` value. We can tell the difference by checking if the _character
+        code_ value (not code point!) is in the "surrogate pair" range or not.
+    
+        We don't use .codePointAt because an invalid code point would return 65535, which wouldn't
+        pass the >= 0x10000 check we would otherwise use.
+    
+        > ...The Unicode Standard sets aside 66 noncharacter code points. The last two code points
+        > of each plane are noncharacters: U+FFFE and U+FFFF on the BMP...
+        */
+        var wasPrintableChar = event.key.length === 1 ||
+            (event.key.length === 2 && event.key.charCodeAt(0) >= 0xd800) ||
+            event.key === 'Unidentified';
+        if (!this._isTextElement && !hasActiveDropdown) {
+            this.showDropdown();
+            if (!this.input.isFocussed && wasPrintableChar) {
+                /*
+                  We update the input value with the pressed key as
+                  the input was not focussed at the time of key press
+                  therefore does not have the value of the key.
+                */
+                this.input.value += event.key;
+                // browsers interpret a space as pagedown
+                if (event.key === ' ') {
+                    event.preventDefault();
+                }
+            }
+        }
+        switch (keyCode) {
+            case 65 /* KeyCodeMap.A_KEY */:
+                return this._onSelectKey(event, this.itemList.element.hasChildNodes());
+            case 13 /* KeyCodeMap.ENTER_KEY */:
+                return this._onEnterKey(event, hasActiveDropdown);
+            case 27 /* KeyCodeMap.ESC_KEY */:
+                return this._onEscapeKey(event, hasActiveDropdown);
+            case 38 /* KeyCodeMap.UP_KEY */:
+            case 33 /* KeyCodeMap.PAGE_UP_KEY */:
+            case 40 /* KeyCodeMap.DOWN_KEY */:
+            case 34 /* KeyCodeMap.PAGE_DOWN_KEY */:
+                return this._onDirectionKey(event, hasActiveDropdown);
+            case 8 /* KeyCodeMap.DELETE_KEY */:
+            case 46 /* KeyCodeMap.BACK_KEY */:
+                return this._onDeleteKey(event, this._store.items, this.input.isFocussed);
+        }
+    };
+    Choices.prototype._onKeyUp = function ( /* event: KeyboardEvent */) {
+        this._canSearch = this.config.searchEnabled;
+    };
+    Choices.prototype._onInput = function ( /* event: InputEvent */) {
+        var value = this.input.value;
+        if (!value) {
+            if (this._isTextElement) {
+                this.hideDropdown(true);
+            }
+            else {
+                this._stopSearch();
+            }
+            return;
+        }
+        if (!this._canAddItems()) {
+            return;
+        }
+        if (this._canSearch) {
+            // do the search even if the entered text can not be added
+            this._handleSearch(value);
+        }
+        if (!this._canAddUserChoices) {
+            return;
+        }
+        // determine if a notice needs to be displayed for why a search result can't be added
+        this._canCreateItem(value);
+        if (this._isSelectElement) {
+            this._highlightPosition = 0; // reset to select the notice and/or exact match
+            this._highlightChoice();
+        }
+    };
+    Choices.prototype._onSelectKey = function (event, hasItems) {
+        // If CTRL + A or CMD + A have been pressed and there are items to select
+        if ((event.ctrlKey || event.metaKey) && hasItems) {
+            this._canSearch = false;
+            var shouldHightlightAll = this.config.removeItems && !this.input.value && this.input.element === document.activeElement;
+            if (shouldHightlightAll) {
+                this.highlightAll();
+            }
+        }
+    };
+    Choices.prototype._onEnterKey = function (event, hasActiveDropdown) {
+        var _this = this;
+        var value = this.input.value;
+        var target = event.target;
+        event.preventDefault();
+        if (target && target.hasAttribute('data-button')) {
+            this._handleButtonAction(target);
+            return;
+        }
+        if (!hasActiveDropdown) {
+            if (this._isSelectElement || this._notice) {
+                this.showDropdown();
+            }
+            return;
+        }
+        var highlightedChoice = this.dropdown.element.querySelector(getClassNamesSelector(this.config.classNames.highlightedState));
+        if (highlightedChoice && this._handleChoiceAction(highlightedChoice)) {
+            return;
+        }
+        if (!target || !value) {
+            this.hideDropdown(true);
+            return;
+        }
+        if (!this._canAddItems()) {
+            return;
+        }
+        var addedItem = false;
+        this._store.withTxn(function () {
+            addedItem = _this._findAndSelectChoiceByValue(value, true);
+            if (!addedItem) {
+                if (!_this._canAddUserChoices) {
+                    return;
+                }
+                if (!_this._canCreateItem(value)) {
+                    return;
+                }
+                var sanitisedValue = sanitise(value);
+                var userValue = _this.config.allowHtmlUserInput || sanitisedValue === value ? value : { escaped: sanitisedValue, raw: value };
+                _this._addChoice(mapInputToChoice({
+                    value: userValue,
+                    label: userValue,
+                    selected: true,
+                }, false), true, true);
+                addedItem = true;
+            }
+            _this.clearInput();
+            _this.unhighlightAll();
+        });
+        if (!addedItem) {
+            return;
+        }
+        this._triggerChange(value);
+        if (this.config.closeDropdownOnSelect) {
+            this.hideDropdown(true);
+        }
+    };
+    Choices.prototype._onEscapeKey = function (event, hasActiveDropdown) {
+        if (hasActiveDropdown) {
+            event.stopPropagation();
+            this.hideDropdown(true);
+            this.containerOuter.element.focus();
+        }
+    };
+    Choices.prototype._onDirectionKey = function (event, hasActiveDropdown) {
+        var keyCode = event.keyCode;
+        // If up or down key is pressed, traverse through options
+        if (hasActiveDropdown || this._isSelectOneElement) {
+            this.showDropdown();
+            this._canSearch = false;
+            var directionInt = keyCode === 40 /* KeyCodeMap.DOWN_KEY */ || keyCode === 34 /* KeyCodeMap.PAGE_DOWN_KEY */ ? 1 : -1;
+            var skipKey = event.metaKey || keyCode === 34 /* KeyCodeMap.PAGE_DOWN_KEY */ || keyCode === 33 /* KeyCodeMap.PAGE_UP_KEY */;
+            var nextEl = void 0;
+            if (skipKey) {
+                if (directionInt > 0) {
+                    nextEl = this.dropdown.element.querySelector("".concat(selectableChoiceIdentifier, ":last-of-type"));
+                }
+                else {
+                    nextEl = this.dropdown.element.querySelector(selectableChoiceIdentifier);
+                }
+            }
+            else {
+                var currentEl = this.dropdown.element.querySelector(getClassNamesSelector(this.config.classNames.highlightedState));
+                if (currentEl) {
+                    nextEl = getAdjacentEl(currentEl, selectableChoiceIdentifier, directionInt);
+                }
+                else {
+                    nextEl = this.dropdown.element.querySelector(selectableChoiceIdentifier);
+                }
+            }
+            if (nextEl) {
+                // We prevent default to stop the cursor moving
+                // when pressing the arrow
+                if (!isScrolledIntoView(nextEl, this.choiceList.element, directionInt)) {
+                    this.choiceList.scrollToChildElement(nextEl, directionInt);
+                }
+                this._highlightChoice(nextEl);
+            }
+            // Prevent default to maintain cursor position whilst
+            // traversing dropdown options
+            event.preventDefault();
+        }
+    };
+    Choices.prototype._onDeleteKey = function (event, items, hasFocusedInput) {
+        // If backspace or delete key is pressed and the input has no value
+        if (!this._isSelectOneElement && !event.target.value && hasFocusedInput) {
+            this._handleBackspace(items);
+            event.preventDefault();
+        }
+    };
+    Choices.prototype._onTouchMove = function () {
+        if (this._wasTap) {
+            this._wasTap = false;
+        }
+    };
+    Choices.prototype._onTouchEnd = function (event) {
+        var target = (event || event.touches[0]).target;
+        var touchWasWithinContainer = this._wasTap && this.containerOuter.element.contains(target);
+        if (touchWasWithinContainer) {
+            var containerWasExactTarget = target === this.containerOuter.element || target === this.containerInner.element;
+            if (containerWasExactTarget) {
+                if (this._isTextElement) {
+                    this.input.focus();
+                }
+                else if (this._isSelectMultipleElement) {
+                    this.showDropdown();
+                }
+            }
+            // Prevents focus event firing
+            event.stopPropagation();
+        }
+        this._wasTap = true;
+    };
+    /**
+     * Handles mousedown event in capture mode for containetOuter.element
+     */
+    Choices.prototype._onMouseDown = function (event) {
+        var target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+        // If we have our mouse down on the scrollbar and are on IE11...
+        if (IS_IE11 && this.choiceList.element.contains(target)) {
+            // check if click was on a scrollbar area
+            var firstChoice = this.choiceList.element.firstElementChild;
+            this._isScrollingOnIe =
+                this._direction === 'ltr' ? event.offsetX >= firstChoice.offsetWidth : event.offsetX < firstChoice.offsetLeft;
+        }
+        if (target === this.input.element) {
+            return;
+        }
+        var item = target.closest('[data-button],[data-item],[data-choice]');
+        if (item instanceof HTMLElement) {
+            if ('button' in item.dataset) {
+                this._handleButtonAction(item);
+            }
+            else if ('item' in item.dataset) {
+                this._handleItemAction(item, event.shiftKey);
+            }
+            else if ('choice' in item.dataset) {
+                this._handleChoiceAction(item);
+            }
+        }
+        event.preventDefault();
+    };
+    /**
+     * Handles mouseover event over this.dropdown
+     * @param {MouseEvent} event
+     */
+    Choices.prototype._onMouseOver = function (_a) {
+        var target = _a.target;
+        if (target instanceof HTMLElement && 'choice' in target.dataset) {
+            this._highlightChoice(target);
+        }
+    };
+    Choices.prototype._onClick = function (_a) {
+        var target = _a.target;
+        var containerOuter = this.containerOuter;
+        var clickWasWithinContainer = containerOuter.element.contains(target);
+        if (clickWasWithinContainer) {
+            if (!this.dropdown.isActive && !containerOuter.isDisabled) {
+                if (this._isTextElement) {
+                    if (document.activeElement !== this.input.element) {
+                        this.input.focus();
+                    }
+                }
+                else {
+                    this.showDropdown();
+                    containerOuter.element.focus();
+                }
+            }
+            else if (this._isSelectOneElement &&
+                target !== this.input.element &&
+                !this.dropdown.element.contains(target)) {
+                this.hideDropdown();
+            }
+        }
+        else {
+            containerOuter.removeFocusState();
+            this.hideDropdown(true);
+            this.unhighlightAll();
+        }
+    };
+    Choices.prototype._onFocus = function (_a) {
+        var target = _a.target;
+        var containerOuter = this.containerOuter;
+        var focusWasWithinContainer = target && containerOuter.element.contains(target);
+        if (!focusWasWithinContainer) {
+            return;
+        }
+        var targetIsInput = target === this.input.element;
+        if (this._isTextElement) {
+            if (targetIsInput) {
+                containerOuter.addFocusState();
+            }
+        }
+        else if (this._isSelectMultipleElement) {
+            if (targetIsInput) {
+                this.showDropdown(true);
+                // If element is a select box, the focused element is the container and the dropdown
+                // isn't already open, focus and show dropdown
+                containerOuter.addFocusState();
+            }
+        }
+        else {
+            containerOuter.addFocusState();
+            if (targetIsInput) {
+                this.showDropdown(true);
+            }
+        }
+    };
+    Choices.prototype._onBlur = function (_a) {
+        var target = _a.target;
+        var containerOuter = this.containerOuter;
+        var blurWasWithinContainer = target && containerOuter.element.contains(target);
+        if (blurWasWithinContainer && !this._isScrollingOnIe) {
+            var targetIsInput = target === this.input.element;
+            if (this._isTextElement || this._isSelectMultipleElement) {
+                if (targetIsInput) {
+                    containerOuter.removeFocusState();
+                    this.hideDropdown(true);
+                    this.unhighlightAll();
+                }
+            }
+            else {
+                containerOuter.removeFocusState();
+                if (targetIsInput || (target === containerOuter.element && !this._canSearch)) {
+                    this.hideDropdown(true);
+                }
+            }
+        }
+        else {
+            // On IE11, clicking the scollbar blurs our input and thus
+            // closes the dropdown. To stop this, we refocus our input
+            // if we know we are on IE *and* are scrolling.
+            this._isScrollingOnIe = false;
+            this.input.element.focus();
+        }
+    };
+    Choices.prototype._onFormReset = function () {
+        var _this = this;
+        this._store.withTxn(function () {
+            _this.clearInput();
+            _this.hideDropdown();
+            _this.refresh(false, false, true);
+            if (_this._initialItems.length) {
+                _this.setChoiceByValue(_this._initialItems);
+            }
+        });
+    };
+    Choices.prototype._highlightChoice = function (el) {
+        if (el === void 0) { el = null; }
+        var choices = Array.from(this.dropdown.element.querySelectorAll(selectableChoiceIdentifier));
+        if (!choices.length) {
+            return;
+        }
+        var passedEl = el;
+        var highlightedState = this.config.classNames.highlightedState;
+        var highlightedChoices = Array.from(this.dropdown.element.querySelectorAll(getClassNamesSelector(highlightedState)));
+        // Remove any highlighted choices
+        highlightedChoices.forEach(function (choice) {
+            removeClassesFromElement(choice, highlightedState);
+            choice.setAttribute('aria-selected', 'false');
+        });
+        if (passedEl) {
+            this._highlightPosition = choices.indexOf(passedEl);
+        }
+        else {
+            // Highlight choice based on last known highlight location
+            if (choices.length > this._highlightPosition) {
+                // If we have an option to highlight
+                passedEl = choices[this._highlightPosition];
+            }
+            else {
+                // Otherwise highlight the option before
+                passedEl = choices[choices.length - 1];
+            }
+            if (!passedEl) {
+                passedEl = choices[0];
+            }
+        }
+        addClassesToElement(passedEl, highlightedState);
+        passedEl.setAttribute('aria-selected', 'true');
+        this.passedElement.triggerEvent(EventType.highlightChoice, {
+            el: passedEl,
+        });
+        if (this.dropdown.isActive) {
+            // IE11 ignores aria-label and blocks virtual keyboard
+            // if aria-activedescendant is set without a dropdown
+            this.input.setActiveDescendant(passedEl.id);
+            this.containerOuter.setActiveDescendant(passedEl.id);
+        }
+    };
+    Choices.prototype._addItem = function (item, withEvents, userTriggered) {
+        if (withEvents === void 0) { withEvents = true; }
+        if (userTriggered === void 0) { userTriggered = false; }
+        if (!item.id) {
+            throw new TypeError('item.id must be set before _addItem is called for a choice/item');
+        }
+        if (this.config.singleModeForMultiSelect || this._isSelectOneElement) {
+            this.removeActiveItems(item.id);
+        }
+        this._store.dispatch(addItem(item));
+        if (withEvents) {
+            this.passedElement.triggerEvent(EventType.addItem, this._getChoiceForOutput(item));
+            if (userTriggered) {
+                this.passedElement.triggerEvent(EventType.choice, this._getChoiceForOutput(item));
+            }
+        }
+    };
+    Choices.prototype._removeItem = function (item) {
+        if (!item.id) {
+            return;
+        }
+        this._store.dispatch(removeItem$1(item));
+        this.passedElement.triggerEvent(EventType.removeItem, this._getChoiceForOutput(item));
+    };
+    Choices.prototype._addChoice = function (choice, withEvents, userTriggered) {
+        if (withEvents === void 0) { withEvents = true; }
+        if (userTriggered === void 0) { userTriggered = false; }
+        if (choice.id) {
+            throw new TypeError('Can not re-add a choice which has already been added');
+        }
+        var config = this.config;
+        if ((this._isSelectElement || !config.duplicateItemsAllowed) &&
+            this._store.choices.find(function (c) { return config.valueComparer(c.value, choice.value); })) {
+            return;
+        }
+        // Generate unique id, in-place update is required so chaining _addItem works as expected
+        this._lastAddedChoiceId++;
+        choice.id = this._lastAddedChoiceId;
+        choice.elementId = "".concat(this._baseId, "-").concat(this._idNames.itemChoice, "-").concat(choice.id);
+        var prependValue = config.prependValue, appendValue = config.appendValue;
+        if (prependValue) {
+            choice.value = prependValue + choice.value;
+        }
+        if (appendValue) {
+            choice.value += appendValue.toString();
+        }
+        if ((prependValue || appendValue) && choice.element) {
+            choice.element.value = choice.value;
+        }
+        this._clearNotice();
+        this._store.dispatch(addChoice(choice));
+        if (choice.selected) {
+            this._addItem(choice, withEvents, userTriggered);
+        }
+    };
+    Choices.prototype._addGroup = function (group, withEvents) {
+        var _this = this;
+        if (withEvents === void 0) { withEvents = true; }
+        if (group.id) {
+            throw new TypeError('Can not re-add a group which has already been added');
+        }
+        this._store.dispatch(addGroup(group));
+        if (!group.choices) {
+            return;
+        }
+        // add unique id for the group(s), and do not store the full list of choices in this group
+        this._lastAddedGroupId++;
+        group.id = this._lastAddedGroupId;
+        group.choices.forEach(function (item) {
+            item.group = group;
+            if (group.disabled) {
+                item.disabled = true;
+            }
+            _this._addChoice(item, withEvents);
+        });
+    };
+    Choices.prototype._createTemplates = function () {
+        var _this = this;
+        var callbackOnCreateTemplates = this.config.callbackOnCreateTemplates;
+        var userTemplates = {};
+        if (typeof callbackOnCreateTemplates === 'function') {
+            userTemplates = callbackOnCreateTemplates.call(this, strToEl, escapeForTemplate, getClassNames);
+        }
+        var templating = {};
+        Object.keys(this._templates).forEach(function (name) {
+            if (name in userTemplates) {
+                templating[name] = userTemplates[name].bind(_this);
+            }
+            else {
+                templating[name] = _this._templates[name].bind(_this);
+            }
+        });
+        this._templates = templating;
+    };
+    Choices.prototype._createElements = function () {
+        var templating = this._templates;
+        var _a = this, config = _a.config, isSelectOneElement = _a._isSelectOneElement;
+        var position = config.position, classNames = config.classNames;
+        var elementType = this._elementType;
+        this.containerOuter = new Container({
+            element: templating.containerOuter(config, this._direction, this._isSelectElement, isSelectOneElement, config.searchEnabled, elementType, config.labelId),
+            classNames: classNames,
+            type: elementType,
+            position: position,
+        });
+        this.containerInner = new Container({
+            element: templating.containerInner(config),
+            classNames: classNames,
+            type: elementType,
+            position: position,
+        });
+        this.input = new Input({
+            element: templating.input(config, this._placeholderValue),
+            classNames: classNames,
+            type: elementType,
+            preventPaste: !config.paste,
+        });
+        this.choiceList = new List({
+            element: templating.choiceList(config, isSelectOneElement),
+        });
+        this.itemList = new List({
+            element: templating.itemList(config, isSelectOneElement),
+        });
+        this.dropdown = new Dropdown({
+            element: templating.dropdown(config),
+            classNames: classNames,
+            type: elementType,
+        });
+    };
+    Choices.prototype._createStructure = function () {
+        var _a = this, containerInner = _a.containerInner, containerOuter = _a.containerOuter, passedElement = _a.passedElement;
+        var dropdownElement = this.dropdown.element;
+        // Hide original element
+        passedElement.conceal();
+        // Wrap input in container preserving DOM ordering
+        containerInner.wrap(passedElement.element);
+        // Wrapper inner container with outer container
+        containerOuter.wrap(containerInner.element);
+        if (this._isSelectOneElement) {
+            this.input.placeholder = this.config.searchPlaceholderValue || '';
+        }
+        else {
+            if (this._placeholderValue) {
+                this.input.placeholder = this._placeholderValue;
+            }
+            this.input.setWidth();
+        }
+        containerOuter.element.appendChild(containerInner.element);
+        containerOuter.element.appendChild(dropdownElement);
+        containerInner.element.appendChild(this.itemList.element);
+        dropdownElement.appendChild(this.choiceList.element);
+        if (!this._isSelectOneElement) {
+            containerInner.element.appendChild(this.input.element);
+        }
+        else if (this.config.searchEnabled) {
+            dropdownElement.insertBefore(this.input.element, dropdownElement.firstChild);
+        }
+        this._highlightPosition = 0;
+        this._isSearching = false;
+    };
+    Choices.prototype._initStore = function () {
+        var _this = this;
+        this._store.subscribe(this._render).withTxn(function () {
+            _this._addPredefinedChoices(_this._presetChoices, _this._isSelectOneElement && !_this._hasNonChoicePlaceholder, false);
+        });
+        if (!this._store.choices.length || (this._isSelectOneElement && this._hasNonChoicePlaceholder)) {
+            this._render();
+        }
+    };
+    Choices.prototype._addPredefinedChoices = function (choices, selectFirstOption, withEvents) {
+        var _this = this;
+        if (selectFirstOption === void 0) { selectFirstOption = false; }
+        if (withEvents === void 0) { withEvents = true; }
+        if (selectFirstOption) {
+            /**
+             * If there is a selected choice already or the choice is not the first in
+             * the array, add each choice normally.
+             *
+             * Otherwise we pre-select the first enabled choice in the array ("select-one" only)
+             */
+            var noSelectedChoices = choices.findIndex(function (choice) { return choice.selected; }) === -1;
+            if (noSelectedChoices) {
+                choices.some(function (choice) {
+                    if (choice.disabled || 'choices' in choice) {
+                        return false;
+                    }
+                    choice.selected = true;
+                    return true;
+                });
+            }
+        }
+        choices.forEach(function (item) {
+            if ('choices' in item) {
+                if (_this._isSelectElement) {
+                    _this._addGroup(item, withEvents);
+                }
+            }
+            else {
+                _this._addChoice(item, withEvents);
+            }
+        });
+    };
+    Choices.prototype._findAndSelectChoiceByValue = function (value, userTriggered) {
+        var _this = this;
+        if (userTriggered === void 0) { userTriggered = false; }
+        // Check 'value' property exists and the choice isn't already selected
+        var foundChoice = this._store.choices.find(function (choice) { return _this.config.valueComparer(choice.value, value); });
+        if (foundChoice && !foundChoice.disabled && !foundChoice.selected) {
+            this._addItem(foundChoice, true, userTriggered);
+            return true;
+        }
+        return false;
+    };
+    Choices.prototype._generatePlaceholderValue = function () {
+        var config = this.config;
+        if (!config.placeholder) {
+            return null;
+        }
+        if (this._hasNonChoicePlaceholder) {
+            return config.placeholderValue;
+        }
+        if (this._isSelectElement) {
+            var placeholderOption = this.passedElement.placeholderOption;
+            return placeholderOption ? placeholderOption.text : null;
+        }
+        return null;
+    };
+    Choices.prototype._warnChoicesInitFailed = function (caller) {
+        if (this.config.silent) {
+            return;
+        }
+        if (!this.initialised) {
+            throw new TypeError("".concat(caller, " called on a non-initialised instance of Choices"));
+        }
+        else if (!this.initialisedOK) {
+            throw new TypeError("".concat(caller, " called for an element which has multiple instances of Choices initialised on it"));
+        }
+    };
+    Choices.version = '11.0.2';
+    return Choices;
+}());
+
+
+
+
 /***/ })
 
 /******/ 	});
@@ -5727,13 +28420,25 @@ const asap = typeof queueMicrotask !== 'undefined' ?
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -5764,25 +28469,40 @@ const asap = typeof queueMicrotask !== 'undefined' ?
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
+"use strict";
 /*!****************************!*\
   !*** ./public/js/index.js ***!
   \****************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _alerts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./alerts */ "./public/js/alerts.js");
+/* harmony import */ var choices_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! choices.js */ "./node_modules/choices.js/public/assets/scripts/choices.mjs");
 /* harmony import */ var _auth__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./auth */ "./public/js/auth.js");
 /* harmony import */ var _leaflet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./leaflet */ "./public/js/leaflet.js");
 /* harmony import */ var _review__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./review */ "./public/js/review.js");
 /* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./user */ "./public/js/user.js");
-/* harmony import */ var _updateSettings__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./updateSettings */ "./public/js/updateSettings.js");
-/* harmony import */ var _stripe__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./stripe */ "./public/js/stripe.js");
-/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./html */ "./public/js/html.js");
+/* harmony import */ var _tour__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./tour */ "./public/js/tour.js");
+/* harmony import */ var _updateSettings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./updateSettings */ "./public/js/updateSettings.js");
+/* harmony import */ var _stripe__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./stripe */ "./public/js/stripe.js");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./html */ "./public/js/html.js");
+/* harmony import */ var flatpickr__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! flatpickr */ "./node_modules/flatpickr/dist/esm/index.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 /* eslint-disable */
+
+
+
+
 
 
 
@@ -5814,12 +28534,22 @@ var deleteReviewBtn = document.querySelectorAll(".delete__reviews");
 var usersAdminForm = document.querySelector(".admin-section--0");
 var reviewAdminForm = document.querySelector(".admin-section--1");
 var bookingAdminForm = document.querySelector(".admin-section--2");
-var addNewUserForm;
+var selectTour = document.getElementById("tour-options");
+var accountPage = document.getElementById("account");
+var manageTourForm = document.getElementById("manage-tours");
+var tourForm = document.getElementById("tourForm");
+var verifyAccountPageEl = document.querySelector(".verify-account");
+var timer;
 
-// DELEGATION
+// DELEGATIONS
 if (leafletMap) {
-  var locations = JSON.parse(leafletMap.dataset.locations);
-  (0,_leaflet__WEBPACK_IMPORTED_MODULE_2__.displayMap)(locations);
+  var initialValue = [27.9881, 86.925];
+  if (leafletMap.dataset.locations) {
+    var locations = JSON.parse(leafletMap.dataset.locations);
+    (0,_leaflet__WEBPACK_IMPORTED_MODULE_2__.displayMap)(locations);
+  } else {
+    (0,_leaflet__WEBPACK_IMPORTED_MODULE_2__.setLocation)(initialValue);
+  }
 }
 if (loginForm) loginForm.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -5877,7 +28607,7 @@ if (userDataForm) userDataForm.addEventListener("submit", /*#__PURE__*/function 
           if (email.value !== email.defaultValue) form.append("email", email.value);
           if (photoNewlySelected && photo.files.length > 0) form.append("photo", photo.files[0]);
           _context.next = 14;
-          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_5__.updateSettings)(form, "data");
+          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_6__.updateSettings)(form, "data");
         case 14:
           photoNewlySelected = false;
         case 15:
@@ -5902,7 +28632,7 @@ if (userPasswordForm) userPasswordForm.addEventListener("submit", /*#__PURE__*/f
           password = document.getElementById("password").value;
           passwordConfirm = document.getElementById("password-confirm").value;
           _context2.next = 7;
-          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_5__.updateSettings)({
+          return (0,_updateSettings__WEBPACK_IMPORTED_MODULE_6__.updateSettings)({
             passwordCurrent: passwordCurrent,
             password: password,
             passwordConfirm: passwordConfirm
@@ -5922,6 +28652,150 @@ if (userPasswordForm) userPasswordForm.addEventListener("submit", /*#__PURE__*/f
     return _ref2.apply(this, arguments);
   };
 }());
+if (verifyAccountPageEl) {
+  var timerEl;
+  timerEl = verifyAccountPageEl.querySelector(".timer");
+  var resend = verifyAccountPageEl.querySelector(".countdown");
+  var verifyForm = verifyAccountPageEl.querySelector(".form-verify");
+  var inputs = verifyForm.querySelectorAll("input");
+  var hiddenInput = verifyForm.querySelector("#hidden-input");
+  var _startLogOutTimer = function startLogOutTimer() {
+    var tick = function tick() {
+      var min = String(Math.trunc(time / 60)).padStart(2, 0);
+      var sec = String(time % 60).padStart(2, 0);
+
+      // In each call, print the remaining time to UI
+      timerEl.textContent = "".concat(min, ":").concat(sec);
+
+      // When 0 seconds, stop timer and log out user
+      if (time === 0) {
+        clearInterval(timer);
+        resend.innerHtml = "";
+        resend.textContent = "Resend code";
+        resend.classList.add("link");
+        var resendLink = verifyAccountPageEl.querySelector(".link");
+        resendLink.addEventListener("click", /*#__PURE__*/function () {
+          var _ref3 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(e) {
+            var html, data;
+            return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+              while (1) switch (_context3.prev = _context3.next) {
+                case 0:
+                  inputs.forEach(function (input) {
+                    if (input.type !== "hidden") input.value = "";
+                  });
+                  html = "<span>Resend verification code in </span><span class=\"timer\">03:00</span>";
+                  data = hiddenInput.value;
+                  resend.textContent = "";
+                  resend.insertAdjacentHTML("beforeend", html);
+                  resend.classList.remove("link");
+                  timerEl = verifyAccountPageEl.querySelector(".timer");
+                  clearInterval(timer);
+                  timer = _startLogOutTimer();
+                  _context3.next = 11;
+                  return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.regenerateToken)(data);
+                case 11:
+                case "end":
+                  return _context3.stop();
+              }
+            }, _callee3);
+          }));
+          return function (_x3) {
+            return _ref3.apply(this, arguments);
+          };
+        }());
+      }
+
+      // Decrease 1s
+      time--;
+    };
+
+    // Set time to 5 minutes
+    var time = 180;
+
+    // Call the timer every second
+    tick();
+    var setTimer = setInterval(tick, 1000);
+    return setTimer;
+  };
+  resend.addEventListener("click", /*#__PURE__*/function () {
+    var _ref4 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4(e) {
+      var html, data;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            inputs.forEach(function (input) {
+              if (input.type !== "hidden") input.value = "";
+            });
+            html = "<span>Resend verification code in </span><span class=\"timer\">03:00</span>";
+            data = hiddenInput.value;
+            resend.textContent = "";
+            resend.insertAdjacentHTML("beforeend", html);
+            resend.classList.remove("link");
+            timerEl = verifyAccountPageEl.querySelector(".timer");
+            clearInterval(timer);
+            timer = _startLogOutTimer();
+            _context4.next = 11;
+            return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.regenerateToken)(data);
+          case 11:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4);
+    }));
+    return function (_x4) {
+      return _ref4.apply(this, arguments);
+    };
+  }());
+  inputs.forEach(function (input, index) {
+    if (input.type === "hidden") return;
+    input.addEventListener("input", function (e) {
+      if (e.target.value.length > 1) {
+        e.target.value = e.target.value.slice(0, 1);
+      }
+      if (e.target.value.length === 1) {
+        var nextInput = inputs[index + 1];
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Backspace" && e.target.value.length === 0) {
+        var prevInput = inputs[index - 1];
+        if (prevInput) {
+          prevInput.value = "";
+          prevInput.focus();
+        }
+      }
+    });
+  });
+  verifyForm.addEventListener("submit", /*#__PURE__*/function () {
+    var _ref5 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5(e) {
+      var input0, input1, input2, input3, input4, input5, data;
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            e.preventDefault();
+            input0 = verifyForm.querySelector("#verify-input-0").value;
+            input1 = verifyForm.querySelector("#verify-input-1").value;
+            input2 = verifyForm.querySelector("#verify-input-2").value;
+            input3 = verifyForm.querySelector("#verify-input-3").value;
+            input4 = verifyForm.querySelector("#verify-input-4").value;
+            input5 = verifyForm.querySelector("#verify-input-5").value;
+            data = input0 + input1 + input2 + input3 + input4 + input5;
+            _context5.next = 10;
+            return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.verifyAccount)(data);
+          case 10:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5);
+    }));
+    return function (_x5) {
+      return _ref5.apply(this, arguments);
+    };
+  }());
+}
 if (account) {
   navLists.forEach(function (el) {
     el.addEventListener("click", function (e) {
@@ -5949,34 +28823,306 @@ if (account) {
     clicked.classList.add("side-nav--active");
   });
 }
-if (bookBtn) bookBtn.addEventListener("click", function (e) {
-  console.log(e.target);
-  bookBtn.textContent = "Processing...";
-  var tourId = tourSection.dataset.tourid;
-  (0,_stripe__WEBPACK_IMPORTED_MODULE_6__.bookTour)(tourId);
-});
-if (tourSection && submitReviewBtn) submitReviewBtn.addEventListener("click", /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(e) {
-    var review, rating, tour;
-    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-      while (1) switch (_context3.prev = _context3.next) {
+if (manageTourForm) document.addEventListener("DOMContentLoaded", /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+  var guide, calendar, guideChoice, startDates, tours, tourId, tour, tourName, duration, maxGroupSize, difficulty, price, summary, description, locationLat, locationLng, locationDay, locationDescription, startLocationLat, startLocationLng, startLocationAddress, startLocationDescription, addImages, imageCover, groupLat, groupLng, groupDay, groupDescription, clearTourForm, createLocations, createStartLocation, createFormData;
+  return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+    while (1) switch (_context9.prev = _context9.next) {
+      case 0:
+        guide = document.getElementById("guide");
+        calendar = document.getElementById("calendar");
+        guideChoice = new choices_js__WEBPACK_IMPORTED_MODULE_10__["default"](guide, {
+          removeItemButton: true,
+          duplicateItemsAllowed: false,
+          placeholder: true,
+          placeholderValue: "Select guide...",
+          searchEnabled: true,
+          shouldSort: false
+        });
+        startDates = (0,flatpickr__WEBPACK_IMPORTED_MODULE_9__["default"])(calendar, {
+          mode: "multiple",
+          dateFormat: "Y-m-d"
+        });
+        if (!manageTourForm) {
+          _context9.next = 37;
+          break;
+        }
+        _context9.next = 7;
+        return (0,_tour__WEBPACK_IMPORTED_MODULE_5__.loadToursData)();
+      case 7:
+        tours = _context9.sent;
+        tourName = tourForm.querySelector("#tour-name");
+        duration = tourForm.querySelector("#duration");
+        maxGroupSize = tourForm.querySelector("#maxGroupSize");
+        difficulty = tourForm.querySelector("#difficulty");
+        price = tourForm.querySelector("#price");
+        summary = tourForm.querySelector("#summary");
+        description = tourForm.querySelector("#description");
+        locationLat = tourForm.querySelector("#locationLat-0");
+        locationLng = tourForm.querySelector("#locationLng-0");
+        locationDay = tourForm.querySelector("#locationDay-0");
+        locationDescription = tourForm.querySelector("#locationDescription-0");
+        startLocationLat = tourForm.querySelector("#startLocationLat");
+        startLocationLng = tourForm.querySelector("#startLocationLng");
+        startLocationAddress = tourForm.querySelector("#startLocationAddress");
+        startLocationDescription = tourForm.querySelector("#startLocationDescription");
+        addImages = tourForm.querySelector("#addImages");
+        imageCover = tourForm.querySelector("#imageCover");
+        groupLat = document.querySelector(".group-lat");
+        groupLng = document.querySelector(".group-lng");
+        groupDay = document.querySelector(".group-day");
+        groupDescription = document.querySelector(".group-description");
+        clearTourForm = function clearTourForm() {
+          tourName.value = duration.value = maxGroupSize.value = difficulty.value = price.value = summary.value = description.value = locationLat.value = locationLng.value = locationDay.value = locationDescription.value = startLocationLat.value = startLocationLng.value = startLocationAddress.value = startLocationDescription.value = tourId = "";
+          startDates.clear();
+          guideChoice.removeActiveItems();
+          groupLat.querySelectorAll("input").forEach(function (el) {
+            if (el.getAttribute("id") !== "locationLat-0") el.remove();
+          });
+          groupLng.querySelectorAll("input").forEach(function (el) {
+            if (el.getAttribute("id") !== "locationLng-0") el.remove();
+          });
+          groupDay.querySelectorAll("input").forEach(function (el) {
+            if (el.getAttribute("id") !== "locationDay-0") el.remove();
+          });
+          groupDescription.querySelectorAll("textarea").forEach(function (el) {
+            if (el.getAttribute("id") !== "locationDescription-0") el.remove();
+          });
+        };
+        createLocations = function createLocations() {
+          var loc = [];
+          groupLat.querySelectorAll("input").forEach(function (el, i) {
+            loc[i] = {};
+            loc.at(i).coordinates = [];
+            loc.at(i).coordinates[0] = +el.value;
+            loc.at(i).type = "Point";
+          });
+          groupLng.querySelectorAll("input").forEach(function (el, i) {
+            loc.at(i).coordinates[1] = +el.value;
+          });
+          groupDay.querySelectorAll("input").forEach(function (el, i) {
+            loc.at(i).day = +el.value;
+          });
+          groupDescription.querySelectorAll("textarea").forEach(function (el, i) {
+            loc.at(i).description = el.value;
+          });
+          return loc;
+        };
+        createStartLocation = function createStartLocation(tour) {
+          var loc = {};
+          loc.type = "Point";
+          if (+tour.startLocation.coordinates[0] !== +startLocationLat.value) loc.coordinates[0] = +startLocationLat.value;
+          if (+tour.startLocation.coordinates[1] !== +startLocationLng.value) loc.coordinates[1] = +startLocationLng.value;
+          if (tour.startLocation.address !== startLocationAddress.value) loc.address = startLocationAddress.value;
+          if (tour.startLocation.description !== startLocationDescription.value) loc.description = startLocationDescription.value;
+          return loc;
+        };
+        createFormData = function createFormData() {
+          var form = new FormData();
+          var locations = createLocations();
+          var startLocation = createStartLocation(tour);
+          var selectedGuides = guideChoice.getValue().map(function (el) {
+            return el.value;
+          });
+          if (difficulty.value && difficulty.value !== tour.difficulty) form.append("difficulty", difficulty.value);
+          if (description.value && description.value !== tour.description) form.append("description", description.value);
+          if (duration.value && +duration.value !== +tour.duration) form.append("duration", duration.value);
+          if (selectedGuides) form.append("guides", selectedGuides);
+          if (imageCover.files.length > 0) form.append("imageCover", imageCover.files[0]);
+          if (addImages.files.length > 0) form.append("images", addImages.files.map(function (el) {
+            return el;
+          }));
+          if (locations.length > 0) form.append("locations", locations);
+          if (maxGroupSize.value && +maxGroupSize.value !== +tour.maxGroupSize) form.append("maxGroupSize", +maxGroupSize.value);
+          if (tourName.value && tourName.value !== tour.name) form.append("name", tourName.value);
+          if (price.value && +price.value !== +tour.price) form.append("price", +price.value);
+          if (summary.value && summary.value !== tour.summary) form.append("summary", summary.value);
+          if (startDates.selectedDates) form.append("startDates", [startDates.selectedDates]);
+          if (Object.entries(startLocation).length > 1) form.append("startLocation", startLocation);
+          var _iterator = _createForOfIteratorHelper(form.entries()),
+            _step;
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var _step$value = _slicedToArray(_step.value, 2),
+                key = _step$value[0],
+                value = _step$value[1];
+              console.log("".concat(key, ":").concat(value));
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+          return form;
+        };
+        if (selectTour) selectTour.addEventListener("click", /*#__PURE__*/function () {
+          var _ref7 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(e) {
+            var id, chosenGuides;
+            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+              while (1) switch (_context6.prev = _context6.next) {
+                case 0:
+                  if (tours.length) {
+                    _context6.next = 4;
+                    break;
+                  }
+                  _context6.next = 3;
+                  return (0,_tour__WEBPACK_IMPORTED_MODULE_5__.loadToursData)();
+                case 3:
+                  tours = _context6.sent;
+                case 4:
+                  id = e.target.value;
+                  tour = tours.find(function (el) {
+                    return el.id === id;
+                  });
+                  console.log(tour);
+                  if (tour) {
+                    clearTourForm();
+                    tourName.value = tour.name;
+                    duration.value = tour.duration;
+                    maxGroupSize.value = tour.maxGroupSize;
+                    difficulty.value = tour.difficulty;
+                    price.value = tour.price;
+                    summary.value = tour.summary;
+                    description.value = tour.description;
+                    locationLat.value = tour.locations[0].coordinates[0];
+                    locationLng.value = tour.locations[0].coordinates[1];
+                    locationDay.value = tour.locations[0].day;
+                    locationDescription.value = tour.locations[0].description;
+                    tour.locations.forEach(function (loc, i) {
+                      if (i > 0) {
+                        var latInput = "<input value=\"".concat(loc.coordinates[0], "\" id=\"locationLat-").concat(i, "\" type=\"number\" step=\"any\">");
+                        groupLat.insertAdjacentHTML("beforeend", latInput);
+                        var lngInput = "<input value=\"".concat(loc.coordinates[1], "\" id=\"locationLng-").concat(i, "\" type=\"number\" step=\"any\">");
+                        groupLng.insertAdjacentHTML("beforeend", lngInput);
+                        var dayInput = "<input value=\"".concat(loc.day, "\" id=\"locationDay-").concat(i, "\" type=\"number\" step=\"any\">");
+                        groupDay.insertAdjacentHTML("beforeend", dayInput);
+                        var descriptionTextArea = "<textarea id=\"locationDescription-".concat(i, "\" name=\"locationDescription-").concat(i, "\" placeholder=\"Add a description\"></textarea>");
+                        groupDescription.insertAdjacentHTML("beforeend", descriptionTextArea);
+                        groupDescription.querySelector("#locationDescription-".concat(i)).value = loc.description;
+                      }
+                    });
+                    tourId = id;
+                    (0,_leaflet__WEBPACK_IMPORTED_MODULE_2__.setLocation)(tour.locations, true);
+                    tourForm.querySelector("#startLocationLat").value = tour.startLocation.coordinates[0];
+                    tourForm.querySelector("#startLocationLng").value = tour.startLocation.coordinates[1];
+                    tourForm.querySelector("#startLocationAddress").value = tour.startLocation.address;
+                    tourForm.querySelector("#startLocationDescription").value = tour.startLocation.description;
+                    startDates.setDate(tour.startDates);
+                    chosenGuides = tour.guides.map(function (guide) {
+                      return guide._id;
+                    });
+                    chosenGuides.forEach(function (optionValue) {
+                      guideChoice.setChoiceByValue(optionValue);
+                    });
+                    tourForm.querySelector(".btn-create").classList.add("hide");
+                    tourForm.querySelector(".btn-update").classList.remove("hide");
+                  }
+                case 8:
+                case "end":
+                  return _context6.stop();
+              }
+            }, _callee6);
+          }));
+          return function (_x6) {
+            return _ref7.apply(this, arguments);
+          };
+        }());
+        tourForm.querySelector(".btn-update").addEventListener("click", /*#__PURE__*/function () {
+          var _ref8 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(e) {
+            var data;
+            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+              while (1) switch (_context7.prev = _context7.next) {
+                case 0:
+                  e.preventDefault();
+                  _context7.prev = 1;
+                  data = createFormData();
+                  console.log(data);
+                  _context7.next = 6;
+                  return (0,_tour__WEBPACK_IMPORTED_MODULE_5__.updateTour)(data, tourId);
+                case 6:
+                  console.log("submitted");
+                  _context7.next = 12;
+                  break;
+                case 9:
+                  _context7.prev = 9;
+                  _context7.t0 = _context7["catch"](1);
+                  console.log(_context7.t0);
+                case 12:
+                case "end":
+                  return _context7.stop();
+              }
+            }, _callee7, null, [[1, 9]]);
+          }));
+          return function (_x7) {
+            return _ref8.apply(this, arguments);
+          };
+        }());
+        tourForm.querySelector(".btn-create").addEventListener("click", /*#__PURE__*/function () {
+          var _ref9 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee8(e) {
+            var data;
+            return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+              while (1) switch (_context8.prev = _context8.next) {
+                case 0:
+                  e.preventDefault();
+                  try {
+                    data = createFormData();
+                    console.log(data);
+                    // await createTour(data);
+                    console.log("submitted");
+                  } catch (error) {
+                    console.log(error);
+                  }
+                case 2:
+                case "end":
+                  return _context8.stop();
+              }
+            }, _callee8);
+          }));
+          return function (_x8) {
+            return _ref9.apply(this, arguments);
+          };
+        }());
+        tourForm.querySelector(".btn-reset").addEventListener("click", function () {
+          clearTourForm();
+          (0,_leaflet__WEBPACK_IMPORTED_MODULE_2__.setLocation)([27.9881, 86.925]);
+          tourForm.querySelector(".btn-create").classList.remove("hide");
+          tourForm.querySelector(".btn-update").classList.add("hide");
+        });
+      case 37:
+      case "end":
+        return _context9.stop();
+    }
+  }, _callee9);
+})));
+if (bookBtn) bookBtn.addEventListener("click", /*#__PURE__*/function () {
+  var _ref10 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee10(e) {
+    var _tourId;
+    return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+      while (1) switch (_context10.prev = _context10.next) {
         case 0:
-          e.preventDefault();
-          review = document.querySelector("textarea").value;
-          rating = Number(reviewRating.dataset.rating);
-          tour = tourSection.dataset.tourid;
-          _context3.next = 6;
-          return (0,_review__WEBPACK_IMPORTED_MODULE_3__.addReview)(review, rating, tour);
-        case 6:
+          _context10.prev = 0;
+          bookBtn.textContent = "Processing...";
+          _tourId = tourSection.dataset.tourid;
+          _context10.next = 5;
+          return (0,_stripe__WEBPACK_IMPORTED_MODULE_7__.bookTour)(_tourId);
+        case 5:
+          _context10.next = 11;
+          break;
+        case 7:
+          _context10.prev = 7;
+          _context10.t0 = _context10["catch"](0);
+          bookBtn.textContent = "Book tour now!";
+          (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context10.t0.message);
+        case 11:
         case "end":
-          return _context3.stop();
+          return _context10.stop();
       }
-    }, _callee3);
+    }, _callee10, null, [[0, 7]]);
   }));
-  return function (_x3) {
-    return _ref3.apply(this, arguments);
+  return function (_x9) {
+    return _ref10.apply(this, arguments);
   };
 }());
+if (tourSection && submitReviewBtn) submitReviewBtn.addEventListener("click", submitReview);
 if (reviewRating) reviewStars.forEach(function (el) {
   return el.addEventListener("click", function (e) {
     // Toggle active classes
@@ -5995,59 +29141,55 @@ if (deleteReviewBtn) deleteReviewBtn.forEach(function (el) {
 });
 if (usersAdminForm) usersAdminForm.addEventListener("submit", manageUserAction.bind(usersAdminForm));
 if (reviewAdminForm) reviewAdminForm.addEventListener("submit", manageReviewAction.bind(reviewAdminForm));
-function manageUserAction(_x4) {
+if (bookingAdminForm) bookingAdminForm.addEventListener("submit", manageBookingAction.bind(bookingAdminForm));
+function manageUserAction(_x10) {
   return _manageUserAction.apply(this, arguments);
 }
 function _manageUserAction() {
-  _manageUserAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5(e) {
-    var adminContainer, password, email, html, _yield$fetchAll, data, userCardContainer, addUserForm, userManagementSection, form, _html, _form;
-    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-      while (1) switch (_context5.prev = _context5.next) {
+  _manageUserAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee12(e) {
+    var _clearForm, adminContainer, password, email, _yield$fetchAll, data, userCardContainer, addUserForm, userManagementSection, form, html, _form;
+    return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+      while (1) switch (_context12.prev = _context12.next) {
         case 0:
           e.preventDefault();
-          adminContainer = document.getElementById("manage-users").querySelector(".admin-container");
-          password = this.querySelector("#admin-password--0").value;
-          email = this.querySelector("#admin-email--0").value;
-          _context5.prev = 4;
-          html = '<div class="spinner-mini"></div>';
-          adminContainer.innerHTML = "";
-          adminContainer.insertAdjacentHTML("afterbegin", html);
-          _context5.next = 10;
+          _clearForm = clearForm("manage-users", this, 0), adminContainer = _clearForm.adminContainer, password = _clearForm.password, email = _clearForm.email;
+          _context12.prev = 2;
+          _context12.next = 5;
           return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.fetchAll)(password, email, "users");
-        case 10:
-          _yield$fetchAll = _context5.sent;
+        case 5:
+          _yield$fetchAll = _context12.sent;
           data = _yield$fetchAll.data;
           userCardContainer = document.createElement("div");
           userCardContainer.classList.add("users-container");
 
           // Add user cards to the container
           data.forEach(function (user) {
-            var userCard = (0,_html__WEBPACK_IMPORTED_MODULE_7__.userDetailCard)(user);
+            var userCard = (0,_html__WEBPACK_IMPORTED_MODULE_8__.userDetailCard)(user);
             userCardContainer.insertAdjacentHTML("beforeend", userCard);
           });
           adminContainer.innerHTML = "";
           adminContainer.appendChild(userCardContainer);
-          addUserForm = (0,_html__WEBPACK_IMPORTED_MODULE_7__.UserManagementForm)();
+          addUserForm = (0,_html__WEBPACK_IMPORTED_MODULE_8__.UserManagementForm)();
           userManagementSection = document.getElementById("users-container");
           userManagementSection.insertAdjacentHTML("beforeend", addUserForm);
           form = document.getElementById("addUserForm");
           form.addEventListener("submit", createNewUser);
           userCardContainer.addEventListener("click", /*#__PURE__*/function () {
-            var _ref4 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4(e) {
+            var _ref11 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee11(e) {
               var userId, user;
-              return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-                while (1) switch (_context4.prev = _context4.next) {
+              return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+                while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     userId = e.target.closest(".user-card").dataset.id;
                     if (!e.target.closest("button")) {
-                      _context4.next = 7;
+                      _context11.next = 7;
                       break;
                     }
-                    _context4.next = 4;
+                    _context11.next = 4;
                     return (0,_user__WEBPACK_IMPORTED_MODULE_4__.deleteUserData)(userId);
                   case 4:
                     userCardContainer.querySelector("[data-id=\"".concat(userId, "\"]")).remove();
-                    _context4.next = 13;
+                    _context11.next = 13;
                     break;
                   case 7:
                     user = data.filter(function (el) {
@@ -6060,60 +29202,140 @@ function _manageUserAction() {
                     form.querySelector("#userPhoto").value = "";
                   case 13:
                   case "end":
-                    return _context4.stop();
+                    return _context11.stop();
                 }
-              }, _callee4);
+              }, _callee11);
             }));
-            return function (_x7) {
-              return _ref4.apply(this, arguments);
+            return function (_x15) {
+              return _ref11.apply(this, arguments);
             };
           }());
-          _context5.next = 32;
+          _context12.next = 27;
           break;
-        case 25:
-          _context5.prev = 25;
-          _context5.t0 = _context5["catch"](4);
-          _html = (0,_html__WEBPACK_IMPORTED_MODULE_7__.adminContainerContent)("users data", 0);
+        case 20:
+          _context12.prev = 20;
+          _context12.t0 = _context12["catch"](2);
+          html = (0,_html__WEBPACK_IMPORTED_MODULE_8__.adminContainerContent)("users data", 0);
           adminContainer.innerHTML = "";
-          adminContainer.insertAdjacentHTML("afterbegin", _html);
+          adminContainer.insertAdjacentHTML("afterbegin", html);
           _form = adminContainer.querySelector(".admin-section--0");
           _form.addEventListener("submit", manageUserAction.bind(_form));
-        case 32:
+        case 27:
         case "end":
-          return _context5.stop();
+          return _context12.stop();
       }
-    }, _callee5, this, [[4, 25]]);
+    }, _callee12, this, [[2, 20]]);
   }));
   return _manageUserAction.apply(this, arguments);
 }
-function manageReviewAction(_x5) {
+function submitReview(_x11) {
+  return _submitReview.apply(this, arguments);
+}
+function _submitReview() {
+  _submitReview = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee13(e) {
+    var review, rating, tour;
+    return _regeneratorRuntime().wrap(function _callee13$(_context13) {
+      while (1) switch (_context13.prev = _context13.next) {
+        case 0:
+          e.preventDefault();
+          review = document.querySelector("textarea").value;
+          rating = Number(reviewRating.dataset.rating);
+          tour = tourSection.dataset.tourid;
+          _context13.next = 6;
+          return (0,_review__WEBPACK_IMPORTED_MODULE_3__.addReview)(review, rating, tour);
+        case 6:
+          submitReviewBtn.textContent = "Thank you 🥳";
+          submitReviewBtn.removeEventListener("click", submitReview);
+          window.location.hash = "#cta";
+        case 9:
+        case "end":
+          return _context13.stop();
+      }
+    }, _callee13);
+  }));
+  return _submitReview.apply(this, arguments);
+}
+function clearForm(id, parent, index) {
+  var adminContainer = document.getElementById(id).querySelector(".admin-container");
+  var password = parent.querySelector("#admin-password--".concat(index)).value;
+  var email = parent.querySelector("#admin-email--".concat(index)).value;
+  var html = '<div class="spinner-mini"></div>';
+  adminContainer.innerHTML = "";
+  adminContainer.insertAdjacentHTML("afterbegin", html);
+  return {
+    adminContainer: adminContainer,
+    password: password,
+    email: email
+  };
+}
+function manageBookingAction(_x12) {
+  return _manageBookingAction.apply(this, arguments);
+}
+function _manageBookingAction() {
+  _manageBookingAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee14(e) {
+    var _clearForm2, adminContainer, password, email, _yield$fetchAll2, data, userBookingContainer, html, form;
+    return _regeneratorRuntime().wrap(function _callee14$(_context14) {
+      while (1) switch (_context14.prev = _context14.next) {
+        case 0:
+          e.preventDefault();
+          _clearForm2 = clearForm("manage-bookings", this, 2), adminContainer = _clearForm2.adminContainer, password = _clearForm2.password, email = _clearForm2.email;
+          _context14.prev = 2;
+          _context14.next = 5;
+          return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.fetchAll)(password, email, "bookings");
+        case 5:
+          _yield$fetchAll2 = _context14.sent;
+          data = _yield$fetchAll2.data;
+          userBookingContainer = document.createElement("ul");
+          userBookingContainer.classList.add("user-bookings__container");
+
+          // Add user cards to the container
+          data.forEach(function (booking) {
+            var bookingCard = (0,_html__WEBPACK_IMPORTED_MODULE_8__.BookedTourCard)(booking);
+            userBookingContainer.insertAdjacentHTML("beforeend", bookingCard);
+          });
+          adminContainer.innerHTML = "";
+          adminContainer.appendChild(userBookingContainer);
+          _context14.next = 21;
+          break;
+        case 14:
+          _context14.prev = 14;
+          _context14.t0 = _context14["catch"](2);
+          html = (0,_html__WEBPACK_IMPORTED_MODULE_8__.adminContainerContent)("booking data", 2);
+          adminContainer.innerHTML = "";
+          adminContainer.insertAdjacentHTML("afterbegin", html);
+          form = adminContainer.querySelector(".admin-section--2");
+          form.addEventListener("submit", manageBookingAction.bind(form));
+        case 21:
+        case "end":
+          return _context14.stop();
+      }
+    }, _callee14, this, [[2, 14]]);
+  }));
+  return _manageBookingAction.apply(this, arguments);
+}
+function manageReviewAction(_x13) {
   return _manageReviewAction.apply(this, arguments);
 }
 function _manageReviewAction() {
-  _manageReviewAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(e) {
-    var password, email, html, adminContainer, _yield$fetchAll2, data, userReviewContainer, _html2, form;
-    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-      while (1) switch (_context6.prev = _context6.next) {
+  _manageReviewAction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee15(e) {
+    var _clearForm3, adminContainer, password, email, _yield$fetchAll3, data, userReviewContainer, html, form;
+    return _regeneratorRuntime().wrap(function _callee15$(_context15) {
+      while (1) switch (_context15.prev = _context15.next) {
         case 0:
           e.preventDefault();
-          password = this.querySelector("#admin-password--1").value;
-          email = this.querySelector("#admin-email--1").value;
-          html = '<div class="spinner-mini"></div>';
-          adminContainer = document.getElementById("manage-reviews").querySelector(".admin-container");
-          _context6.prev = 5;
-          adminContainer.innerHTML = "";
-          adminContainer.insertAdjacentHTML("afterbegin", html);
-          _context6.next = 10;
+          _clearForm3 = clearForm("manage-reviews", this, 1), adminContainer = _clearForm3.adminContainer, password = _clearForm3.password, email = _clearForm3.email;
+          _context15.prev = 2;
+          _context15.next = 5;
           return (0,_auth__WEBPACK_IMPORTED_MODULE_1__.fetchAll)(password, email, "reviews");
-        case 10:
-          _yield$fetchAll2 = _context6.sent;
-          data = _yield$fetchAll2.data;
+        case 5:
+          _yield$fetchAll3 = _context15.sent;
+          data = _yield$fetchAll3.data;
           userReviewContainer = document.createElement("ul");
           userReviewContainer.classList.add("user-reviews__container");
 
           // Add user cards to the container
           data.forEach(function (review, index) {
-            var reviewCard = (0,_html__WEBPACK_IMPORTED_MODULE_7__.ReviewDetailCard)(review, index);
+            var reviewCard = (0,_html__WEBPACK_IMPORTED_MODULE_8__.ReviewDetailCard)(review, index);
             userReviewContainer.insertAdjacentHTML("beforeend", reviewCard);
           });
           adminContainer.innerHTML = "";
@@ -6126,32 +29348,32 @@ function _manageReviewAction() {
               }
             });
           });
-          _context6.next = 27;
+          _context15.next = 22;
           break;
-        case 20:
-          _context6.prev = 20;
-          _context6.t0 = _context6["catch"](5);
-          _html2 = (0,_html__WEBPACK_IMPORTED_MODULE_7__.adminContainerContent)("the reviewed tour data", 1);
+        case 15:
+          _context15.prev = 15;
+          _context15.t0 = _context15["catch"](2);
+          html = (0,_html__WEBPACK_IMPORTED_MODULE_8__.adminContainerContent)("the reviewed tour data", 1);
           adminContainer.innerHTML = "";
-          adminContainer.insertAdjacentHTML("afterbegin", _html2);
+          adminContainer.insertAdjacentHTML("afterbegin", html);
           form = adminContainer.querySelector(".admin-section--1");
           form.addEventListener("submit", manageReviewAction.bind(form));
-        case 27:
+        case 22:
         case "end":
-          return _context6.stop();
+          return _context15.stop();
       }
-    }, _callee6, this, [[5, 20]]);
+    }, _callee15, this, [[2, 15]]);
   }));
   return _manageReviewAction.apply(this, arguments);
 }
-function createNewUser(_x6) {
+function createNewUser(_x14) {
   return _createNewUser.apply(this, arguments);
 }
 function _createNewUser() {
-  _createNewUser = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(e) {
+  _createNewUser = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee16(e) {
     var button, id, photo, name, email, role, form, _yield$updateUser, data, userEl, userRole, roleClass;
-    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-      while (1) switch (_context7.prev = _context7.next) {
+    return _regeneratorRuntime().wrap(function _callee16$(_context16) {
+      while (1) switch (_context16.prev = _context16.next) {
         case 0:
           e.preventDefault();
           button = document.querySelector(".submit-new-user-button");
@@ -6162,21 +29384,21 @@ function _createNewUser() {
           email = document.getElementById("userEmail");
           role = document.getElementById("userRole");
           if (!(name.value === name.defaultValue && email.value === email.defaultValue && role.value === role.defaultValue && !photo)) {
-            _context7.next = 11;
+            _context16.next = 11;
             break;
           }
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Change any of the fields to update the user's data");
-          return _context7.abrupt("return");
+          return _context16.abrupt("return");
         case 11:
           form = new FormData();
           if (name.value !== name.defaultValue) form.append("name", name.value);
           if (email.value !== email.defaultValue) form.append("email", email.value);
           if (role.value !== role.defaultValue && role.value !== "Select a role") form.append("role", role.value);
           if (photo) form.append("photo", photo);
-          _context7.next = 18;
+          _context16.next = 18;
           return (0,_user__WEBPACK_IMPORTED_MODULE_4__.updateUser)(form, id);
         case 18:
-          _yield$updateUser = _context7.sent;
+          _yield$updateUser = _context16.sent;
           data = _yield$updateUser.data;
           userEl = document.querySelector("[data-id=\"".concat(id, "\"]"));
           userEl.querySelector(".user-image").src = "/img/users/".concat(data.photo);
@@ -6192,14 +29414,11 @@ function _createNewUser() {
           button.textContent = "Update User";
         case 32:
         case "end":
-          return _context7.stop();
+          return _context16.stop();
       }
-    }, _callee7);
+    }, _callee16);
   }));
   return _createNewUser.apply(this, arguments);
-}
-function clickAction(e) {
-  console.log(e.target);
 }
 })();
 

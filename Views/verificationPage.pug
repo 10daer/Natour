@@ -1,0 +1,25 @@
+extends base
+
+block append head
+    link(rel="stylesheet" href="/css/login.css")
+
+block content
+    main.main
+        .verify-account
+            h2.heading-secondary.ma-bt-lg A verification code would be sent to your mail.
+            form.form.form-verify
+                .form__group
+                    label.form__label.ma-bt-md(for='input') Input Your Verification Code
+                    .grid-6
+                        input#verify-input-0.form__input(type='number',tabindex="1" ,maxlength="1", required)
+                        input#verify-input-1.form__input(type='number',tabindex="2" ,maxlength="1", required)
+                        input#verify-input-2.form__input(type='number',tabindex="3" ,maxlength="1", required)
+                        input#verify-input-3.form__input(type='number',tabindex="4" ,maxlength="1", required)
+                        input#verify-input-4.form__input(type='number',tabindex="5" ,maxlength="1", required)
+                        input#verify-input-5.form__input(type='number',tabindex="6" ,maxlength="1", required)
+                        input#hidden-input(type='hidden', value= email)
+                .right                       
+                    button.btn.btn--green.btn-verify Verify
+            .countdown.link 
+                span Send verification code 
+                span.timer

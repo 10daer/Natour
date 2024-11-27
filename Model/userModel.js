@@ -46,7 +46,15 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
     required: true
-  }
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+    required: true
+  },
+  accountCreatedAt: Date,
+  VerificationToken: String,
+  VerificationTokenExpiryDate: Date
 });
 
 userSchema.pre("save", async function(next) {
@@ -86,6 +94,16 @@ userSchema.methods.generateToken = function() {
     .digest("hex");
   this.passwordTokenExpiryDate = Date.now() + 10 * 60 * 1000;
   return resetToken;
+};
+
+userSchema.methods.generateVerificationToken = function() {
+  const verificationToken = crypto.randomInt(100000, 999999).toString();
+  this.VerificationToken = crypto
+    .createHash("sha256")
+    .update(verificationToken)
+    .digest("hex");
+  this.VerificationTokenExpiryDate = Date.now() + 3 * 60 * 1000;
+  return verificationToken;
 };
 
 userSchema.methods.verifyPasswordChange = function(jwtTimestamp) {
