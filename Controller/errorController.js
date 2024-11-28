@@ -120,7 +120,7 @@ const globalErrorHandler = (err, req, res, next) => {
     )
       error = handleUnBufferedRequest();
 
-    handleProdErr(error, res);
+    handleProdErr(error, req, res);
   }
 };
 
