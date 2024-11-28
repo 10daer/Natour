@@ -1,13 +1,12 @@
 /* eslint-disable */
 import axios from "axios";
 import { showAlert } from "./alerts";
-const baseUrl = "http://127.0.0.1:8001/";
 
 export const login = async (email, password) => {
   try {
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/users/login`,
+      url: `/api/v1/users/login`,
       data: {
         email,
         password
@@ -36,7 +35,7 @@ export const fetchAll = async (password, email, route) => {
   try {
     await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/users/login`,
+      url: `/api/v1/users/login`,
       data: {
         email,
         password
@@ -46,7 +45,7 @@ export const fetchAll = async (password, email, route) => {
 
     const res = await axios({
       method: "GET",
-      url: `${baseUrl}api/v1/${route}`,
+      url: `/api/v1/${route}`,
       withCredentials: true
     });
     if (res.data.status === "success") {
@@ -64,7 +63,7 @@ export const forgetPassword = async email => {
   try {
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/users/forgotpassword`,
+      url: `/api/v1/users/forgotpassword`,
       data: {
         email
       },
@@ -86,7 +85,7 @@ export const resetPassword = async (password, passwordConfirm, token) => {
   try {
     const res = await axios({
       method: "PATCH",
-      url: `${baseUrl}api/v1/users/resetpassword/${token}`,
+      url: `/api/v1/users/resetpassword/${token}`,
       data: {
         password,
         passwordConfirm
@@ -121,7 +120,7 @@ export const signup = async (name, email, password, passwordConfirm, role) => {
     };
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/users/signup`,
+      url: `/api/v1/users/signup`,
       data: newUser,
       withCredentials: true
     });
@@ -142,7 +141,7 @@ export const regenerateToken = async data => {
   try {
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/users/generatecode`,
+      url: `/api/v1/users/generatecode`,
       data: { email: data },
       withCredentials: true
     });
@@ -160,7 +159,7 @@ export const verifyAccount = async data => {
   try {
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/users/verifyaccount`,
+      url: `/api/v1/users/verifyaccount`,
       data: { verificationCode: data },
       withCredentials: true
     });
@@ -180,7 +179,7 @@ export const logout = async () => {
   try {
     const res = await axios({
       method: "GET",
-      url: `${baseUrl}api/v1/users/logout`
+      url: `/api/v1/users/logout`
     });
     if ((res.data.status = "success")) location.assign("/");
   } catch (err) {

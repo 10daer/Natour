@@ -11,13 +11,16 @@ const signToken = id =>
     expiresIn: process.env.JWT_TOKEN_EXPIRATION
   });
 
-const responseWithToken = (user, res, statusCode, token) => {
+const responseWithToken = (user, req, res, statusCode) => {
+  const token = signToken(user._id);
+
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRATION * 24 * 3600 * 1000
     ),
     httpOnly: true,
-    path: "/"
+    path: "/",
+    secure: req.secure || req.headers["x-forwarded-proto"] === "https"
   };
   if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
 
@@ -53,9 +56,7 @@ exports.verifyAccount = catchAsync(async (req, res, next) => {
   user.VerificationTokenExpiryDate = undefined;
   await user.save({ validateBeforeSave: false });
 
-  const token = signToken(user._id);
-
-  responseWithToken(user, res, 201, token);
+  responseWithToken(user, req, res, 201);
 });
 
 exports.generateVerificationToken = catchAsync(async (req, res, next) => {
@@ -140,9 +141,7 @@ exports.logIn = catchAsync(async (req, res, next) => {
     );
   }
 
-  const token = signToken(user._id);
-
-  responseWithToken(user, res, 200, token);
+  responseWithToken(user, req, res, 200);
 });
 
 exports.logout = (req, res) => {
@@ -282,9 +281,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordTokenExpiryDate = undefined;
   await user.save();
 
-  // const token = signToken(user._id);
-
-  // responseWithToken(user, res, 200, token);
+  // responseWithToken(user,req, res, 200);
 
   res.status(200).json({
     status: "success",
@@ -303,7 +300,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
 
-  const token = signToken(user._id);
-
-  responseWithToken(user, res, 200, token);
+  responseWithToken(user, req, res, 200);
 });

@@ -116,7 +116,7 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.name === "TokenExpiredError") error = handleTokenExpiredError();
     if (
       unBufferedRequest(err.message) ||
-      err.reason.type === "ReplicaSetNoPrimary"
+      (err.reason && err.reason.type === "ReplicaSetNoPrimary")
     )
       error = handleUnBufferedRequest();
 

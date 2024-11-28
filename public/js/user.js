@@ -4,7 +4,7 @@ import { showAlert } from "./alerts";
 
 export const updateUser = async (data, id) => {
   try {
-    const url = `http://127.0.0.1:8001/api/v1/users/${id}`;
+    const url = `/api/v1/users/${id}`;
 
     const res = await axios({
       method: "PATCH",
@@ -23,7 +23,7 @@ export const updateUser = async (data, id) => {
 
 export const deleteUserData = async id => {
   try {
-    const url = `http://127.0.0.1:8001/api/v1/users/${id}`;
+    const url = `/api/v1/users/${id}`;
 
     const res = await axios({
       method: "DELETE",

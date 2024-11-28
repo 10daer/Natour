@@ -184,7 +184,7 @@ export const BookedTourCard = ({
                                 <use xlink:href="/img/icons.svg#icon-link"></use></svg
                             ></a>
                           </div>
-                          <div class="card__details flex">
+                          <div class=".card__details-admin flex">
                            <div class="card__dates">
                             <div class="card__data">
                             <svg class="card__icon">

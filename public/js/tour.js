@@ -1,13 +1,12 @@
 /* eslint-disable */
 import axios from "axios";
 import { showAlert } from "./alerts";
-const baseUrl = "http://127.0.0.1:8001/";
 
 export const loadToursData = async () => {
   try {
     const res = await axios({
       method: "GET",
-      url: `${baseUrl}api/v1/tours`,
+      url: `/api/v1/tours`,
       withCredentials: true
     });
 
@@ -24,7 +23,7 @@ export const updateTour = async (data, id) => {
   try {
     const res = await axios({
       method: "PATCH",
-      url: `${baseUrl}api/v1/tours/${id}`,
+      url: `/api/v1/tours/${id}`,
       data,
       withCredentials: true
     });
@@ -43,7 +42,7 @@ export const createTour = async data => {
   try {
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/tours`,
+      url: `/api/v1/tours`,
       data,
       withCredentials: true
     });

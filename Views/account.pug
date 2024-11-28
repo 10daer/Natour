@@ -4,10 +4,9 @@ block append head
   link(rel="stylesheet" href="/css/account.css")
   link(rel="stylesheet" href="/css/choices.min.css")
   link(rel="stylesheet" href="/css/flatpickr.min.css")
-  link(rel="stylesheet" href="/leaflet/leaflet.css")    
 
 mixin navItem(index,link, text, icon, active)
-  li(class=`side-nav-list ${active ? 'side-nav--active' : ''}` data-nav= index)
+  li.side-nav-list(data-nav= index)
     a(href=`${link}`)
       svg
         use(xlink:href=`img/icons.svg#icon-${icon}`)
@@ -49,7 +48,7 @@ mixin TourForm(guides)
         .form-group
           label(for="priceDiscount") Price Discount
           input#priceDiscount(type="number" min="0" step="0.01") 
-        
+
     .form-section
       h2.primary.title Description & Images
       .form-group
@@ -65,7 +64,7 @@ mixin TourForm(guides)
         .form-group.file-input-container
           input.form__upload#addImages(type="file" accept="image/*" required)
           label(for="addImages") Upload Other Images*      
-              
+
     .form-section
       h2.primary.title Locations Information
       .form-grid.grid-4
@@ -87,15 +86,15 @@ mixin TourForm(guides)
       .form-group
         label(for="startLocation") Start Location
         .form-grid
-            input#startLocationLat(type="number" placeholder="Latitude"  step="any")
-            input#startLocationLng(type="number" placeholder="Longitude" step="any")
+          input#startLocationLat(type="number" placeholder="Latitude"  step="any")
+          input#startLocationLng(type="number" placeholder="Longitude" step="any")
       .form-group
         label(for="startLocationAddress") Start Location Address
         input#startLocationAddress(type="text")
       .form-group
         label(for="startLocationDescription") Description
         textarea#startLocationDescription 
-        
+
     .form-section
       h2.primary.title Tour Dates & Guides
       .form-group
@@ -141,7 +140,7 @@ mixin TourCard(tour)
         .card__data
           svg.card__icon
             use(xlink:href="/img/icons.svg#icon-star")
-          span= `${tour.ratingsAverage.toString().padEnd(2, "0")} (${tour.ratingsQuantity})`          
+          span= `${Math.round(tour.ratingsAverage).toFixed(1)} (${tour.ratingsQuantity})`          
         .card__data
           svg.card__icon
             use(xlink:href="/img/icons.svg#icon-user")
@@ -158,7 +157,7 @@ mixin TourCard(tour)
           svg.card__icon
             use(xlink:href="/img/icons.svg#icon-map-pin")
           span= tour.startLocation.description                                           
-        
+
 mixin userReviewCard(review,index)
   li
     span.review-index= `${index}`
@@ -173,8 +172,8 @@ mixin userReviewCard(review,index)
         p= review.review
         .reviews__rating
           each star in [1,2,3,4,5]
-              svg.reviews__star(class=`reviews__star--${star <= review.rating ? "active": "inactive"}`)
-                  use(xlink:href='/img/icons.svg#icon-star')
+            svg.reviews__star(class=`reviews__star--${star <= review.rating ? "active": "inactive"}`)
+              use(xlink:href='/img/icons.svg#icon-star')
 
 mixin emptyCard(startMsg,endMsg)
   .empty-card 
@@ -184,7 +183,7 @@ mixin emptyCard(startMsg,endMsg)
       a(href= "/all-tours")= "tour overview"
       | 
       = ` page to ${endMsg}`
-    
+
 
 block content
   main.main
@@ -194,7 +193,7 @@ block content
         ul.side-nav
           h5.admin-nav__heading
             span= user.role.split("-").join(" ")
-          +navItem(0,'#settings', 'Settings', 'settings', true)
+          +navItem(0,'#settings', 'Settings', 'settings')
           if (user.role === 'guide' || user.role === 'lead-guide')  
             +navItem(1,'#tours', 'My Tours', 'briefcase')
           else if (user.role === 'user')            
@@ -206,7 +205,7 @@ block content
             +navItem(6,'#manage-users', 'Manage users', 'users')
             +navItem(7,'#manage-reviews', 'Manage reviews', 'star')
             +navItem(8,'#manage-bookings', 'Manage bookings', 'briefcase')
-      
+
       //- Content
       .user-view__content
         //- Account Settings section
@@ -303,11 +302,11 @@ block content
                   option(value="") Select Tour
                   for tour in tours
                     option(value= `${tour.id}`)= `${tour.name.toUpperCase()}` 
-                  
+
 
               .user-section__container 
                 +TourForm(guides)
-               
+
           .user-view__content-box#manage-users(data-section= 6)
             .user-view__container#users-container
               h2.account-heading-secondary Manage Users Information

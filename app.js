@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const compression = require('compression');
+const compression = require("compression");
 
 // Routers
 const tourRouter = require("./Routes/tourRoutes");
@@ -22,11 +22,25 @@ const globalErrorHandler = require("./Controller/errorController");
 
 const app = express();
 
-app.enable("trust proxy");
+if (process.env.NODE_ENV === "production") app.enable("trust proxy");
 
-// 1) GLOBAL MIDDLEWARES
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "Views"));
+
+// 1) GLOBAL MIDDLEWARES
+// Implement CORS
+app.use(cors());
+
+// // Use CORS middleware for specific origin
+// app.use(
+//   cors({
+//     origin: "http://localhost:8001",
+//     credentials: true
+//   })
+// );
+
+// Handle preflight requests for all routes
+app.options("*", cors());
 
 // Serving static files
 app.use(express.static(path.join(__dirname, "public")));
@@ -69,20 +83,6 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 app.use("/api", limiter);
-
-// Implement CORS
-app.use(cors());
-
-// // Use CORS middleware
-// app.use(
-//   cors({
-//     origin: "http://localhost:8001",
-//     credentials: true
-//   })
-// );
-
-// Handle preflight requests for all routes
-app.options("*", cors());
 
 // Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
 app.post(

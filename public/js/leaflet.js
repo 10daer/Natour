@@ -1,5 +1,4 @@
 /* eslint-disable */
-import L from "leaflet";
 
 function init() {
   if (document.querySelector("#map")) {

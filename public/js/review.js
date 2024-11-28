@@ -1,13 +1,12 @@
 /* eslint-disable */
 import axios from "axios";
 import { showAlert } from "./alerts";
-const baseUrl = "http://127.0.0.1:8001/";
 
 export const addReview = async (review, rating, tour) => {
   try {
     const res = await axios({
       method: "POST",
-      url: `${baseUrl}api/v1/reviews`,
+      url: `/api/v1/reviews`,
       data: {
         review,
         rating,
@@ -29,7 +28,7 @@ export const deleteReview = async id => {
   try {
     const res = await axios({
       method: "DELETE",
-      url: `${baseUrl}api/v1/reviews/${id}`,
+      url: `/api/v1/reviews/${id}`,
       withCredentials: true
     });
 

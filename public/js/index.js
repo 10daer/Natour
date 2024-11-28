@@ -1,31 +1,30 @@
 /* eslint-disable */
-import { showAlert } from "./alerts";
 import Choices from "choices.js";
+import flatpickr from "flatpickr";
+import { showAlert } from "./alerts";
 import {
+  fetchAll,
   forgetPassword,
   login,
   logout,
+  regenerateToken,
   resetPassword,
   signup,
-  fetchAll,
-  verifyAccount,
-  regenerateToken
+  verifyAccount
 } from "./auth";
-import { displayMap, setLocation } from "./leaflet";
-import { addReview, deleteReview } from "./review";
-import { updateUser, deleteUserData } from "./user";
-import { loadToursData } from "./tour";
-import { updateSettings } from "./updateSettings";
-import { bookTour } from "./stripe";
 import {
   adminContainerContent,
+  BookedTourCard,
   ReviewDetailCard,
   userDetailCard,
-  UserManagementForm,
-  BookedTourCard
+  UserManagementForm
 } from "./html";
-import flatpickr from "flatpickr";
-import { createTour, updateTour } from "./tour";
+import { displayMap, setLocation } from "./leaflet";
+import { addReview, deleteReview } from "./review";
+import { bookTour } from "./stripe";
+import { createTour, loadToursData, updateTour } from "./tour";
+import { updateSettings } from "./updateSettings";
+import { deleteUserData, updateUser } from "./user";
 
 // DOM ELEMENTS
 const leafletMap = document.getElementById("map");
@@ -269,16 +268,50 @@ if (verifyAccountPageEl) {
 }
 
 if (account) {
-  navLists.forEach(el => {
-    el.addEventListener("click", function(e) {
-      el.classList.add("side-nav--active");
-      if (el !== e.target) el.classList.remove("side-nav--active");
-    });
+  const sections = document.querySelectorAll(".user-view__content-box");
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const hash = window.location.hash;
+    navLists.forEach(nav => nav.classList.remove("side-nav--active"));
+
+    if (hash) {
+      const targetSection = document.querySelector(hash);
+      if (targetSection) {
+        targetSection.style.display = "block";
+        document
+          .querySelector(`[data-nav="${targetSection.dataset.section}"]`)
+          .classList.add("side-nav--active");
+      }
+    } else {
+      account.querySelector("#settings").style.display = "block";
+      document
+        .querySelector(`[data-nav="0"]`)
+        .classList.add("side-nav--active");
+    }
+  });
+
+  document.addEventListener("hashChange", () => {
+    const hash = window.location.hash;
+    navLists.forEach(nav => nav.classList.remove("side-nav--active"));
+
+    if (hash) {
+      const targetSection = document.querySelector(hash);
+      if (targetSection) {
+        targetSection.style.display = "block";
+        document
+          .querySelector(`[data-nav="${targetSection.dataset.section}"]`)
+          .classList.add("side-nav--active");
+      }
+    } else {
+      account.querySelector("#settings").style.display = "block";
+      document
+        .querySelector(`[data-nav="0"]`)
+        .classList.add("side-nav--active");
+    }
   });
 
   navMenu.addEventListener("click", function(e) {
     const clicked = e.target.closest(".side-nav-list");
-    const sections = document.querySelectorAll(".user-view__content-box");
 
     // Guard clause
     if (!clicked) return;
