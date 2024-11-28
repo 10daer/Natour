@@ -14,13 +14,13 @@ dotenv.config({ path: "./config.env" });
 const app = require("./app");
 
 // For the online mongoDB Atlas
-// const DB = process.env.DATABASE_CLOUD.replace(
-//   "<PASSWORD>",
-//   process.env.DATABASE_PASSWORD
-// );
+const DB = process.env.DATABASE_CLOUD.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
 
 // For the Local MongoDB STorage
-const DB = process.env.DATABASE_LOCAL;
+// const DB = process.env.DATABASE_LOCAL;
 
 mongoose
   .connect(DB, {
