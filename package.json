@@ -17,6 +17,7 @@
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "choices.js": "^11.0.2",
+    "compression": "^1.7.5",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -56,6 +57,6 @@
     "webpack-cli": "^5.1.4"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=16.0.0"
   }
 }

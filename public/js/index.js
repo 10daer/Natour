@@ -50,13 +50,14 @@ const usersAdminForm = document.querySelector(".admin-section--0");
 const reviewAdminForm = document.querySelector(".admin-section--1");
 const bookingAdminForm = document.querySelector(".admin-section--2");
 const selectTour = document.getElementById("tour-options");
-const accountPage = document.getElementById("account");
 const manageTourForm = document.getElementById("manage-tours");
 const tourForm = document.getElementById("tourForm");
 const verifyAccountPageEl = document.querySelector(".verify-account");
+const alertMessage = document.querySelector("body").dataset.alert;
 
 let timer;
 
+if (alertMessage) showAlert("success", alertMessage, 20);
 // DELEGATIONS
 if (leafletMap) {
   const initialValue = [27.9881, 86.925];
@@ -125,18 +126,17 @@ if (userDataForm)
       email.value === email.defaultValue &&
       (!photoNewlySelected || photo.files.length === 0);
 
-    if (formIsNotChanged) {
+    if (formIsNotChanged)
       return showAlert("error", "You haven't made any change!");
-    } else {
-      const form = new FormData();
-      if (name.value !== name.defaultValue) form.append("name", name.value);
-      if (email.value !== email.defaultValue) form.append("email", email.value);
-      if (photoNewlySelected && photo.files.length > 0)
-        form.append("photo", photo.files[0]);
 
-      await updateSettings(form, "data");
-      photoNewlySelected = false;
-    }
+    const form = new FormData();
+    if (name.value !== name.defaultValue) form.append("name", name.value);
+    if (email.value !== email.defaultValue) form.append("email", email.value);
+    if (photoNewlySelected && photo.files.length > 0)
+      form.append("photo", photo.files[0]);
+
+    await updateSettings(form, "data");
+    photoNewlySelected = false;
   });
 
 if (userPasswordForm)
@@ -167,6 +167,9 @@ if (verifyAccountPageEl) {
   const hiddenInput = verifyForm.querySelector("#hidden-input");
 
   const startLogOutTimer = function() {
+    // Set time to 5 minutes
+    let time = 180;
+
     const tick = function() {
       const min = String(Math.trunc(time / 60)).padStart(2, 0);
       const sec = String(time % 60).padStart(2, 0);
@@ -181,7 +184,7 @@ if (verifyAccountPageEl) {
         resend.textContent = "Resend code";
         resend.classList.add("link");
         const resendLink = verifyAccountPageEl.querySelector(".link");
-        resendLink.addEventListener("click", async e => {
+        resendLink.addEventListener("click", async () => {
           inputs.forEach(input => {
             if (input.type !== "hidden") input.value = "";
           });
@@ -201,9 +204,6 @@ if (verifyAccountPageEl) {
       time--;
     };
 
-    // Set time to 5 minutes
-    let time = 180;
-
     // Call the timer every second
     tick();
     const setTimer = setInterval(tick, 1000);
@@ -211,7 +211,7 @@ if (verifyAccountPageEl) {
     return setTimer;
   };
 
-  resend.addEventListener("click", async e => {
+  resend.addEventListener("click", async () => {
     inputs.forEach(input => {
       if (input.type !== "hidden") input.value = "";
     });
@@ -368,6 +368,7 @@ if (manageTourForm)
 
       const createLocations = () => {
         const loc = [];
+        let locationIsSimilar = true;
         groupLat.querySelectorAll("input").forEach((el, i) => {
           loc[i] = {};
           loc.at(i).coordinates = [];
@@ -383,21 +384,58 @@ if (manageTourForm)
         groupDescription.querySelectorAll("textarea").forEach((el, i) => {
           loc.at(i).description = el.value;
         });
+
+        if (!tourId) return;
+
+        tour.locations.forEach((el, i) => {
+          if (
+            +el.coordinates[0] !== +loc[i].coordinates[0] ||
+            +el.coordinates[1] !== +loc[i].coordinates[1]
+          )
+            locationIsSimilar = false;
+
+          if (+el.day !== +loc[i].day) locationIsSimilar = false;
+
+          if (el.description !== loc[i].description) locationIsSimilar = false;
+        });
+        if (locationIsSimilar) return {};
+
         return loc;
       };
 
-      const createStartLocation = tour => {
+      const createStartLocation = val => {
         const loc = {};
+        let locationIsSimilar = true;
+
         loc.type = "Point";
-        if (+tour.startLocation.coordinates[0] !== +startLocationLat.value)
-          loc.coordinates[0] = +startLocationLat.value;
-        if (+tour.startLocation.coordinates[1] !== +startLocationLng.value)
-          loc.coordinates[1] = +startLocationLng.value;
-        if (tour.startLocation.address !== startLocationAddress.value)
-          loc.address = startLocationAddress.value;
-        if (tour.startLocation.description !== startLocationDescription.value)
-          loc.description = startLocationDescription.value;
+        loc.coordinates = [+startLocationLat.value, +startLocationLng.value];
+        loc.address = startLocationAddress.value;
+        loc.description = startLocationDescription.value;
+
+        if (!tourId) return;
+        if (
+          +val.startLocation.coordinates[0] !== +loc.coordinates[0] ||
+          +val.startLocation.coordinates[1] !== +loc.coordinates[1]
+        )
+          locationIsSimilar = false;
+
+        if (val.startLocation.address !== loc.address)
+          locationIsSimilar = false;
+
+        if (val.startLocation.description !== loc.description)
+          locationIsSimilar = false;
+
+        if (locationIsSimilar) return {};
+
         return loc;
+      };
+
+      const areArrEqual = (arr1, arr2) => {
+        if (arr1.length !== arr2.length) return false;
+        const sortedArr1 = [...arr1].sort();
+        const sortedArr2 = [...arr2].sort();
+
+        return sortedArr1.every((val, i) => val === sortedArr2[i]);
       };
 
       const createFormData = () => {
@@ -405,37 +443,65 @@ if (manageTourForm)
         const locations = createLocations();
         const startLocation = createStartLocation(tour);
         const selectedGuides = guideChoice.getValue().map(el => el.value);
+        const tourGuides = tour.guides.map(el => el._id);
+        const newSelectedDate = [
+          ...startDates.selectedDates.map(el => el.toISOString())
+        ];
 
-        if (difficulty.value && difficulty.value !== tour.difficulty)
-          form.append("difficulty", difficulty.value);
-        if (description.value && description.value !== tour.description)
-          form.append("description", description.value);
-        if (duration.value && +duration.value !== +tour.duration)
-          form.append("duration", duration.value);
-        if (selectedGuides) form.append("guides", selectedGuides);
-        if (imageCover.files.length > 0)
-          form.append("imageCover", imageCover.files[0]);
-        if (addImages.files.length > 0)
-          form.append(
-            "images",
-            addImages.files.map(el => el)
-          );
-        if (locations.length > 0) form.append("locations", locations);
-        if (maxGroupSize.value && +maxGroupSize.value !== +tour.maxGroupSize)
-          form.append("maxGroupSize", +maxGroupSize.value);
-        if (tourName.value && tourName.value !== tour.name)
-          form.append("name", tourName.value);
-        if (price.value && +price.value !== +tour.price)
-          form.append("price", +price.value);
-        if (summary.value && summary.value !== tour.summary)
-          form.append("summary", summary.value);
-        if (startDates.selectedDates)
-          form.append("startDates", [startDates.selectedDates]);
-        if (Object.entries(startLocation).length > 1)
-          form.append("startLocation", startLocation);
-
-        for (const [key, value] of form.entries()) {
-          console.log(`${key}:${value}`);
+        if (tourId) {
+          if (difficulty.value && difficulty.value !== tour.difficulty)
+            form.append("difficulty", difficulty.value);
+          if (description.value && description.value !== tour.description)
+            form.append("description", description.value);
+          if (duration.value && +duration.value !== +tour.duration)
+            form.append("duration", duration.value);
+          if (selectedGuides && !areArrEqual(tourGuides, selectedGuides))
+            form.append("guides", selectedGuides);
+          if (imageCover.files.length > 0)
+            form.append("imageCover", imageCover.files[0]);
+          if (addImages.files.length > 0)
+            form.append(
+              "images",
+              addImages.files.map(el => el)
+            );
+          if (locations.length > 0) form.append("locations", locations);
+          if (maxGroupSize.value && +maxGroupSize.value !== +tour.maxGroupSize)
+            form.append("maxGroupSize", +maxGroupSize.value);
+          if (tourName.value && tourName.value !== tour.name)
+            form.append("name", tourName.value);
+          if (price.value && +price.value !== +tour.price)
+            form.append("price", +price.value);
+          if (summary.value && summary.value !== tour.summary)
+            form.append("summary", summary.value);
+          if (
+            newSelectedDate.length > 0 &&
+            !areArrEqual(newSelectedDate, tour.startDates)
+          )
+            form.append("startDates", newSelectedDate);
+          if (Object.entries(startLocation).length > 0)
+            form.append("startLocation", startLocation);
+        } else {
+          if (difficulty.value) form.append("difficulty", difficulty.value);
+          if (description.value) form.append("description", description.value);
+          if (duration.value) form.append("duration", duration.value);
+          if (selectedGuides) form.append("guides", selectedGuides);
+          if (maxGroupSize.value)
+            form.append("maxGroupSize", +maxGroupSize.value);
+          if (summary.value) form.append("summary", summary.value);
+          if (newSelectedDate.length > 0)
+            form.append("startDates", newSelectedDate);
+          if (tourName.value) form.append("name", tourName.value);
+          if (price.value) form.append("price", +price.value);
+          if (imageCover.files.length > 0)
+            form.append("imageCover", imageCover.files[0]);
+          if (addImages.files.length > 0)
+            form.append(
+              "images",
+              addImages.files.map(el => el)
+            );
+          if (Object.entries(startLocation).length > 0)
+            form.append("startLocation", startLocation);
+          if (locations.length > 0) form.append("locations", locations);
         }
 
         return form;
@@ -446,7 +512,6 @@ if (manageTourForm)
           if (!tours.length) tours = await loadToursData();
           const id = e.target.value;
           tour = tours.find(el => el.id === id);
-          console.log(tour);
           if (tour) {
             clearTourForm();
 
@@ -490,7 +555,7 @@ if (manageTourForm)
             tourForm.querySelector("#startLocationDescription").value =
               tour.startLocation.description;
             startDates.setDate(tour.startDates);
-            const chosenGuides = tour.guides.map(guide => guide._id);
+            const chosenGuides = tour.guides.map(val => val._id);
             chosenGuides.forEach(optionValue => {
               guideChoice.setChoiceByValue(optionValue);
             });
@@ -505,11 +570,9 @@ if (manageTourForm)
           e.preventDefault();
           try {
             const data = createFormData();
-            console.log(data);
             await updateTour(data, tourId);
-            console.log("submitted");
           } catch (error) {
-            console.log(error);
+            clearTourForm();
           }
         });
 
@@ -518,12 +581,11 @@ if (manageTourForm)
         .addEventListener("click", async e => {
           e.preventDefault();
           try {
+            tourId = "";
             const data = createFormData();
-            console.log(data);
-            // await createTour(data);
-            console.log("submitted");
+            await createTour(data);
           } catch (error) {
-            console.log(error);
+            clearTourForm();
           }
         });
 
@@ -537,7 +599,7 @@ if (manageTourForm)
   });
 
 if (bookBtn)
-  bookBtn.addEventListener("click", async e => {
+  bookBtn.addEventListener("click", async () => {
     try {
       bookBtn.textContent = "Processing...";
       const tourId = tourSection.dataset.tourid;
@@ -555,12 +617,14 @@ if (reviewRating)
   reviewStars.forEach(el =>
     el.addEventListener("click", function(e) {
       // Toggle active classes
-      reviewStars.forEach(el => {
-        el.classList.remove("popup-reviews__star--active");
+      reviewStars.forEach(star => {
+        star.classList.remove("popup-reviews__star--active");
 
-        el.dataset.index <=
-          e.target.closest(".popup-reviews__star").dataset.index &&
-          el.classList.add("popup-reviews__star--active");
+        if (
+          star.dataset.index <=
+          e.target.closest(".popup-reviews__star").dataset.index
+        )
+          star.classList.add("popup-reviews__star--active");
       });
       reviewRating.dataset.rating = e.target.closest(
         ".popup-reviews__star"
@@ -623,9 +687,9 @@ async function manageUserAction(e) {
     const form = document.getElementById("addUserForm");
     form.addEventListener("submit", createNewUser);
 
-    userCardContainer.addEventListener("click", async function(e) {
-      const userId = e.target.closest(".user-card").dataset.id;
-      if (e.target.closest("button")) {
+    userCardContainer.addEventListener("click", async function(event) {
+      const userId = event.target.closest(".user-card").dataset.id;
+      if (event.target.closest("button")) {
         await deleteUserData(userId);
         userCardContainer.querySelector(`[data-id="${userId}"]`).remove();
       } else {
@@ -733,9 +797,9 @@ async function manageReviewAction(e) {
     adminContainer.appendChild(userReviewContainer);
 
     userReviewContainer.querySelectorAll(".all-review").forEach(el =>
-      el.addEventListener("click", function(e) {
-        if (e.target.closest(".delete__reviews")) {
-          const reviewId = e.target.closest(".all-review").dataset.id;
+      el.addEventListener("click", function(event) {
+        if (event.target.closest(".delete__reviews")) {
+          const reviewId = event.target.closest(".all-review").dataset.id;
           deleteReview(reviewId);
         }
       })

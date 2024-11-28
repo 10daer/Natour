@@ -49,7 +49,7 @@ export const createTour = async data => {
     });
 
     if (res.data.status === "success") {
-      showAlert("success", "Tour created successfully");
+      showAlert("success", "New tour created successfully");
     }
   } catch (err) {
     console.log(err.response.data.message);

@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const compression = require('compression');
 
 // Routers
 const tourRouter = require("./Routes/tourRoutes");
@@ -15,10 +16,13 @@ const userRouter = require("./Routes/userRoutes");
 const reviewRouter = require("./Routes/reviewRoutes");
 const viewRouter = require("./Routes/viewRoutes");
 const bookingRouter = require("./Routes/bookingRoutes");
+const bookingController = require("./Controller/bookingController");
 const { uncaughtRoutes } = require("./Controller/tourController");
 const globalErrorHandler = require("./Controller/errorController");
 
 const app = express();
+
+app.enable("trust proxy");
 
 // 1) GLOBAL MIDDLEWARES
 app.set("view engine", "pug");
@@ -66,16 +70,26 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// Use CORS middleware
-app.use(
-  cors({
-    origin: "http://localhost:8001",
-    credentials: true
-  })
-);
+// Implement CORS
+app.use(cors());
+
+// // Use CORS middleware
+// app.use(
+//   cors({
+//     origin: "http://localhost:8001",
+//     credentials: true
+//   })
+// );
 
 // Handle preflight requests for all routes
 app.options("*", cors());
+
+// Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  bookingController.webhookCheckout
+);
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: "10kb" }));
@@ -101,6 +115,8 @@ app.use(
     ]
   })
 );
+
+app.use(compression());
 
 // Test middleware
 app.use((req, res, next) => {

@@ -29,7 +29,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  .then(con => console.log("DB Connection Successful"))
+  .then(() => console.log("DB Connection Successful"))
   .catch(err => console.log(`${err.name} connecting to DB: ${err.message}`));
 
 const port = process.env.PORT || 3000;
@@ -43,4 +43,9 @@ process.on("unhandledRejection", err => {
   console.log("UNHANDLED REJECTIONS! Shutting down...");
 
   server.close(() => process.exit(1));
+});
+
+process.on("SIGTERM", () => {
+  console.log("👋 SIGTERM RECEIVED: Shutting down gracefully");
+  server.close(() => console.log("🔥 Process Terminated..."));
 });

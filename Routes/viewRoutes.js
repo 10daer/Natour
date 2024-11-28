@@ -3,7 +3,6 @@ const express = require("express");
 const Router = express.Router();
 const viewController = require("../Controller/viewController");
 const authController = require("../Controller/authController");
-const bookingController = require("../Controller/bookingController");
 
 Router.get(
   "/me",
@@ -17,13 +16,6 @@ Router.post(
   viewController.updateUserData
 );
 Router.get("/verify-account", viewController.getVerificationPage);
-
-Router.get(
-  "/booked-tours",
-  bookingController.createBookingCheckout,
-  authController.protectedRoute,
-  viewController.getBookedToursPage
-);
 
 Router.use(authController.isLoggedIn);
 
