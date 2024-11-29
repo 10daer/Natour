@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 const pug = require("pug");
-const htmlToText = require("html-to-text");
+const { convert } = require("html-to-text");
 
 module.exports = class Email {
   constructor(user, url) {
@@ -47,7 +47,7 @@ module.exports = class Email {
       to: this.to,
       subject,
       html,
-      text: htmlToText.fromString(html)
+      text: convert(html)
     };
 
     // 3) Create a transport and send email
@@ -65,11 +65,15 @@ module.exports = class Email {
     );
   }
 
-  async sendAccountVerification() {
+  async sendVerificationCode() {
     await this.send(
-      "verifyAccount",
+      "verifyCode",
       "Your Natour Account Verification Code (Only valid for 5mins)"
     );
+  }
+
+  async sendVerificationEmail() {
+    await this.send("verifyEmail", "Verify Your Email - Natours");
   }
 };
 

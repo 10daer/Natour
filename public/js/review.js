@@ -19,7 +19,7 @@ export const addReview = async (review, rating, tour) => {
       showAlert("success", "Your review has been added successfully!");
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     showAlert("error", err.response.data.message);
   }
 };
@@ -38,7 +38,7 @@ export const deleteReview = async id => {
     });
     showAlert("success", "Your review has been deleted!");
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     showAlert("error", err.response.data.message);
   }
 };

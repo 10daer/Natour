@@ -14,7 +14,7 @@ export const loadToursData = async () => {
       return res.data.data.data;
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return [];
   }
 };
@@ -32,7 +32,7 @@ export const updateTour = async (data, id) => {
       showAlert("success", "Tour updated successfully");
     }
   } catch (err) {
-    console.log(err.response.data.message);
+    // console.log(err.response.data.message);
     showAlert("error", err.response.data.message);
     throw new Error(err.response.data.message);
   }
@@ -51,7 +51,7 @@ export const createTour = async data => {
       showAlert("success", "New tour created successfully");
     }
   } catch (err) {
-    console.log(err.response.data.message);
+    // console.log(err.response.data.message);
     showAlert("error", err.response.data.message);
     throw new Error(err.response.data.message);
   }

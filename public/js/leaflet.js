@@ -58,7 +58,7 @@ export const displayMap = locations => {
       });
     }
   } catch (err) {
-    console.log(err.message);
+    // console.log(err.message);
   }
 };
 
@@ -117,7 +117,7 @@ export const setLocation = (locations, checked) => {
       }
     });
   } catch (err) {
-    console.log(err.message);
+    // console.log(err.message);
   }
 };
 

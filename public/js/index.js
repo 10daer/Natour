@@ -189,13 +189,13 @@ if (verifyAccountPageEl) {
           });
           const html = `<span>Resend verification code in </span><span class="timer">03:00</span>`;
           const data = hiddenInput.value;
+          await regenerateToken(data);
           resend.textContent = "";
           resend.insertAdjacentHTML("beforeend", html);
           resend.classList.remove("link");
           timerEl = verifyAccountPageEl.querySelector(".timer");
           clearInterval(timer);
           timer = startLogOutTimer();
-          await regenerateToken(data);
         });
       }
 

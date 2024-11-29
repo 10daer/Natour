@@ -57,6 +57,9 @@ exports.verifyAccount = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   responseWithToken(user, req, res, 201);
+
+  const url = `${req.protocol}://${req.get("host")}/me`;
+  await new Email(user, url).sendWelcome();
 });
 
 exports.generateVerificationToken = catchAsync(async (req, res, next) => {
@@ -83,7 +86,7 @@ exports.generateVerificationToken = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // console.log(verificationToken);
-    await new Email(user, verificationToken).sendAccountVerification();
+    await new Email(user, verificationToken).sendVerificationCode();
     res.status(200).json({
       status: "success",
       data: user.email,
@@ -114,10 +117,16 @@ exports.signUp = catchAsync(async (req, res, next) => {
     role: req.body.role
   };
   const newUser = await Users.create(newUserObj);
-  const url = `${req.protocol}://${req.get("host")}/me`;
-  await new Email(newUser, url).sendWelcome();
+  const url = `${req.protocol}://${req.get(
+    "host"
+  )}/verify-account?user=${encodeURIComponent(newUser.email)}`;
+  await new Email(newUser, url).sendVerificationEmail();
 
-  next();
+  res.status(201).json({
+    status: "success",
+    message:
+      "Your account has been created successfully. Proceed to verify your account."
+  });
 });
 
 exports.logIn = catchAsync(async (req, res, next) => {

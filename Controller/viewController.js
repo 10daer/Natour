@@ -33,6 +33,7 @@ exports.getUserBookingsAndReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.getHomePage = catchAsync(async (req, res, next) => {
+  const tours = await Tour.find();
   const topTours = await Tour.find({})
     .limit(3)
     .sort("-ratingsAverage price");

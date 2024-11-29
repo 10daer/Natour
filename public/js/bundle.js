@@ -137,10 +137,10 @@ var fetchAll = /*#__PURE__*/function () {
         case 10:
           _context2.prev = 10;
           _context2.t0 = _context2["catch"](0);
-          console.log(_context2.t0.response.data.message);
+          // console.log(err.response.data.message);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
           throw new Error(_context2.t0.response.data.message);
-        case 15:
+        case 14:
         case "end":
           return _context2.stop();
       }
@@ -268,6 +268,7 @@ var signup = /*#__PURE__*/function () {
         case 8:
           _context5.prev = 8;
           _context5.t0 = _context5["catch"](0);
+          // console.log(err.response.data);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context5.t0.response.data.message);
         case 11:
         case "end":
@@ -300,14 +301,14 @@ var regenerateToken = /*#__PURE__*/function () {
           if (res.data.status === "success") {
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Verification code sent successfully!");
           }
-          _context6.next = 11;
+          _context6.next = 10;
           break;
         case 7:
           _context6.prev = 7;
           _context6.t0 = _context6["catch"](0);
-          console.log(_context6.t0.response.data);
+          // console.log(err.response.data);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context6.t0.response.data.message);
-        case 11:
+        case 10:
         case "end":
           return _context6.stop();
       }
@@ -341,14 +342,14 @@ var verifyAccount = /*#__PURE__*/function () {
               location.assign("/me");
             }, 1000);
           }
-          _context7.next = 11;
+          _context7.next = 10;
           break;
         case 7:
           _context7.prev = 7;
           _context7.t0 = _context7["catch"](0);
-          console.log(_context7.t0.response.data);
+          // console.log(err.response.data);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context7.t0.response.data.message);
-        case 11:
+        case 10:
         case "end":
           return _context7.stop();
       }
@@ -373,14 +374,14 @@ var logout = /*#__PURE__*/function () {
         case 3:
           res = _context8.sent;
           if (res.data.status = "success") location.assign("/");
-          _context8.next = 11;
+          _context8.next = 10;
           break;
         case 7:
           _context8.prev = 7;
           _context8.t0 = _context8["catch"](0);
-          console.log(_context8.t0);
+          // console.log(err);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", "Error logging out! Try again.");
-        case 11:
+        case 10:
         case "end":
           return _context8.stop();
       }
@@ -521,7 +522,7 @@ var displayMap = function displayMap(locations) {
       });
     }
   } catch (err) {
-    console.log(err.message);
+    // console.log(err.message);
   }
 };
 var setLocation = function setLocation(locations, checked) {
@@ -570,7 +571,7 @@ var setLocation = function setLocation(locations, checked) {
       }
     });
   } catch (err) {
-    console.log(err.message);
+    // console.log(err.message);
   }
 };
 function loadMapLocation(locations) {
@@ -678,14 +679,14 @@ var addReview = /*#__PURE__*/function () {
           if (res.data.status === "success") {
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Your review has been added successfully!");
           }
-          _context.next = 11;
+          _context.next = 10;
           break;
         case 7:
           _context.prev = 7;
           _context.t0 = _context["catch"](0);
-          console.log(_context.t0);
+          // console.log(err);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context.t0.response.data.message);
-        case 11:
+        case 10:
         case "end":
           return _context.stop();
       }
@@ -715,14 +716,14 @@ var deleteReview = /*#__PURE__*/function () {
             if (el.dataset.id === id) el.closest("li").remove();
           });
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Your review has been deleted!");
-          _context2.next = 13;
+          _context2.next = 12;
           break;
         case 9:
           _context2.prev = 9;
           _context2.t0 = _context2["catch"](0);
-          console.log(_context2.t0);
+          // console.log(err);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
-        case 13:
+        case 12:
         case "end":
           return _context2.stop();
       }
@@ -772,14 +773,13 @@ var bookTour = /*#__PURE__*/function () {
             sessionId: session.data.session.id
           });
         case 7:
-          _context.next = 13;
+          _context.next = 12;
           break;
         case 9:
           _context.prev = 9;
           _context.t0 = _context["catch"](0);
-          console.log(_context.t0);
           throw new Error("Unable to book this tour at this moment");
-        case 13:
+        case 12:
         case "end":
           return _context.stop();
       }
@@ -834,14 +834,13 @@ var loadToursData = /*#__PURE__*/function () {
           }
           return _context.abrupt("return", res.data.data.data);
         case 6:
-          _context.next = 12;
+          _context.next = 11;
           break;
         case 8:
           _context.prev = 8;
           _context.t0 = _context["catch"](0);
-          console.log(_context.t0);
           return _context.abrupt("return", []);
-        case 12:
+        case 11:
         case "end":
           return _context.stop();
       }
@@ -870,15 +869,15 @@ var updateTour = /*#__PURE__*/function () {
           if (res.data.status === "success") {
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "Tour updated successfully");
           }
-          _context2.next = 12;
+          _context2.next = 11;
           break;
         case 7:
           _context2.prev = 7;
           _context2.t0 = _context2["catch"](0);
-          console.log(_context2.t0.response.data.message);
+          // console.log(err.response.data.message);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context2.t0.response.data.message);
           throw new Error(_context2.t0.response.data.message);
-        case 12:
+        case 11:
         case "end":
           return _context2.stop();
       }
@@ -907,15 +906,15 @@ var createTour = /*#__PURE__*/function () {
           if (res.data.status === "success") {
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "New tour created successfully");
           }
-          _context3.next = 12;
+          _context3.next = 11;
           break;
         case 7:
           _context3.prev = 7;
           _context3.t0 = _context3["catch"](0);
-          console.log(_context3.t0.response.data.message);
+          // console.log(err.response.data.message);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context3.t0.response.data.message);
           throw new Error(_context3.t0.response.data.message);
-        case 12:
+        case 11:
         case "end":
           return _context3.stop();
       }
@@ -983,14 +982,14 @@ var updateSettings = /*#__PURE__*/function () {
             email.value = email.defaultValue = responseData.email;
             (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("success", "".concat(type.toUpperCase(), " updated successfully!"));
           }
-          _context.next = 12;
+          _context.next = 11;
           break;
         case 8:
           _context.prev = 8;
           _context.t0 = _context["catch"](0);
-          console.log(_context.t0);
+          // console.log(err);
           (0,_alerts__WEBPACK_IMPORTED_MODULE_0__.showAlert)("error", _context.t0.response.data.message);
-        case 12:
+        case 11:
         case "end":
           return _context.stop();
       }
@@ -14092,14 +14091,15 @@ if (verifyAccountPageEl) {
                 });
                 html = "<span>Resend verification code in </span><span class=\"timer\">03:00</span>";
                 data = hiddenInput.value;
+                _context3.next = 5;
+                return (0,_auth__WEBPACK_IMPORTED_MODULE_2__.regenerateToken)(data);
+              case 5:
                 resend.textContent = "";
                 resend.insertAdjacentHTML("beforeend", html);
                 resend.classList.remove("link");
                 timerEl = verifyAccountPageEl.querySelector(".timer");
                 clearInterval(timer);
                 timer = _startLogOutTimer();
-                _context3.next = 11;
-                return (0,_auth__WEBPACK_IMPORTED_MODULE_2__.regenerateToken)(data);
               case 11:
               case "end":
                 return _context3.stop();

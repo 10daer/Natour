@@ -15,7 +15,7 @@ export const bookTour = async tourId => {
       sessionId: session.data.session.id
     });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw new Error("Unable to book this tour at this moment");
   }
 };
