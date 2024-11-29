@@ -82,8 +82,8 @@ exports.generateVerificationToken = catchAsync(async (req, res, next) => {
     const verificationToken = user.generateVerificationToken();
     await user.save({ validateBeforeSave: false });
 
-    console.log(verificationToken);
-    // await new Email(user, verificationToken).sendAccountVerification();
+    // console.log(verificationToken);
+    await new Email(user, verificationToken).sendAccountVerification();
     res.status(200).json({
       status: "success",
       data: user.email,
@@ -115,7 +115,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   };
   const newUser = await Users.create(newUserObj);
   const url = `${req.protocol}://${req.get("host")}/me`;
-  // await new Email(newUser, url).sendWelcome();
+  await new Email(newUser, url).sendWelcome();
 
   next();
 });
@@ -241,8 +241,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       "host"
     )}/resetpassword/${resetToken}`;
 
-    console.log(resetUrl);
-    // await new Email(user, resetUrl).sendPasswordReset();
+    // console.log(resetUrl);
+    await new Email(user, resetUrl).sendPasswordReset();
     res.status(200).json({
       status: "success",
       message: "The reset link has been successfully sent to your mail"
